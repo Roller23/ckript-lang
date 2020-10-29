@@ -8,6 +8,18 @@
 #include <cstdint>
 #include <map>
 
+static void add_junk(std::vector<Token> &v, Lexer *l, const char c) {
+  std::string junk;
+  junk = c;
+  l->log("[UNKNOWN: " + junk + "], ");
+  v.push_back(Token(Token::UNKNOWN, junk));
+}
+
+static void add_junk(std::vector<Token> &v, Lexer *l, const std::string &s) {
+  l->log("[UNKNOWN: " + s + "], ");
+  v.push_back(Token(Token::UNKNOWN, s));
+}
+
 Token::Token(enum type _type, std::string _value) {
   this->type = _type;
   this->value = _value;
@@ -36,8 +48,8 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
   std::vector<Token> tokens;
   auto ptr = code.begin();
   auto end = code.end();
-  std::string chars = ".,:;{}[]()!";
-  std::string chars2 = "=+-*&^|/<>";
+  std::string chars = ".,:;{}[]()";
+  std::string chars2 = "=+-*&|/<>!%";
   std::locale loc{""};
   while (ptr != end) {
     while (ptr != end && isspace(*ptr, loc)) {
@@ -118,19 +130,46 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
       } else if (isdigit(c, loc)) {
         std::string number_str = "";
         while (isdigit(*ptr, loc)) {
-          number_str += *ptr;
-          ptr++;
+          number_str += *ptr++;
         }
         ptr--;
         log("[NUMBER: " + number_str + "], ");
         tokens.push_back(Token(Token::NUMBER, number_str));
+      } else if (chars2.find(c) != std::string::npos) {
+        std::string op = "";
+        while (chars2.find(*ptr) != std::string::npos) {
+          op += *ptr++;
+        }
+        ptr--;
+        if (op.size() == 1) {
+          std::stringstream s;
+          s << "[" << c << "], ";
+          log(s.str());
+          std::cout << std::flush;
+          tokens.push_back(Token(Token::get_type(c), ""));
+        } else if (op.size() == 2) {
+          if (op == "==") {
+            log("[OP_ASSIGN: " + op + "], ");
+            tokens.push_back(Token(Token::OP_ASSIGN, op));
+          } else if (op == "&&") {
+            log("[OP_AND: " + op + "], ");
+            tokens.push_back(Token(Token::OP_AND, op));
+          } else if (op == "||") {
+            log("[OP_OR: " + op + "], ");
+            tokens.push_back(Token(Token::OP_OR, op));
+          } else {
+            add_junk(tokens, this, op);
+          }
+        } else {
+          add_junk(tokens, this, op);
+        }
+      } else {
+        add_junk(tokens, this, c);
       }
     }
     ptr++;
   }
-  log("[EOF]");
   log("\n");
-  tokens.push_back(Token(Token::_EOF, ""));
   return tokens;
 }
 

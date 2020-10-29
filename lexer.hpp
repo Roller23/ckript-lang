@@ -17,8 +17,9 @@ class Token {
       FUNCTION, THREAD, RETURN, IF, FOR, WHILE, ALLOC, TYPE, // keywords
 
       OP_AND, OP_OR, OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
-      OP_MOD = '%', OP_EQ = '=', OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_OR_BIT = '|', OP_AND_BIT = '&',
-      OP_GT_BIT, OP_LT_BIT, // operators
+      OP_MOD = '%', OP_EQ, OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_OR_BIT = '|', OP_AND_BIT = '&',
+      OP_GT_BIT, OP_LT_BIT,
+      OP_ASSIGN = '=', // operators
 
       DOT = '.', COMMA = '.', COLON = ':', SEMI_COLON = ';', IDENTIFIER,
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
@@ -27,7 +28,6 @@ class Token {
 
       FALSE, TRUE, // booleans
 
-      _EOF, // end of file
       UNKNOWN // junk
     } _type_;
     enum type type;
