@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   Interpreter interpreter;
-  std::string filename = argv[1];
-  interpreter.process_file(filename);
+  // std::string filename = argv[1];
+  interpreter.process_file("hello.ck");
   return 0;
 }

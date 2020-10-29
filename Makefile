@@ -1,15 +1,19 @@
 CC=g++
 main=main.cpp
 out=main.out
-flags=-g -o0
+flags=-g -O0
 files=lexer.cpp interpreter.cpp
 m=Automated Makefile push message
+input_file=hello.ck
 
 all:
 	$(CC) $(flags) -o $(out) $(main) $(files)
 
 run:
-	./$(out)
+	./$(out) $(input_file)
+
+debug:
+	gdb ./$(out)
 
 clean:
 	rm *.out
