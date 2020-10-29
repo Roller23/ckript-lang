@@ -1,2 +1,4 @@
 # ckript-lang
-Ckript programming language interpreter
+An interpreter for my own programming language (Ckript)
+
+WIP
