@@ -38,6 +38,20 @@ bool Lexer::valid_float(const std::string &str) {
   return *endptr == 0;
 }
 
+void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
+  log("[UNKNOWN: " + str + "], ");
+  tokens.push_back(Token(Token::UNKNOWN, str));
+  this->last_error = TOKENIZING_ERROR;
+}
+
+void Lexer::add_char_token(TokenList &tokens, const char c) {
+  std::stringstream s;
+  s << "[" << c << "], ";
+  log(s.str());
+  std::cout << std::flush;
+  tokens.push_back(Token((Token::TokenType)c, ""));
+}
+
 TokenList Lexer::tokenize(const std::string &code) {
   TokenList tokens;
   auto ptr = code.begin();
@@ -54,15 +68,10 @@ TokenList Lexer::tokenize(const std::string &code) {
     }
     const char c = *ptr;
     if (contains(chars, c)) {
-      std::stringstream s;
-      s << "[" << c << "], ";
-      log(s.str());
-      std::cout << std::flush;
-      tokens.push_back(Token((Token::TokenType)c, ""));
+      add_char_token(tokens, c);
     } else {
-      std::string token_str;
       if (isalpha(c, loc)) {
-        token_str = c;
+        std::string token_str(1, c);
         while (++ptr != end && isalnum(*ptr, loc)) {
           token_str += *ptr;
         }
@@ -173,8 +182,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         if (!converted) {
           // couldn't convert the string to any type of number
-          log("[UNKNOWN: " + number_str + "], ");
-          tokens.push_back(Token(Token::UNKNOWN, number_str));
+          add_unknown_token(tokens, number_str);
         }
       } else if (contains(chars2, c)) {
         std::string op = "";
@@ -183,11 +191,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         ptr--;
         if (op.size() == 1) {
-          std::stringstream s;
-          s << "[" << c << "], ";
-          log(s.str());
-          std::cout << std::flush;
-          tokens.push_back(Token((Token::TokenType)c, ""));
+          add_char_token(tokens, c);
         } else if (op.size() == 2) {
           if (op == "==") {
             log("[OP_ASSIGN: " + op + "], ");
@@ -199,18 +203,14 @@ TokenList Lexer::tokenize(const std::string &code) {
             log("[OP_OR: " + op + "], ");
             tokens.push_back(Token(Token::OP_OR, ""));
           } else {
-            log("[UNKNOWN: " + op + "], ");
-            tokens.push_back(Token(Token::UNKNOWN, op));
+            add_unknown_token(tokens, op);
           }
         } else {
-          log("[UNKNOWN: " + op + "], ");
-          tokens.push_back(Token(Token::UNKNOWN, op));
+          add_unknown_token(tokens, op);
         }
       } else {
-        std::string junk;
-        junk = c;
-        log("[UNKNOWN: " + junk + "], ");
-        tokens.push_back(Token(Token::UNKNOWN, junk));
+        std::string junk(1, c);
+        add_unknown_token(tokens, junk);
       }
     }
     ptr++;

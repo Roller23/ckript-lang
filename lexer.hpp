@@ -10,7 +10,8 @@ class Lexer {
   public:
     enum lexing_error {
       OK = 0,
-      FILE_ERROR
+      FILE_ERROR,
+      TOKENIZING_ERROR
     };
     TokenList tokenize(const std::string &code);
     TokenList process_file(const std::string &filename);
@@ -23,6 +24,8 @@ class Lexer {
     bool contains(const std::string &str, const char needle) const;
     bool valid_number(const std::string &str, int base);
     bool valid_float(const std::string &str);
+    void add_unknown_token(TokenList &tokens, std::string str);
+    void add_char_token(TokenList &tokens, const char c);
 };
 
 #endif // __LEXER
