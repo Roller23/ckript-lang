@@ -11,7 +11,7 @@ void Interpreter::process_file(const std::string &filename) {
   Parser parser;
   CkriptVM VM;
   lexer.verbose = true;
-  auto tokens = lexer.process_file(filename);
+  TokenList tokens = lexer.process_file(filename);
   if (lexer.last_error) {
     if (lexer.last_error == Lexer::FILE_ERROR) {
       std::cout << "Couldn't open " + filename + "\n";

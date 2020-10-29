@@ -2,6 +2,11 @@
 #define __TOKEN_
 
 #include <string>
+#include <vector>
+
+class Token;
+
+typedef std::vector<Token> TokenList;
 
 class Token {
   public:
@@ -16,15 +21,15 @@ class Token {
       DOT = '.', COMMA = '.', COLON = ':', SEMI_COLON = ';', IDENTIFIER,
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
       RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')',
-      NUMBER, STRING_LITERAL,
+      STRING_LITERAL, DECIMAL, FLOAT, HEX, OCTAL, BINARY,
 
       FALSE, TRUE, UNDEF,
 
       UNKNOWN // junk
-    } token_type;
-    token_type type;
+    } TokenType;
+    TokenType type;
     std::string value;
-    Token(token_type _type, std::string _value);;
+    Token(TokenType _type, std::string _value);;
 };
 
 #endif // __TOKEN_

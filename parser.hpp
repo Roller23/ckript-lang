@@ -6,7 +6,7 @@
 
 class Parser {
   public:
-    void parse(std::vector<Token> &tokens);
+    void parse(TokenList &tokens);
 };
 
 #endif // __PARSER_

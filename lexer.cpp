@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <cstdint>
+#include <cstdlib>
 
 static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
@@ -16,13 +17,29 @@ static const char *_builtin_types[] = {
 const char **Lexer::builtin_types = _builtin_types;
 int Lexer::types_count = sizeof(_builtin_types) / sizeof(char *);
 
-void Lexer::log(std::string str) {
+void Lexer::log(std::string str) const {
   if (!this->verbose) return;
   std::cout << str << std::endl;
 }
 
-std::vector<Token> Lexer::tokenize(const std::string &code) {
-  std::vector<Token> tokens;
+bool Lexer::contains(const std::string &str, const char needle) const {
+  return str.find(needle) != std::string::npos;
+}
+
+bool Lexer::valid_number(const std::string &str, int base) {
+  char *endptr;
+  std::strtoull(str.c_str(), &endptr, base);
+  return *endptr == 0;
+}
+
+bool Lexer::valid_float(const std::string &str) {
+  char *endptr;
+  std::strtod(str.c_str(), &endptr);
+  return *endptr == 0;
+}
+
+TokenList Lexer::tokenize(const std::string &code) {
+  TokenList tokens;
   auto ptr = code.begin();
   auto end = code.end();
   std::string chars = ".,:;{}[]()";
@@ -36,12 +53,12 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
       break;
     }
     const char c = *ptr;
-    if (chars.find(c) != std::string::npos) {
+    if (contains(chars, c)) {
       std::stringstream s;
       s << "[" << c << "], ";
       log(s.str());
       std::cout << std::flush;
-      tokens.push_back(Token((Token::token_type)c, ""));
+      tokens.push_back(Token((Token::TokenType)c, ""));
     } else {
       std::string token_str;
       if (isalpha(c, loc)) {
@@ -111,16 +128,57 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
         log("[STRING_LITERAL: " + str + "], ");
         tokens.push_back(Token(Token::STRING_LITERAL, str));
       } else if (isdigit(c, loc)) {
+        // might be some kind of number
         std::string number_str = "";
-        while (isdigit(*ptr, loc)) {
+        while (isdigit(*ptr, loc) || *ptr == '.' || *ptr == 'x' || *ptr == 'b') {
           number_str += *ptr++;
         }
         ptr--;
-        log("[NUMBER: " + number_str + "], ");
-        tokens.push_back(Token(Token::NUMBER, number_str));
-      } else if (chars2.find(c) != std::string::npos) {
+        bool converted = false;
+        if (contains(number_str, 'x')) {
+          // might be a hex
+          if (valid_number(number_str, 16)) {
+            log("[HEX: " + number_str + "], ");
+            tokens.push_back(Token(Token::HEX, number_str));
+            converted = true;
+          }
+        } else if (contains(number_str, 'b') && number_str.size() > 2) {
+          // might be a binary number
+          if (valid_number(number_str.substr(2), 2)) {
+            log("[BINARY: " + number_str + "], ");
+            tokens.push_back(Token(Token::BINARY, number_str));
+            converted = true;
+          }
+        } else if (number_str.c_str()[0] == '0') {
+          // might be an octal number
+          if (valid_number(number_str, 8)) {
+            log("[OCTAL: " + number_str + "], ");
+            tokens.push_back(Token(Token::OCTAL, number_str));
+            converted = true;
+          }
+        } else if (contains(number_str, '.')) {
+          // might be a float
+          if (valid_float(number_str)) {
+            log("[FLOAT: " + number_str + "], ");
+            tokens.push_back(Token(Token::FLOAT, number_str));
+            converted = true;
+          }
+        } else {
+          // might be a decimal
+          if (valid_number(number_str, 16)) {
+            log("[DECIMAL: " + number_str + "], ");
+            tokens.push_back(Token(Token::DECIMAL, number_str));
+            converted = true;
+          }
+        }
+        if (!converted) {
+          // couldn't convert the string to any type of number
+          log("[UNKNOWN: " + number_str + "], ");
+          tokens.push_back(Token(Token::UNKNOWN, number_str));
+        }
+      } else if (contains(chars2, c)) {
         std::string op = "";
-        while (chars2.find(*ptr) != std::string::npos) {
+        while (contains(chars2, *ptr)) {
           op += *ptr++;
         }
         ptr--;
@@ -129,7 +187,7 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
           s << "[" << c << "], ";
           log(s.str());
           std::cout << std::flush;
-          tokens.push_back(Token((Token::token_type)c, ""));
+          tokens.push_back(Token((Token::TokenType)c, ""));
         } else if (op.size() == 2) {
           if (op == "==") {
             log("[OP_ASSIGN: " + op + "], ");
@@ -160,8 +218,8 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
   return tokens;
 }
 
-std::vector<Token> Lexer::process_file(const std::string &filename) {
-  std::vector<Token> result;
+TokenList Lexer::process_file(const std::string &filename) {
+  TokenList result;
   std::ifstream file(filename);
   if (!file) {
     this->last_error = FILE_ERROR;
