@@ -49,6 +49,7 @@ class Lexer {
     enum lexing_error last_error;
     bool verbose = false;
     static const char **builtin_types;
+    static int types_count;
 };
 
 #endif // __LEXER

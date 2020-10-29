@@ -25,10 +25,11 @@ static const char *_builtin_types[] = {
 };
 
 const char **Lexer::builtin_types = _builtin_types;
+int Lexer::types_count = sizeof(_builtin_types) / sizeof(char *);
 
 void Lexer::log(std::string str) {
   if (!this->verbose) return;
-  std::cout << str;
+  std::cout << str << std::endl;
 }
 
 std::vector<Token> Lexer::tokenize(const std::string &code) {
@@ -59,6 +60,7 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
         while (++ptr != end && isalnum(*ptr, loc)) {
           token_str += *ptr;
         }
+        ptr--;
         if (token_str == "function") {
           log("[FUNCTION], ");
           tokens.push_back(Token(Token::FUNCTION, ""));
@@ -87,9 +89,41 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
           log("[FALSE], ");
           tokens.push_back(Token(Token::FALSE, ""));
         } else {
-          log("[IDENTIFIER: " + token_str + "], ");
-          tokens.push_back(Token(Token::IDENTIFIER, token_str));
+          // to do - speed this up (LUT maybe?)
+          std::string found_type = "";
+          for (int i = 0; i < Lexer::types_count; i++) {
+            if (token_str == Lexer::builtin_types[i]) {
+              found_type = Lexer::builtin_types[i];
+              break;
+            }
+          }
+          if (found_type == "") {
+            log("[IDENTIFIER: " + token_str + "], ");
+            tokens.push_back(Token(Token::IDENTIFIER, token_str));
+          } else {
+            log("[TYPE: " + token_str + "], ");
+            tokens.push_back(Token(Token::TYPE, token_str));
+          }
         }
+      } else if (c == '"' || c == '\'' || c == '`') {
+        // start of a string
+        std::string str = "";
+        ptr++;
+        while (*ptr != c && ptr != end) {
+          str += *ptr;
+          ptr++;
+        }
+        log("[STRING_LITERAL: " + str + "], ");
+        tokens.push_back(Token(Token::STRING_LITERAL, str));
+      } else if (isdigit(c, loc)) {
+        std::string number_str = "";
+        while (isdigit(*ptr, loc)) {
+          number_str += *ptr;
+          ptr++;
+        }
+        ptr--;
+        log("[NUMBER: " + number_str + "], ");
+        tokens.push_back(Token(Token::NUMBER, number_str));
       }
     }
     ptr++;
