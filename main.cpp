@@ -5,9 +5,7 @@
 
 int main(int argc, char *argv[]) {
   if (argc == 1) {
-    Interpreter interpreter;
     // to do - create a shell
-    // interpreter.process_stream();
     return 0;
   }
   Interpreter interpreter;

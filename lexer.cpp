@@ -6,27 +6,6 @@
 #include <sstream>
 #include <cstdint>
 
-static void add_junk(std::vector<Token> &v, Lexer *l, const char c) {
-  std::string junk;
-  junk = c;
-  l->log("[UNKNOWN: " + junk + "], ");
-  v.push_back(Token(Token::UNKNOWN, junk));
-}
-
-static void add_junk(std::vector<Token> &v, Lexer *l, const std::string &s) {
-  l->log("[UNKNOWN: " + s + "], ");
-  v.push_back(Token(Token::UNKNOWN, s));
-}
-
-Token::Token(enum type _type, std::string _value) {
-  this->type = _type;
-  this->value = _value;
-}
-
-Token::_type_ Token::get_type(char c) {
-  return (enum type)c;
-}
-
 static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
   "uint8", "uint16", "uint32", "uint64",
@@ -62,7 +41,7 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
       s << "[" << c << "], ";
       log(s.str());
       std::cout << std::flush;
-      tokens.push_back(Token(Token::get_type(c), ""));
+      tokens.push_back(Token((Token::token_type)c, ""));
     } else {
       std::string token_str;
       if (isalpha(c, loc)) {
@@ -150,39 +129,45 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
           s << "[" << c << "], ";
           log(s.str());
           std::cout << std::flush;
-          tokens.push_back(Token(Token::get_type(c), ""));
+          tokens.push_back(Token((Token::token_type)c, ""));
         } else if (op.size() == 2) {
           if (op == "==") {
             log("[OP_ASSIGN: " + op + "], ");
-            tokens.push_back(Token(Token::OP_ASSIGN, op));
+            tokens.push_back(Token(Token::OP_ASSIGN, ""));
           } else if (op == "&&") {
             log("[OP_AND: " + op + "], ");
-            tokens.push_back(Token(Token::OP_AND, op));
+            tokens.push_back(Token(Token::OP_AND, ""));
           } else if (op == "||") {
             log("[OP_OR: " + op + "], ");
-            tokens.push_back(Token(Token::OP_OR, op));
+            tokens.push_back(Token(Token::OP_OR, ""));
           } else {
-            add_junk(tokens, this, op);
+            log("[UNKNOWN: " + op + "], ");
+            tokens.push_back(Token(Token::UNKNOWN, op));
           }
         } else {
-          add_junk(tokens, this, op);
+          log("[UNKNOWN: " + op + "], ");
+          tokens.push_back(Token(Token::UNKNOWN, op));
         }
       } else {
-        add_junk(tokens, this, c);
+        std::string junk;
+        junk = c;
+        log("[UNKNOWN: " + junk + "], ");
+        tokens.push_back(Token(Token::UNKNOWN, junk));
       }
     }
     ptr++;
   }
-  log("\n");
   return tokens;
 }
 
-void Lexer::process_file(const std::string &filename) {
+std::vector<Token> Lexer::process_file(const std::string &filename) {
+  std::vector<Token> result;
   std::ifstream file(filename);
   if (!file) {
     this->last_error = FILE_ERROR;
-    return;
+    return result;
   }
   std::string buffer(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{});
-  tokenize(buffer);
+  result = tokenize(buffer);
+  return result;
 }
