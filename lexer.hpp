@@ -5,16 +5,16 @@
 #include <fstream>
 #include <vector>
 
-      // FUNC, THR,
-      // INT8, INT16, INT32, INT64,
-      // UINT8, UINT16, UINT32, UINT64,
-      // DOUBLE, FLOAT,
-      // STRING, ARRAY, OBJECT, VOID, // build int types
+  // FUNC, THR,
+  // INT8, INT16, INT32, INT64,
+  // UINT8, UINT16, UINT32, UINT64,
+  // DOUBLE, FLOAT,
+  // STRING, ARRAY, OBJECT, VOID, // build int types
 
 class Token {
   public:
     typedef enum type {
-      FUNCTION, THREAD, RETURN, IF, FOR, WHILE, ALLOC, TYPE, // keywords
+      FUNCTION, THREAD, RETURN, IF, FOR, WHILE, ALLOC, TYPE, CONST, // keywords
 
       OP_AND, OP_OR, OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
       OP_MOD = '%', OP_EQ, OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_OR_BIT = '|', OP_AND_BIT = '&',

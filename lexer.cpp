@@ -4,9 +4,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <codecvt>
 #include <cstdint>
-#include <map>
 
 static void add_junk(std::vector<Token> &v, Lexer *l, const char c) {
   std::string junk;
@@ -33,7 +31,7 @@ static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
   "uint8", "uint16", "uint32", "uint64",
   "f64", "f32",
-  "func", "thr", "string", "void"
+  "func", "thr", "str", "void"
 };
 
 const char **Lexer::builtin_types = _builtin_types;
@@ -103,6 +101,9 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
         } else if (token_str == "undef") {
           log("[UNDEF], ");
           tokens.push_back(Token(Token::UNDEF, ""));
+        } else if (token_str == "const") {
+          log("[CONST], ");
+          tokens.push_back(Token(Token::CONST, ""));
         } else {
           // to do - speed this up (LUT maybe?)
           std::string found_type = "";
