@@ -1,2 +1,4 @@
 *.out
 *.ck
+.vscode/
+.vscode/*
