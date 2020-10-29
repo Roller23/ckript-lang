@@ -26,7 +26,7 @@ class Token {
       RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')',
       NUMBER, STRING_LITERAL,
 
-      FALSE, TRUE, // booleans
+      FALSE, TRUE, UNDEF,
 
       UNKNOWN // junk
     } _type_;

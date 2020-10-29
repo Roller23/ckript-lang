@@ -100,6 +100,9 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
         } else if (token_str == "false") {
           log("[FALSE], ");
           tokens.push_back(Token(Token::FALSE, ""));
+        } else if (token_str == "undef") {
+          log("[UNDEF], ");
+          tokens.push_back(Token(Token::UNDEF, ""));
         } else {
           // to do - speed this up (LUT maybe?)
           std::string found_type = "";
@@ -172,16 +175,6 @@ std::vector<Token> Lexer::tokenize(const std::string &code) {
   log("\n");
   return tokens;
 }
-
-// else if (token_str.size() == 1) {
-//   if (chars2.find(token_str.c_str()[0]) != std::string::npos) {
-//     std::stringstream s;
-//     s << "[" << c << "], ";
-//     log(s.str());
-//     std::cout << std::flush;
-//     tokens.push_back(Token(Token::get_type(c), ""));
-//   }
-// }
 
 void Lexer::process_file(const std::string &filename) {
   std::ifstream file(filename);
