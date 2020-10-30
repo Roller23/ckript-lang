@@ -14,6 +14,7 @@ class Expression {
     TokenList tokens;
     Expression(void) : type(ExprType::NONE) {};
     Expression(ExprType _type) : type(_type) {};
+    void print(const std::string &name, int nest = 0);
 };
 
 class Statement {
@@ -22,8 +23,10 @@ class Statement {
       IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NONE
     } StmtType;
     StmtType type;
+    Expression cond_expr; // the expression inside ()
     Statement(void) : type(StmtType::NONE) {};
     Statement(StmtType _type) : type(_type) {};
+    void print(const std::string &name, int nest = 0);
 };
 
 class Declaration {
@@ -34,6 +37,7 @@ class Declaration {
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};
     Declaration(DeclType _type) : type(_type) {};
+    void print(const std::string &name, int nest = 0);
 };
 
 class Node;
@@ -56,7 +60,8 @@ class Node {
     Node(Declaration d, std::string _name = ""): type(NodeType::DECL), decl(d), name(_name) {};
     void add_children(Node &node);
     void add_children(NodeList &nodes);
-    void print(void);
+    virtual void print(const std::string &name, int nest = 0);
+    static void print_nesting(int nest);
 };
 
 #endif // __AST_

@@ -38,46 +38,54 @@ Node Parser::get_expression(Node &prev, Token::TokenType stop) {
     res.expr.tokens.push_back(curr_token);
     advance();
   }
-  advance();
   return res;
 }
 
 NodeList Parser::get_multiple_statements(Node &prev, Token::TokenType stop) {
   NodeList res;
-  advance();
   std::cout << "consuming statements in a compound statement\n";
-  int i = 0;
-  while (curr_token.type != stop) {
-    res.push_back(get_statement(prev));
-    // advance();
-    std::cout << "at token " << (char)curr_token.type << "\n";
-    i++;
-    if (i > 1) break;
+  while (true) {
+    Node stmt = get_statement(prev, stop);
+    if (curr_token.type != stop) {
+      res.push_back(stmt); 
+    } else {
+      break;
+    }
   }
+  advance(); // skip stop
   return res;
 }
 
-Node Parser::get_statement(Node &prev) {
+Node Parser::get_statement(Node &prev, Token::TokenType stop) {
+  // std::cout << "get statement at " << (char)curr_token.type << std::endl;
+  if (curr_token.type == stop) {
+    // std::cout << "reached stop " << (char)stop << std::endl;
+    return prev;
+  }
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";
     // { statement(s) }
     Node stmt(Statement(StmtType::COMPOUND), "Compund");
+    advance(); // skip the {
     NodeList inner_statements = get_multiple_statements(prev, Token::RIGHT_BRACE);
     stmt.add_children(inner_statements);
     prev.add_children(stmt);
-    return get_statement(prev);
+    return get_statement(prev, stop);
   } else if (curr_token.type == Token::IF) {
     std::cout << "Found if\n";
     // if (expression) statement
-    advance();
+    advance(); // skip the if
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid if statement
       throw;
     }
-    advance();
+    Node if_stmt = Node(Statement(StmtType::IF), "if statement");
+    advance(); // skip the (
     Node expr = get_expression(prev, Token::TokenType::RIGHT_PAREN);
-    prev.add_children(expr);
-    return get_statement(prev);
+    if_stmt.stmt.cond_expr = expr.expr;
+    advance(); // skip the )
+    prev.add_children(if_stmt);
+    return get_statement(prev, stop);
   } else if (curr_token.type == Token::WHILE) {
     std::cout << "Found while\n";
     // while (expression) statement
@@ -87,16 +95,20 @@ Node Parser::get_statement(Node &prev) {
   } else if (curr_token.type == Token::RETURN) {
     std::cout << "Found return\n";
     // return expression;
-    advance();
+    advance(); // skip the return
+    Node return_stmt(Statement(StmtType::RETURN), "return");
     Node return_expr = get_expression(prev, Token::TokenType::SEMI_COLON);
-    prev.add_children(return_expr);
-    return get_statement(prev);
+    return_stmt.stmt.cond_expr = return_expr.expr;
+    prev.add_children(return_stmt);
+    advance(); // skip the semicolon
+    return get_statement(prev, stop);
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
   } else if (curr_token.type == Token::SEMI_COLON) {
     std::cout << "no operation\n";
     // nop;
+    advance(); // skip the semicolon
     return prev;
   } else if (curr_token.type == Token::NONE) {
     std::cout << "EOF\n";
@@ -107,8 +119,8 @@ Node Parser::get_statement(Node &prev) {
     // expression;
     Node expr = get_expression(prev, Token::TokenType::SEMI_COLON);
     prev.add_children(expr);
-    advance();
-    return get_statement(prev);
+    advance(); // skip the semicolon
+    return get_statement(prev, stop);
   }
   std::cout << "Nothing matched\n";
   return prev;
@@ -116,11 +128,7 @@ Node Parser::get_statement(Node &prev) {
 
 void Parser::parse(void) {
   Node start(Statement(StmtType::COMPOUND), "Compound (PROGRAM START)");
-  Node program = get_statement(start);
+  Node program = get_statement(start, Token::TokenType::NONE);
   std::cout << "AST:\n";
-  program.print();
-  // while (curr_token.type != Token::NONE) {
-    
-  //   advance(); // advance to the next token
-  // }
+  program.print(program.name);
 }
