@@ -38,6 +38,16 @@ bool Lexer::valid_float(const std::string &str) const {
   return *endptr == 0;
 }
 
+void Lexer::consume_whitespace(void) {
+  while (ptr != end && isspace(*ptr, loc)) {
+    ptr++;
+  }
+}
+
+void Lexer::consume_comment(void) {
+  while (ptr != end && *ptr++ != '\n');
+}
+
 void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
   log("[UNKNOWN: " + str + "], ");
   tokens.push_back(Token(Token::UNKNOWN, str));
@@ -55,18 +65,21 @@ void Lexer::add_char_token(TokenList &tokens, const char c) const {
 
 TokenList Lexer::tokenize(const std::string &code) {
   TokenList tokens;
-  auto ptr = code.begin();
-  auto end = code.end();
+  ptr = code.begin();
+  end = code.end();
   this->last_error = "";
   std::string chars = ".,:;{}[]()";
   std::string chars2 = "=+-*&|/<>!%";
-  std::locale loc{""};
   while (ptr != end && this->running) {
-    while (ptr != end && isspace(*ptr, loc)) {
-      ptr++;
-    }
-    if (ptr == end) {
-      break;
+    consume_whitespace();
+    if (ptr == end) break;
+    if (*ptr == '#') {
+      // start of a comment
+      consume_comment();
+      if (ptr == end) break;
+      // take care of all the whilespace after the comment
+      consume_whitespace();
+      if (ptr == end) break;
     }
     const char c = *ptr;
     if (contains(chars, c)) {

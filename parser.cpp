@@ -9,20 +9,20 @@ typedef Declaration::DeclType DeclType;
 typedef Statement::StmtType StmtType;
 typedef Node::NodeType NodeType;
 
-void Parser::move(void) {
+void Parser::advance(void) {
   pos++;
-  prev = current;
+  prev = curr_token;
   if (pos < tokens_count) {
-    current = tokens.at(pos);
+    curr_token = tokens.at(pos);
   } else {
-    current = Token(Token::NONE, "");
+    curr_token = Token(Token::NONE);
     pos--;
   }
 }
 
 void Parser::parse(void) {
-  while (this->current.type != Token::NONE) {
+  while (curr_token.type != Token::NONE) {
     
-    this->move();
+    advance(); // advance to the next token
   }
 }

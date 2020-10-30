@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <locale>
 
 class Lexer {
   public:
@@ -21,7 +22,12 @@ class Lexer {
     bool valid_float(const std::string &str) const;
     void add_unknown_token(TokenList &tokens, std::string str);
     void add_char_token(TokenList &tokens, const char c) const;
+    void consume_whitespace(void);
+    void consume_comment(void);
     void log(std::string str) const;
+    std::string::const_iterator ptr;
+    std::string::const_iterator end;
+    std::locale loc{""};
 };
 
 #endif // __LEXER

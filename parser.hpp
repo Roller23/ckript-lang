@@ -9,15 +9,15 @@ class Parser {
   public:
     Parser(TokenList &_tokens) : 
       tokens(_tokens),
-      current(_tokens.at(0)),
+      curr_token(_tokens.at(0)),
       tokens_count(_tokens.size()) {}
     void parse();
-    void move();
+    void advance();
     Expression parse_expression();
   private:
     TokenList &tokens;
     Token prev;
-    Token current;
+    Token curr_token;
     int pos = 0;
     int tokens_count;
 };
