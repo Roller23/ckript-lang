@@ -16,7 +16,6 @@ void Interpreter::throw_error(const std::string &cause, bool terminate) {
 
 void Interpreter::process_file(const std::string &filename) {
   Lexer lexer;
-  Parser parser;
   CkriptVM VM;
   lexer.verbose = true;
   TokenList tokens = lexer.process_file(filename);
@@ -24,5 +23,6 @@ void Interpreter::process_file(const std::string &filename) {
     throw_error(lexer.last_error, false);
     return;
   }
-  parser.parse(tokens);
+  Parser parser(tokens);
+  parser.parse();
 }

@@ -2,7 +2,7 @@ CC=g++
 main=main.cpp
 out=main.out
 flags=-g -O0
-files=token.cpp lexer.cpp parser.cpp ckript-vm.cpp interpreter.cpp
+files=token.cpp lexer.cpp parser.cpp ckript-vm.cpp interpreter.cpp AST.cpp
 m=Automated Makefile push message
 input_file=hello.ck
 

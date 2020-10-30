@@ -11,27 +11,33 @@ typedef std::vector<Token> TokenList;
 class Token {
   public:
     typedef enum type {
-      FUNCTION, THREAD, RETURN, IF, ELSE, ELSEIF, FOR, WHILE, ALLOC, TYPE, CONST, // keywords
+      OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
+      OP_MOD = '%', OP_EQ, OP_LT = '<', OP_GT = '>', OP_NOT = '!',
+      OP_OR_BIT = '|', OP_AND_BIT = '&', OP_ASSIGN = '=',
 
-      OP_AND, OP_OR, OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
-      OP_MOD = '%', OP_EQ, OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_OR_BIT = '|', OP_AND_BIT = '&',
-      OP_GT_BIT, OP_LT_BIT,
-      OP_ASSIGN = '=', // operators
-
-      DOT = '.', COMMA = '.', COLON = ':', SEMI_COLON = ';', IDENTIFIER,
+      DOT = '.', COMMA = '.', COLON = ':', SEMI_COLON = ';',
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
       RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')',
+
+      FUNCTION = 130, THREAD, RETURN, IF, ELSE, ELSEIF,
+      FOR, WHILE, ALLOC, TYPE, CONST,
+
       STRING_LITERAL, DECIMAL, FLOAT, HEX, OCTAL, BINARY,
+
+      OP_GT_BIT, OP_LT_BIT, OP_AND, OP_OR,
+
+      IDENTIFIER,
 
       FALSE, TRUE, UNDEF,
 
-      UNKNOWN, // junk
+      UNKNOWN,
 
-      NONE // empty token
+      NONE
     } TokenType;
     TokenType type;
     std::string value;
-    Token(TokenType _type, std::string _value);;
+    Token(void);
+    Token(TokenType _type, std::string _value);
 };
 
 #endif // __TOKEN_

@@ -2,6 +2,7 @@
 #define __AST_
 
 #include <vector>
+#include <string>
 
 class Node;
 
@@ -14,8 +15,8 @@ class Node {
     } NodeType;
     Nodes children;
     NodeType type;
-    std::string name; // optional
-    Node(NodeType _type, std::string _name = "");
+    std::string name;
+    Node(NodeType _type, std::string _name = "") : type(_type), name(_name) {};
 };
 
 class Expression : Node {

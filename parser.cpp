@@ -2,24 +2,27 @@
 #include "AST.hpp"
 
 #include <vector>
+#include <iostream>
 
 typedef Expression::ExprType ExprType;
 typedef Declaration::DeclType DeclType;
 typedef Statement::StmtType StmtType;
+typedef Node::NodeType NodeType;
 
-void Parser::parse(TokenList &tokens) {
-  Nodes AST;
-  Node start();
-  for (auto token : tokens) {
-    if (token.type == Token::TYPE) {
-
-    }
-    parse_expression(AST, -1, 0);
+void Parser::move(void) {
+  pos++;
+  prev = current;
+  if (pos < tokens_count) {
+    current = tokens.at(pos);
+  } else {
+    current = Token(Token::NONE, "");
+    pos--;
   }
 }
 
-Expression Parser::parse_expression(const Nodes &tree, int prev, int current) {
-  if (tree.at(current).type == Token::SEMI_COLON) {
-    return {ExprType::BINARY_OP}; // xd
+void Parser::parse(void) {
+  while (this->current.type != Token::NONE) {
+    // std::cout << (char)this->current.type << std::endl;
+    this->move();
   }
 }
