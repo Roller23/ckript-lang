@@ -3,49 +3,60 @@
 
 #include <vector>
 #include <string>
+#include "token.hpp"
+
+class Expression {
+  public:
+    typedef enum expr_type {
+      BINARY_OP, FUNC_CALL, NUM_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, NONE
+    } ExprType;
+    ExprType type;
+    TokenList tokens;
+    Expression(void) : type(ExprType::NONE) {};
+    Expression(ExprType _type) : type(_type) {};
+};
+
+class Statement {
+  public:
+    typedef enum stmt_type {
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NONE
+    } StmtType;
+    StmtType type;
+    Statement(void) : type(StmtType::NONE) {};
+    Statement(StmtType _type) : type(_type) {};
+};
+
+class Declaration {
+  public:
+    typedef enum decl_type {
+      FUNC_DECL, VAR_DECL, NONE
+    } DeclType;
+    DeclType type;
+    Declaration(void) : type(DeclType::NONE) {};
+    Declaration(DeclType _type) : type(_type) {};
+};
 
 class Node;
 
-typedef std::vector<Node> Nodes;
+typedef std::vector<Node> NodeList;
 
 class Node {
   public:
     typedef enum node_type {
-      EXPR, STMT, DECL
+      EXPR, STMT, DECL, UNKNOWN
     } NodeType;
-    Nodes children;
+    Expression expr;
+    Statement stmt;
+    Declaration decl;
+    NodeList children;
     NodeType type;
     std::string name;
-    Node(NodeType _type, std::string _name = "") : type(_type), name(_name) {};
+    Node(Expression e, std::string _name = "") : type(NodeType::EXPR), expr(e), name(_name) {};
+    Node(Statement s, std::string _name = "") : type(NodeType::STMT), stmt(s), name(_name) {};
+    Node(Declaration d, std::string _name = ""): type(NodeType::DECL), decl(d), name(_name) {};
     void add_children(Node &node);
-    void add_children(Nodes &nodes);
-};
-
-class Expression : public Node {
-  public:
-    typedef enum expr_type {
-      BINARY_OP, FUNC_CALL, NUM_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP
-    } ExprType;
-    ExprType type;
-    Expression(ExprType _type) : type(_type), Node(NodeType::EXPR) {};
-};
-
-class Statement : public Node {
-  public:
-    typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN
-    } StmtType;
-    StmtType type;
-    Statement(StmtType _type) : type(_type), Node(NodeType::STMT) {};
-};
-
-class Declaration : public Node {
-  public:
-    typedef enum decl_type {
-      FUNC_DECL, VAR_DECL
-    } DeclType;
-    DeclType type;
-    Declaration(DeclType _type) : type(_type), Node(NodeType::DECL) {};
+    void add_children(NodeList &nodes);
+    void print(void);
 };
 
 #endif // __AST_

@@ -4,7 +4,7 @@ out=main.out
 flags=-g -O0
 files=lexer.cpp parser.cpp ckript-vm.cpp interpreter.cpp AST.cpp
 m=Automated Makefile push message
-input_file=hello.ck
+input_file=test.ck
 
 all:
 	$(CC) $(flags) -o $(out) $(main) $(files)
