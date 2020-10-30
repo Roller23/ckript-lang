@@ -10,7 +10,6 @@ class Lexer {
   public:
     TokenList tokenize(const std::string &code);
     TokenList process_file(const std::string &filename);
-    void log(std::string str) const;
     std::string last_error = "";
     bool verbose = false;
     bool running = true;
@@ -18,10 +17,11 @@ class Lexer {
     static int types_count;
   private:
     bool contains(const std::string &str, const char needle) const;
-    bool valid_number(const std::string &str, int base);
-    bool valid_float(const std::string &str);
+    bool valid_number(const std::string &str, int base) const;
+    bool valid_float(const std::string &str) const;
     void add_unknown_token(TokenList &tokens, std::string str);
-    void add_char_token(TokenList &tokens, const char c);
+    void add_char_token(TokenList &tokens, const char c) const;
+    void log(std::string str) const;
 };
 
 #endif // __LEXER

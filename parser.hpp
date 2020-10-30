@@ -7,6 +7,7 @@
 class Parser {
   public:
     void parse(TokenList &tokens);
+    Expression parse_expression(const Nodes &tree, int prev, int current);
 };
 
 #endif // __PARSER_

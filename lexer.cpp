@@ -26,13 +26,13 @@ bool Lexer::contains(const std::string &str, const char needle) const {
   return str.find(needle) != std::string::npos;
 }
 
-bool Lexer::valid_number(const std::string &str, int base) {
+bool Lexer::valid_number(const std::string &str, int base) const {
   char *endptr;
   std::strtoull(str.c_str(), &endptr, base);
   return *endptr == 0;
 }
 
-bool Lexer::valid_float(const std::string &str) {
+bool Lexer::valid_float(const std::string &str) const {
   char *endptr;
   std::strtod(str.c_str(), &endptr);
   return *endptr == 0;
@@ -45,7 +45,7 @@ void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
   this->running = false;
 }
 
-void Lexer::add_char_token(TokenList &tokens, const char c) {
+void Lexer::add_char_token(TokenList &tokens, const char c) const {
   std::stringstream s;
   s << "[" << c << "], ";
   log(s.str());
@@ -175,7 +175,6 @@ TokenList Lexer::tokenize(const std::string &code) {
             tokens.push_back(Token(Token::OCTAL, number_str));
             converted = true;
           }
-
         } else {
           // might be a decimal
           if (valid_number(number_str, 16)) {

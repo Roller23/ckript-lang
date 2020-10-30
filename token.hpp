@@ -25,7 +25,9 @@ class Token {
 
       FALSE, TRUE, UNDEF,
 
-      UNKNOWN // junk
+      UNKNOWN, // junk
+
+      NONE // empty token
     } TokenType;
     TokenType type;
     std::string value;
