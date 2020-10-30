@@ -23,7 +23,7 @@ class Statement {
       IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NONE
     } StmtType;
     StmtType type;
-    Expression cond_expr; // the expression inside ()
+    Expression stmt_expr;
     Statement(void) : type(StmtType::NONE) {};
     Statement(StmtType _type) : type(_type) {};
     void print(const std::string &name, int nest = 0);

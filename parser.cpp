@@ -67,8 +67,9 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     // { statement(s) }
     Node stmt(Statement(StmtType::COMPOUND), "Compund");
     advance(); // skip the {
-    NodeList inner_statements = get_multiple_statements(prev, Token::RIGHT_BRACE);
+    NodeList inner_statements = get_multiple_statements(stmt, Token::RIGHT_BRACE);
     stmt.add_children(inner_statements);
+    std::cout << "compound count " << inner_statements.size() << "\n";
     prev.add_children(stmt);
     return get_statement(prev, stop);
   } else if (curr_token.type == Token::IF) {
@@ -79,10 +80,10 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
       // invalid if statement
       throw;
     }
-    Node if_stmt = Node(Statement(StmtType::IF), "if statement");
+    Node if_stmt = Node(Statement(StmtType::IF), "IF");
     advance(); // skip the (
     Node expr = get_expression(prev, Token::TokenType::RIGHT_PAREN);
-    if_stmt.stmt.cond_expr = expr.expr;
+    if_stmt.stmt.stmt_expr = expr.expr;
     advance(); // skip the )
     prev.add_children(if_stmt);
     return get_statement(prev, stop);
@@ -96,9 +97,9 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     std::cout << "Found return\n";
     // return expression;
     advance(); // skip the return
-    Node return_stmt(Statement(StmtType::RETURN), "return");
+    Node return_stmt(Statement(StmtType::RETURN), "RETURN");
     Node return_expr = get_expression(prev, Token::TokenType::SEMI_COLON);
-    return_stmt.stmt.cond_expr = return_expr.expr;
+    return_stmt.stmt.stmt_expr = return_expr.expr;
     prev.add_children(return_stmt);
     advance(); // skip the semicolon
     return get_statement(prev, stop);
