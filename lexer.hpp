@@ -8,16 +8,12 @@
 
 class Lexer {
   public:
-    enum lexing_error {
-      OK = 0,
-      FILE_ERROR,
-      TOKENIZING_ERROR
-    };
     TokenList tokenize(const std::string &code);
     TokenList process_file(const std::string &filename);
     void log(std::string str) const;
-    enum lexing_error last_error;
+    std::string last_error = "";
     bool verbose = false;
+    bool running = true;
     static const char **builtin_types;
     static int types_count;
   private:

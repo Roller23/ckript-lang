@@ -11,7 +11,7 @@ typedef std::vector<Token> TokenList;
 class Token {
   public:
     typedef enum type {
-      FUNCTION, THREAD, RETURN, IF, FOR, WHILE, ALLOC, TYPE, CONST, // keywords
+      FUNCTION, THREAD, RETURN, IF, ELSE, ELSEIF, FOR, WHILE, ALLOC, TYPE, CONST, // keywords
 
       OP_AND, OP_OR, OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
       OP_MOD = '%', OP_EQ, OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_OR_BIT = '|', OP_AND_BIT = '&',

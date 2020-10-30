@@ -41,7 +41,8 @@ bool Lexer::valid_float(const std::string &str) {
 void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
   log("[UNKNOWN: " + str + "], ");
   tokens.push_back(Token(Token::UNKNOWN, str));
-  this->last_error = TOKENIZING_ERROR;
+  this->last_error = "Syntax error: unknown token - " + str;
+  this->running = false;
 }
 
 void Lexer::add_char_token(TokenList &tokens, const char c) {
@@ -56,10 +57,11 @@ TokenList Lexer::tokenize(const std::string &code) {
   TokenList tokens;
   auto ptr = code.begin();
   auto end = code.end();
+  this->last_error = "";
   std::string chars = ".,:;{}[]()";
   std::string chars2 = "=+-*&|/<>!%";
   std::locale loc{""};
-  while (ptr != end) {
+  while (ptr != end && this->running) {
     while (ptr != end && isspace(*ptr, loc)) {
       ptr++;
     }
@@ -153,16 +155,10 @@ TokenList Lexer::tokenize(const std::string &code) {
           }
         } else if (contains(number_str, 'b') && number_str.size() > 2) {
           // might be a binary number
-          if (valid_number(number_str.substr(2), 2)) {
-            log("[BINARY: " + number_str + "], ");
-            tokens.push_back(Token(Token::BINARY, number_str));
-            converted = true;
-          }
-        } else if (number_str.c_str()[0] == '0') {
-          // might be an octal number
-          if (valid_number(number_str, 8)) {
-            log("[OCTAL: " + number_str + "], ");
-            tokens.push_back(Token(Token::OCTAL, number_str));
+          std::string binary_num = number_str.substr(2);
+          if (valid_number(binary_num, 2)) {
+            log("[BINARY: " + binary_num + "], ");
+            tokens.push_back(Token(Token::BINARY, binary_num));
             converted = true;
           }
         } else if (contains(number_str, '.')) {
@@ -172,6 +168,14 @@ TokenList Lexer::tokenize(const std::string &code) {
             tokens.push_back(Token(Token::FLOAT, number_str));
             converted = true;
           }
+        } else if (number_str.c_str()[0] == '0') {
+          // might be an octal number
+          if (valid_number(number_str, 8)) {
+            log("[OCTAL: " + number_str + "], ");
+            tokens.push_back(Token(Token::OCTAL, number_str));
+            converted = true;
+          }
+
         } else {
           // might be a decimal
           if (valid_number(number_str, 16)) {
@@ -184,6 +188,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           // couldn't convert the string to any type of number
           add_unknown_token(tokens, number_str);
         }
+        if (!this->running) break;
       } else if (contains(chars2, c)) {
         std::string op = "";
         while (contains(chars2, *ptr)) {
@@ -222,7 +227,7 @@ TokenList Lexer::process_file(const std::string &filename) {
   TokenList result;
   std::ifstream file(filename);
   if (!file) {
-    this->last_error = FILE_ERROR;
+    this->last_error = "Couldn't open " + filename;
     return result;
   }
   std::string buffer(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{});
