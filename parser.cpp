@@ -22,7 +22,7 @@ void Parser::move(void) {
 
 void Parser::parse(void) {
   while (this->current.type != Token::NONE) {
-    // std::cout << (char)this->current.type << std::endl;
+    
     this->move();
   }
 }

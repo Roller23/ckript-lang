@@ -36,8 +36,7 @@ class Token {
     } TokenType;
     TokenType type;
     std::string value;
-    Token(void);
-    Token(TokenType _type, std::string _value);
+    Token(TokenType _type = Token::NONE, std::string _value = "") : type(_type), value(_value) {};
 };
 
 #endif // __TOKEN_
