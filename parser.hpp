@@ -13,7 +13,10 @@ class Parser {
       tokens_count(_tokens.size()) {}
     void parse();
     void advance();
-    Expression parse_expression();
+    Statement get_statement(void);
+    std::vector<Statement> get_multiple_statements(Token::TokenType stop);
+    Expression get_expression(void);
+    Declaration get_declaration(void);
   private:
     TokenList &tokens;
     Token prev;

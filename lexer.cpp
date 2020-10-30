@@ -39,13 +39,15 @@ bool Lexer::valid_float(const std::string &str) const {
 }
 
 void Lexer::consume_whitespace(void) {
-  while (ptr != end && isspace(*ptr, loc)) {
-    ptr++;
-  }
+  while (ptr != end && isspace(*ptr, loc)) ptr++;
 }
 
 void Lexer::consume_comment(void) {
-  while (ptr != end && *ptr++ != '\n');
+  while (ptr != end) {
+    const char c = *++ptr;
+    if (c == '\n' || c == '#') break;
+  }
+  if (ptr != end) ptr++; // skip the closing \n or #
 }
 
 void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
@@ -60,13 +62,13 @@ void Lexer::add_char_token(TokenList &tokens, const char c) const {
   s << "[" << c << "], ";
   log(s.str());
   std::cout << std::flush;
-  tokens.push_back(Token((Token::TokenType)c, ""));
+  tokens.push_back(Token((Token::TokenType)c));
 }
 
 TokenList Lexer::tokenize(const std::string &code) {
   TokenList tokens;
-  ptr = code.begin();
-  end = code.end();
+  this->ptr = code.begin();
+  this->end = code.end();
   this->last_error = "";
   std::string chars = ".,:;{}[]()";
   std::string chars2 = "=+-*&|/<>!%";
@@ -93,37 +95,43 @@ TokenList Lexer::tokenize(const std::string &code) {
         ptr--;
         if (token_str == "function") {
           log("[FUNCTION], ");
-          tokens.push_back(Token(Token::FUNCTION, ""));
+          tokens.push_back(Token(Token::FUNCTION));
         } else if (token_str == "thread") {
           log("[THREAD], ");
-          tokens.push_back(Token(Token::THREAD, ""));
+          tokens.push_back(Token(Token::THREAD));
         } else if (token_str == "return") {
           log("[RETURN], ");
-          tokens.push_back(Token(Token::RETURN, ""));
+          tokens.push_back(Token(Token::RETURN));
         } else if (token_str == "if") {
           log("[IF], ");
-          tokens.push_back(Token(Token::IF, ""));
+          tokens.push_back(Token(Token::IF));
+        } else if (token_str == "else") {
+          log("[ELSE], ");
+          tokens.push_back(Token(Token::ELSE));
+        } else if (token_str == "elseif") {
+          log("[ELSEIF], ");
+          tokens.push_back(Token(Token::ELSEIF));
         } else if (token_str == "for") {
           log("[FOR], ");
-          tokens.push_back(Token(Token::FOR, ""));
+          tokens.push_back(Token(Token::FOR));
         } else if (token_str == "while") {
           log("[WHILE], ");
-          tokens.push_back(Token(Token::WHILE, ""));
+          tokens.push_back(Token(Token::WHILE));
         } else if (token_str == "alloc") {
           log("[ALLOC], ");
-          tokens.push_back(Token(Token::ALLOC, ""));
+          tokens.push_back(Token(Token::ALLOC));
         } else if (token_str == "true") {
           log("[TRUE], ");
-          tokens.push_back(Token(Token::TRUE, ""));
+          tokens.push_back(Token(Token::TRUE));
         } else if (token_str == "false") {
           log("[FALSE], ");
-          tokens.push_back(Token(Token::FALSE, ""));
+          tokens.push_back(Token(Token::FALSE));
         } else if (token_str == "undef") {
           log("[UNDEF], ");
-          tokens.push_back(Token(Token::UNDEF, ""));
+          tokens.push_back(Token(Token::UNDEF));
         } else if (token_str == "const") {
           log("[CONST], ");
-          tokens.push_back(Token(Token::CONST, ""));
+          tokens.push_back(Token(Token::CONST));
         } else {
           // to do - speed this up (LUT maybe?)
           std::string found_type = "";
@@ -134,6 +142,7 @@ TokenList Lexer::tokenize(const std::string &code) {
             }
           }
           if (found_type == "") {
+            // probably an identifier
             log("[IDENTIFIER: " + token_str + "], ");
             tokens.push_back(Token(Token::IDENTIFIER, token_str));
           } else {
@@ -203,6 +212,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         if (!this->running) break;
       } else if (contains(chars2, c)) {
         std::string op = "";
+        // get any combination of "=+-*&|/<>!%"
         while (contains(chars2, *ptr)) {
           op += *ptr++;
         }
@@ -211,14 +221,14 @@ TokenList Lexer::tokenize(const std::string &code) {
           add_char_token(tokens, c);
         } else if (op.size() == 2) {
           if (op == "==") {
-            log("[OP_ASSIGN: " + op + "], ");
-            tokens.push_back(Token(Token::OP_ASSIGN, ""));
+            log("[OP_EQ: " + op + "], ");
+            tokens.push_back(Token(Token::OP_EQ));
           } else if (op == "&&") {
             log("[OP_AND: " + op + "], ");
-            tokens.push_back(Token(Token::OP_AND, ""));
+            tokens.push_back(Token(Token::OP_AND));
           } else if (op == "||") {
             log("[OP_OR: " + op + "], ");
-            tokens.push_back(Token(Token::OP_OR, ""));
+            tokens.push_back(Token(Token::OP_OR));
           } else {
             add_unknown_token(tokens, op);
           }

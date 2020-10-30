@@ -17,9 +17,11 @@ class Node {
     NodeType type;
     std::string name;
     Node(NodeType _type, std::string _name = "") : type(_type), name(_name) {};
+    void add_children(Node &node);
+    void add_children(Nodes &nodes);
 };
 
-class Expression : Node {
+class Expression : public Node {
   public:
     typedef enum expr_type {
       BINARY_OP, FUNC_CALL, NUM_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP
@@ -28,16 +30,16 @@ class Expression : Node {
     Expression(ExprType _type) : type(_type), Node(NodeType::EXPR) {};
 };
 
-class Statement : Node {
+class Statement : public Node {
   public:
     typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN
     } StmtType;
     StmtType type;
     Statement(StmtType _type) : type(_type), Node(NodeType::STMT) {};
 };
 
-class Declaration : Node {
+class Declaration : public Node {
   public:
     typedef enum decl_type {
       FUNC_DECL, VAR_DECL
