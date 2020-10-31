@@ -9,13 +9,27 @@ class Node;
 
 typedef std::vector<Node> NodeList;
 
+class FuncExpression {
+  public:
+    typedef enum func_type {
+      THREAD, FUNC, NONE
+    } FuncType;
+    FuncType type;
+    NodeList params;
+    std::string ret_type;
+    Node *instructions;
+    FuncExpression(void) : type(FuncType::NONE) {};
+    FuncExpression(FuncType _type) : type(_type) {};
+};
+
 class Expression {
   public:
     typedef enum expr_type {
-      BINARY_OP, FUNC_CALL, NUM_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, NONE
+      BINARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, NONE
     } ExprType;
     ExprType type;
     TokenList tokens;
+    FuncExpression func_expr;
     Expression(void) : type(ExprType::NONE) {};
     Expression(ExprType _type) : type(_type) {};
     void print(const std::string &name, int nest = 0);
@@ -39,7 +53,7 @@ class Statement {
 class Declaration {
   public:
     typedef enum decl_type {
-      FUNC_DECL, VAR_DECL, NONE
+      VAR_DECL, NONE
     } DeclType;
     std::string var_type = "";
     std::string id = "";

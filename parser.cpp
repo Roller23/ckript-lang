@@ -10,8 +10,10 @@ typedef Expression::ExprType ExprType;
 typedef Declaration::DeclType DeclType;
 typedef Statement::StmtType StmtType;
 typedef Node::NodeType NodeType;
+typedef FuncExpression::FuncType FuncType;
+typedef Token::TokenType TokenType;
 
-void Parser::fail_if_EOF(Token::TokenType expected) {
+void Parser::fail_if_EOF(TokenType expected) {
   if (curr_token.type == Token::NONE) {
     ErrorHandler::thow_syntax_error("Reached end of file but " + Token::get_name(expected) + " expected");
   }
@@ -36,7 +38,7 @@ void Parser::retreat(void) {
   prev = pos > 0 ? tokens.at(pos - 1) : Token(Token::NONE);
 }
 
-NodeList Parser::get_many_expressions(Token::TokenType sep, Token::TokenType stop) {
+NodeList Parser::get_many_expressions(TokenType sep, TokenType stop) {
   NodeList res;
   while (true) {
     fail_if_EOF(stop);
@@ -52,20 +54,50 @@ NodeList Parser::get_many_expressions(Token::TokenType sep, Token::TokenType sto
   return res;
 }
 
-Node Parser::get_expression(Token::TokenType stop1, Token::TokenType stop2) {
+Node Parser::parse_func_expr() {
+  // function(arg1, arg2, ...) type statement(s)
+  Node func = Node(Expression(ExprType::FUNC_EXPR), "function def");
+  func.expr.func_expr.type = curr_token.type == Token::THREAD ? FuncType::THREAD : FuncType::FUNC;
+  advance(); // skip the function/thread
+  if (curr_token.type != Token::LEFT_PAREN) {
+    std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + "found";
+    ErrorHandler::thow_syntax_error(msg);
+  }
+  advance(); // skip the (
+  func.expr.func_expr.params = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
+  advance(); // skip the )
+  if (curr_token.type != Token::TYPE) {
+    std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+    ErrorHandler::thow_syntax_error(msg);
+  }
+  func.expr.func_expr.ret_type = curr_token.value;
+  advance(); // skip the type
+  // oh boy
+  // here we go
+  TokenList func_start(tokens.begin() + pos, tokens.end()); // create a subvector of tokens
+  Parser func_parser(func_start, Token::SEMI_COLON);
+  func.expr.func_expr.instructions = new Node;
+  *func.expr.func_expr.instructions = func_parser.parse("FUNC INSTRUCTIONS");
+  return func;
+}
+
+Node Parser::get_expression(TokenType stop1, TokenType stop2) {
   fail_if_EOF(Token::GENERAL_EXPRESSION);
   std::cout << "consuming expression\n";
   Node res(Expression(ExprType::BOOL_EXPR), "Expression");
   while (curr_token.type != stop1 && curr_token.type != stop2) {
+    if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
+      Node func = parse_func_expr();
+    }
     res.expr.tokens.push_back(curr_token);
     std::cout << "pushing " << curr_token << "\n";
     advance();
-    fail_if_EOF(Token::NONE ? stop1 : stop2);
+    fail_if_EOF(stop2 == Token::NONE ? stop1 : stop2);
   }
   return res;
 }
 
-NodeList Parser::get_many_statements(Node &node, Token::TokenType stop) {
+NodeList Parser::get_many_statements(Node &node, TokenType stop) {
   NodeList res;
   std::cout << "consuming statements in a compound statement\n";
   while (true) {
@@ -81,7 +113,7 @@ NodeList Parser::get_many_statements(Node &node, Token::TokenType stop) {
   return res;
 }
 
-Node Parser::get_statement(Node &prev, Token::TokenType stop) {
+Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == stop) {
     std::cout << "Encountered stop - " << Token::get_name(stop) << "\n";
     return prev;
@@ -102,7 +134,8 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     advance(); // skip the if keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid if statement
-      throw;
+      std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
     }
     Node if_stmt = Node(Statement(StmtType::IF), "IF");
     advance(); // skip the (
@@ -117,7 +150,7 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     advance(); // skip the while keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid while statement
-      std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
+      std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + "found";
       ErrorHandler::thow_syntax_error(msg);
     }
     Node while_stmt = Node(Statement(StmtType::WHILE), "WHILE");
@@ -196,13 +229,14 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     advance(); // skip the semicolon
     return get_statement(prev, stop);
   }
-  std::cout << "Nothing matched\n";
+  ErrorHandler::thow_syntax_error("unrecognized token " + curr_token.get_name());
   return prev;
 }
 
-void Parser::parse(void) {
-  Node start(Statement(StmtType::COMPOUND), "Compound (PROGRAM START)");
+Node Parser::parse(const std::string &block_name) {
+  Node start(Statement(StmtType::COMPOUND), "Compound (" + block_name + ")");
   Node program = get_statement(start, this->terminal);
   std::cout << "AST:\n";
   program.print(program.name);
+  return program;
 }

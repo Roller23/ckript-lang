@@ -12,11 +12,12 @@ class Parser {
       curr_token(_tokens.at(0)),
       tokens_count(_tokens.size()),
       terminal(_terminal) {}
-    void parse();
+    Node parse(const std::string &block_name = "PROGRAM START");
     void advance();
     void retreat();
     Node get_statement(Node &prev, Token::TokenType stop);
     Node get_expression(Token::TokenType stop1, Token::TokenType stop2 = Token::NONE);
+    Node parse_func_expr();
     NodeList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
     NodeList get_many_statements(Node &prev, Token::TokenType stop);
