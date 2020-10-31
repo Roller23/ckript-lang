@@ -17,6 +17,8 @@ class Expression {
     void print(const std::string &name, int nest = 0);
 };
 
+typedef std::vector<Expression> ExpressionList;
+
 class Statement {
   public:
     typedef enum stmt_type {
@@ -24,6 +26,7 @@ class Statement {
     } StmtType;
     StmtType type;
     Expression stmt_expr;
+    ExpressionList stmt_exprs;
     Statement(void) : type(StmtType::NONE) {};
     Statement(StmtType _type) : type(_type) {};
     void print(const std::string &name, int nest = 0);

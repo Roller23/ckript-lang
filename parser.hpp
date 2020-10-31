@@ -15,9 +15,10 @@ class Parser {
     void advance();
     void retreat();
     Node get_statement(Node &prev, Token::TokenType stop);
-    Node get_expression(Node &prev, Token::TokenType stop);
+    Node get_expression(Token::TokenType stop);
+    NodeList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
-    NodeList get_multiple_statements(Node &prev, Token::TokenType stop);
+    NodeList get_many_statements(Node &prev, Token::TokenType stop);
   private:
     TokenList &tokens;
     Token prev;

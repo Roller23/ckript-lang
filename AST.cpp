@@ -22,10 +22,16 @@ void Node::print_nesting(int nest) {
 void Statement::print(const std::string &_name, int nest) {
   Node::print_nesting(nest);
   std::cout << _name;
-  if (this->stmt_expr.type != Expression::ExprType::NONE) {
+  if (this->stmt_expr.type != Expression::ExprType::NONE && this->stmt_expr.tokens.size() > 0) {
     std::cout << ", statement expression: ";
     for (auto &token : this->stmt_expr.tokens) {
       std::cout << (char)token.type << " ";
+    }
+  }
+  if (this->stmt_exprs.size() > 0) {
+    std::cout << ", expressions: ";
+    for (auto &expr : this->stmt_exprs) {
+      expr.print("", nest);
     }
   }
   std::cout << std::endl;
