@@ -29,7 +29,7 @@ void Statement::print(const std::string &_name, int nest) {
     }
   }
   if (this->stmt_exprs.size() > 0) {
-    std::cout << ", expressions: ";
+    std::cout << ", expressions:\n";
     for (auto &expr : this->stmt_exprs) {
       expr.print("", nest);
     }
