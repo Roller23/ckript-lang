@@ -3,22 +3,23 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <cstdint>
 
-void ErrorHandler::thow_generic_error(const std::string &cause, int line) {
+void ErrorHandler::throw_generic_error(const std::string &cause, std::uint32_t line) {
   std::cout << cause;
-  if (line != -1) {
+  if (line != 0) {
     std::cout << " on line " << line;
   }
   std::cout << std::endl;
   std::exit(EXIT_FAILURE);
 }
 
-void ErrorHandler::thow_syntax_error(const std::string &cause, int line) {
+void ErrorHandler::throw_syntax_error(const std::string &cause, std::uint32_t line) {
   std::cout << "Syntax error: ";
-  thow_generic_error(cause, line);
+  throw_generic_error(cause, line);
 }
 
 void ErrorHandler::throw_file_error(const std::string &cause) {
   std::cout << "File error: ";
-  thow_generic_error(cause);
+  throw_generic_error(cause);
 }

@@ -13,9 +13,13 @@ typedef Node::NodeType NodeType;
 typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
+void Parser::throw_error(const std::string &cause, std::uint32_t line) {
+  ErrorHandler::throw_syntax_error(cause, line);
+}
+
 void Parser::fail_if_EOF(TokenType expected) {
   if (curr_token.type == Token::NONE) {
-    ErrorHandler::thow_syntax_error("Reached end of file but " + Token::get_name(expected) + " expected");
+    throw_error("Reached end of file but " + Token::get_name(expected) + " expected", 0);
   }
 }
 
@@ -52,7 +56,7 @@ int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
   while (true) {
     if (size == i) {
       std::string msg = "Invalid function declaration, no enclosing brace found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, tokens.at(start_pos + i - 1).line);
     }
     if (tokens.at(start_pos + i).type == Token::LEFT_BRACE) {
       brackets++;
@@ -73,7 +77,7 @@ int Parser::find_func_end_semi(TokenList &tokens, int start_pos) {
   while (true) {
     if (size == i) {
       std::string msg = "Invalid function declaration, no semicolon found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, tokens.at(start_pos + i - 1).line);
     }
     if (tokens.at(start_pos + i).type == Token::SEMI_COLON) {
       return i;
@@ -90,14 +94,14 @@ ParamList Parser::parse_func_params() {
     fail_if_EOF(Token::TYPE);
     if (curr_token.type != Token::TYPE) {
       std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     std::string type = curr_token.value;
     advance();
     fail_if_EOF(Token::IDENTIFIER);
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "Invalid function declaration, expected an identifier, but " + curr_token.get_name() + " found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     res.push_back({type, curr_token.value});
     advance();
@@ -132,14 +136,14 @@ Node Parser::parse_func_expr() {
   advance(); // skip the function/thread
   if (curr_token.type != Token::LEFT_PAREN) {
     std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + "found";
-    ErrorHandler::thow_syntax_error(msg);
+    throw_error(msg, curr_token.line);
   }
   advance(); // skip the (
   func.expr.func_expr.params = parse_func_params();
   advance(); // skip the )
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
-    ErrorHandler::thow_syntax_error(msg);
+    throw_error(msg, curr_token.line);
   }
   func.expr.func_expr.ret_type = curr_token.value;
   advance(); // skip the type
@@ -193,7 +197,8 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
     } else {
       std::cout << "found an identifier expression\n";
       // it's an identifier expression
-      Node id(Expression(ExprType::IDENTIFIER_EXPR));
+      Node id(Expression(curr_token.value, true));
+      advance(); // skip the identifier
       return get_expression(id, stop1, stop2);
     }
   }
@@ -207,14 +212,14 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
   if (curr_token.type == Token::OP_PLUS) {
     if (prev.type != NodeType::EXPR) {
       std::string msg = "left side of '+' must be an expression, " + this->prev.get_name() + " found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, this->prev.line);
     }
     advance(); // skip the +
     Node expr_start(Expression(ExprType::NONE));
     Node next = get_expression(expr_start, stop1, stop2);
     if (next.type != NodeType::EXPR) {
       std::string msg = "right side of '+' must be an expression, " + curr_token.get_name() + " found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     Node op(Expression(prev, Token::OP_PLUS, next));
     return get_expression(op, stop1, stop2);
@@ -271,7 +276,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid if statement
       std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     Node if_stmt = Node(Statement(StmtType::IF), "IF");
     advance(); // skip the (
@@ -288,7 +293,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid while statement
       std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + "found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     Node while_stmt = Node(Statement(StmtType::WHILE), "WHILE");
     advance(); // skip the (
@@ -305,7 +310,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid for statement
       std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + "found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     Node for_stmt = Node(Statement(StmtType::FOR), "FOR");
     advance(); // skip the (
@@ -336,13 +341,13 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the variable type
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "invalid variable declaration. Expected an identifier, but " + curr_token.get_name() + " found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     var_decl.decl.id = curr_token.value; // set the declaration identifier to token value
     advance(); // skip the identifier
     if (curr_token.type != Token::OP_ASSIGN) {
       std::string msg = "invalid variable declaration. Expected '=', but " + curr_token.get_name() + "found";
-      ErrorHandler::thow_syntax_error(msg);
+      throw_error(msg, curr_token.line);
     }
     advance(); // skip the =
     Node expr_start(Expression(ExprType::NONE));
@@ -370,7 +375,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the semicolon
     return get_statement(prev, stop);
   }
-  ErrorHandler::thow_syntax_error("unrecognized token " + curr_token.get_name());
+  throw_error("unrecognized token " + curr_token.get_name(), curr_token.line);
   return prev;
 }
 

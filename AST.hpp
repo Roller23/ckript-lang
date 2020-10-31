@@ -59,6 +59,7 @@ class Expression {
     FuncCall func_call;
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
+    std::string id_name = "";
     BinaryOp op;
     double float_literal = 0;
     bool bool_literal = false;
@@ -68,6 +69,7 @@ class Expression {
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}
     Expression(const FuncCall &call) : type(FUNC_CALL), func_call(call) {}
     Expression(const std::string &literal) : type(STR_EXPR), string_literal(literal) {}
+    Expression(const std::string &_id, bool identifier) : type(IDENTIFIER_EXPR), id_name(_id) {} 
     Expression(const std::uint64_t literal) : type(NUM_EXPR), number_literal(literal) {}
     Expression(const double literal, bool is_double) : type(FLOAT_EXPR), float_literal(literal) {}
     void print(const std::string &name, int nest = 0);

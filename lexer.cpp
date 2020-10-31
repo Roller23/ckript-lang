@@ -40,7 +40,9 @@ bool Lexer::valid_float(const std::string &str) const {
 }
 
 void Lexer::consume_whitespace(void) {
-  while (ptr != end && isspace(*ptr, loc)) ptr++;
+  while (ptr != end && isspace(*ptr, loc)) {
+    if (*ptr++ == '\n') current_line++;
+  }
 }
 
 void Lexer::consume_comment(void) {
@@ -51,22 +53,29 @@ void Lexer::consume_comment(void) {
   if (ptr != end) ptr++; // skip the closing \n or #
 }
 
-void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
-  log("[UNKNOWN: " + str + "], ");
-  tokens.push_back(Token(Token::UNKNOWN, str));
-  ErrorHandler::thow_syntax_error("unknown token '" + str + "'");
+void Lexer::add_token(Token::TokenType type) {
+  add_token(type, "");
 }
 
-void Lexer::add_char_token(TokenList &tokens, const char c) const {
+void Lexer::add_token(Token::TokenType type, const std::string &val) {
+  tokens.push_back(Token(type, val, current_line));
+}
+
+void Lexer::add_unknown_token(std::string str) {
+  log("[UNKNOWN: " + str + "], ");
+  add_token(Token::UNKNOWN, str);
+  ErrorHandler::throw_syntax_error("unknown token '" + str + "'", current_line);
+}
+
+void Lexer::add_char_token(const char c) {
   std::stringstream s;
   s << "[" << c << "], ";
   log(s.str());
   std::cout << std::flush;
-  tokens.push_back(Token((Token::TokenType)c));
+  add_token((Token::TokenType)c);
 }
 
 TokenList Lexer::tokenize(const std::string &code) {
-  TokenList tokens;
   this->ptr = code.begin();
   this->end = code.end();
   std::string chars = ".,:;{}[]()";
@@ -84,7 +93,7 @@ TokenList Lexer::tokenize(const std::string &code) {
     }
     const char c = *ptr;
     if (contains(chars, c)) {
-      add_char_token(tokens, c);
+      add_char_token(c);
     } else {
       if (isalpha(c, loc)) {
         std::string token_str(1, c);
@@ -94,43 +103,43 @@ TokenList Lexer::tokenize(const std::string &code) {
         ptr--;
         if (token_str == "function") {
           log("[FUNCTION], ");
-          tokens.push_back(Token(Token::FUNCTION));
+          add_token(Token::FUNCTION);
         } else if (token_str == "thread") {
           log("[THREAD], ");
-          tokens.push_back(Token(Token::THREAD));
+          add_token(Token::THREAD);
         } else if (token_str == "return") {
           log("[RETURN], ");
-          tokens.push_back(Token(Token::RETURN));
+          add_token(Token::RETURN);
         } else if (token_str == "if") {
           log("[IF], ");
-          tokens.push_back(Token(Token::IF));
+          add_token(Token::IF);
         } else if (token_str == "else") {
           log("[ELSE], ");
-          tokens.push_back(Token(Token::ELSE));
+          add_token(Token::ELSE);
         } else if (token_str == "elseif") {
           log("[ELSEIF], ");
-          tokens.push_back(Token(Token::ELSEIF));
+          add_token(Token::ELSEIF);
         } else if (token_str == "for") {
           log("[FOR], ");
-          tokens.push_back(Token(Token::FOR));
+          add_token(Token::FOR);
         } else if (token_str == "while") {
           log("[WHILE], ");
-          tokens.push_back(Token(Token::WHILE));
+          add_token(Token::WHILE);
         } else if (token_str == "alloc") {
           log("[ALLOC], ");
-          tokens.push_back(Token(Token::ALLOC));
+          add_token(Token::ALLOC);
         } else if (token_str == "true") {
           log("[TRUE], ");
-          tokens.push_back(Token(Token::TRUE));
+          add_token(Token::TRUE);
         } else if (token_str == "false") {
           log("[FALSE], ");
-          tokens.push_back(Token(Token::FALSE));
+          add_token(Token::FALSE);
         } else if (token_str == "undef") {
           log("[UNDEF], ");
-          tokens.push_back(Token(Token::UNDEF));
+          add_token(Token::UNDEF);
         } else if (token_str == "const") {
           log("[CONST], ");
-          tokens.push_back(Token(Token::CONST));
+          add_token(Token::CONST);
         } else {
           // to do - speed this up (LUT maybe?)
           std::string found_type = "";
@@ -143,10 +152,10 @@ TokenList Lexer::tokenize(const std::string &code) {
           if (found_type == "") {
             // probably an identifier
             log("[IDENTIFIER: " + token_str + "], ");
-            tokens.push_back(Token(Token::IDENTIFIER, token_str));
+            add_token(Token::IDENTIFIER, token_str);
           } else {
             log("[TYPE: " + token_str + "], ");
-            tokens.push_back(Token(Token::TYPE, token_str));
+            add_token(Token::TYPE, token_str);
           }
         }
       } else if (c == '"' || c == '\'' || c == '`') {
@@ -158,7 +167,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           ptr++;
         }
         log("[STRING_LITERAL: " + str + "], ");
-        tokens.push_back(Token(Token::STRING_LITERAL, str));
+        add_token(Token::STRING_LITERAL, str);
       } else if (isdigit(c, loc)) {
         // might be some kind of number
         std::string number_str = "";
@@ -171,7 +180,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           // might be a hex
           if (valid_number(number_str, 16)) {
             log("[HEX: " + number_str + "], ");
-            tokens.push_back(Token(Token::HEX, number_str));
+            add_token(Token::HEX, number_str);
             converted = true;
           }
         } else if (contains(number_str, 'b') && number_str.size() > 2) {
@@ -179,34 +188,34 @@ TokenList Lexer::tokenize(const std::string &code) {
           std::string binary_num = number_str.substr(2);
           if (valid_number(binary_num, 2)) {
             log("[BINARY: " + binary_num + "], ");
-            tokens.push_back(Token(Token::BINARY, binary_num));
+            add_token(Token::BINARY, binary_num);
             converted = true;
           }
         } else if (contains(number_str, '.')) {
           // might be a float
           if (valid_float(number_str)) {
             log("[FLOAT: " + number_str + "], ");
-            tokens.push_back(Token(Token::FLOAT, number_str));
+            add_token(Token::FLOAT, number_str);
             converted = true;
           }
         } else if (number_str.c_str()[0] == '0') {
           // might be an octal number
           if (valid_number(number_str, 8)) {
             log("[OCTAL: " + number_str + "], ");
-            tokens.push_back(Token(Token::OCTAL, number_str));
+            add_token(Token::OCTAL, number_str);
             converted = true;
           }
         } else {
           // might be a decimal
           if (valid_number(number_str, 16)) {
             log("[DECIMAL: " + number_str + "], ");
-            tokens.push_back(Token(Token::DECIMAL, number_str));
+            add_token(Token::DECIMAL, number_str);
             converted = true;
           }
         }
         if (!converted) {
           // couldn't convert the string to any type of number
-          add_unknown_token(tokens, number_str);
+          add_unknown_token(number_str);
         }
       } else if (contains(chars2, c)) {
         std::string op = "";
@@ -216,26 +225,26 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         ptr--;
         if (op.size() == 1) {
-          add_char_token(tokens, c);
+          add_char_token(c);
         } else if (op.size() == 2) {
           if (op == "==") {
             log("[OP_EQ: " + op + "], ");
-            tokens.push_back(Token(Token::OP_EQ));
+            add_token(Token::OP_EQ);
           } else if (op == "&&") {
             log("[OP_AND: " + op + "], ");
-            tokens.push_back(Token(Token::OP_AND));
+            add_token(Token::OP_AND);
           } else if (op == "||") {
             log("[OP_OR: " + op + "], ");
-            tokens.push_back(Token(Token::OP_OR));
+            add_token(Token::OP_OR);
           } else {
-            add_unknown_token(tokens, op);
+            add_unknown_token(op);
           }
         } else {
-          add_unknown_token(tokens, op);
+          add_unknown_token(op);
         }
       } else {
         std::string junk(1, c);
-        add_unknown_token(tokens, junk);
+        add_unknown_token(junk);
       }
     }
     ptr++;

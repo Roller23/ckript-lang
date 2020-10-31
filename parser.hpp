@@ -4,6 +4,7 @@
 #include "token.hpp"
 #include "AST.hpp"
 #include <vector>
+#include <cstdint>
 
 class Parser {
   public:
@@ -36,6 +37,7 @@ class Parser {
     void fail_if_EOF(Token::TokenType expected);
     int find_func_end_brace(TokenList &tokens, int start_pos);
     int find_func_end_semi(TokenList &tokens, int start_pos);
+    void throw_error(const std::string &cause, std::uint32_t line);
 };
 
 #endif // __PARSER_

@@ -40,7 +40,6 @@ void Statement::print(const std::string &_name, int nest) {
       expr.print("", nest);
     }
   }
-  std::cout << std::endl;
 }
 
 void Expression::print(const std::string &_name, int nest) {
@@ -54,13 +53,16 @@ void Expression::print(const std::string &_name, int nest) {
     std::cout << ")";
   }
   if (this->type == STR_EXPR) {
-    std::cout << "str\"" << this->string_literal << "\"";
+    std::cout << "str \"" << this->string_literal << "\"";
   }
   if (this->type == FLOAT_EXPR) {
-    std::cout << "float" << this->float_literal;
+    std::cout << "float " << this->float_literal;
   }
   if (this->type == NUM_EXPR) {
     std::cout << "num " << this->number_literal;
+  }
+  if (this->type == IDENTIFIER_EXPR) {
+    std::cout << "id " << this->id_name;
   }
   if (this->type == FUNC_EXPR) {
     std::cout << "fn (ret " + this->func_expr.ret_type + ") params: ";
@@ -71,12 +73,12 @@ void Expression::print(const std::string &_name, int nest) {
     this->func_expr.instructions.at(0).print("fn block", nest);
   }
   if (this->type == FUNC_CALL) {
-    std::cout << "fn call [id: " + this->func_call.name + "], args:\n";
-    int argc = 1;
+    std::cout << "fn call [id: " + this->func_call.name + "], args: ";
     for (auto &arg : this->func_call.arguments) {
-      arg.print("arg " + std::to_string(argc++) + " ", nest);
-      std::cout << std::endl;
+      arg.print("", 0);
+      std::cout << " ";
     }
+    std::cout << std::endl;
   }
 }
 

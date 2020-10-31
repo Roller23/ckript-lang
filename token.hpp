@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 class Token;
 
@@ -34,9 +35,14 @@ class Token {
 
       NONE, GENERAL_EXPRESSION, GENERAL_STATEMENT, // special tokens
     } TokenType;
-    TokenType type;
-    std::string value;
-    Token(TokenType _type = Token::NONE, std::string _value = "") : type(_type), value(_value) {};
+    TokenType type = NONE;
+    std::string value = "";
+    std::uint32_t line = 0;
+    Token(void) : type(NONE) {};
+    Token(TokenType _type) : type(_type) {}
+    Token(TokenType _type, int _line) : type(_type), line(_line) {}
+    Token(TokenType _type, const std::string &val) : type(_type), value(val) {}
+    Token(TokenType _type, const std::string &val, int _line) : type(_type), value(val), line(_line) {}
     std::string get_name(void) const;
     static std::string get_name(TokenType type);
     friend std::ostream &operator<<(std::ostream& os, const Token &t);
