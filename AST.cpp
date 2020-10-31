@@ -25,31 +25,33 @@ void Node::print_nesting(int nest) {
   }
 }
 
-void Statement::print(const std::string &_name, int nest) {
+void Statement::print(int nest) {
   Node::print_nesting(nest);
-  std::cout << _name;
-  std::cout << ", statement expression:\n";
+  std::cout << "statement expression:\n";
   if (stmt_expr.size() != 0) {
     if (this->stmt_expr.at(0).type == Node::NodeType::EXPR) {
-      this->stmt_expr.at(0).print("", nest);
+      this->stmt_expr.at(0).print(nest);
     }
+    std::cout << std::endl;
   }
   if (this->stmt_exprs.size() > 0) {
-    std::cout << ", expressions:\n";
+    Node::print_nesting(nest);
+    std::cout << "expressions: ";
     for (auto &expr : this->stmt_exprs) {
-      expr.print("", nest);
+      expr.print();
+      std::cout << " ";
     }
+    std::cout << std::endl;
   }
 }
 
-void Expression::print(const std::string &_name, int nest) {
+void Expression::print(int nest) {
   Node::print_nesting(nest);
-  std::cout << _name;
   if (this->type == BINARY_OP) {
-    std::cout << "op(";
-    this->op.operands.at(0).print("", 0);
+    std::cout << "(";
+    this->op.operands.at(0).print();
     std::cout << " " << (char)this->op.op << " ";
-    this->op.operands.at(1).print("", 0);
+    this->op.operands.at(1).print();
     std::cout << ")";
   }
   if (this->type == STR_EXPR) {
@@ -69,35 +71,32 @@ void Expression::print(const std::string &_name, int nest) {
     for (auto &param : this->func_expr.params) {
       std::cout << param.param_name << "(" << param.type_name << ") ";
     }
-    std::cout << "fn body\n";
-    this->func_expr.instructions.at(0).print("fn block", nest);
+    std::cout << ":\n";
+    this->func_expr.instructions.at(0).print(nest);
   }
   if (this->type == FUNC_CALL) {
-    std::cout << "fn call [id: " + this->func_call.name + "], args: ";
+    std::cout << "call " + this->func_call.name + ", args: ";
     for (auto &arg : this->func_call.arguments) {
-      arg.print("", 0);
+      arg.print();
       std::cout << " ";
     }
-    std::cout << std::endl;
   }
 }
 
-void Declaration::print(const std::string &_name, int nest) {
+void Declaration::print(int nest) {
   Node::print_nesting(nest);
-  std::cout << _name;
-  std::cout << " [type: " << this->var_type << "]" << " [id: " << this->id << "] = \n";
-  this->var_expr.at(0).print("", nest);
+  std::cout << "decl " + id + " (" + var_type + ") = ";
+  this->var_expr.at(0).print(nest);
 }
 
-void Node::print(const std::string &_name, int nest) {
-  if (this->type == NodeType::DECL) this->decl.print(_name, nest);
-  if (this->type == NodeType::EXPR) this->expr.print(_name, nest);
-  if (this->type == NodeType::STMT) this->stmt.print(_name, nest);
-  if (this->children.size() != 0) {
-    print_nesting(nest);
-    std::cout << "Node children:\n";
-    for (auto &child : this->children) {
-      child.print(child.name, nest + 1);
-    }
+void Node::print(int nest) {
+  if (type == DECL) decl.print(nest);
+  if (type == EXPR) expr.print(nest);
+  if (type == STMT) stmt.print(nest);
+  if (children.size() == 0) return;
+  print_nesting(nest);
+  std::cout << "Node children:\n";
+  for (auto &child : children) {
+    child.print(nest + 1);
   }
 }

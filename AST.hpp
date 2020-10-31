@@ -72,7 +72,7 @@ class Expression {
     Expression(const std::string &_id, bool identifier) : type(IDENTIFIER_EXPR), id_name(_id) {} 
     Expression(const std::uint64_t literal) : type(NUM_EXPR), number_literal(literal) {}
     Expression(const double literal, bool is_double) : type(FLOAT_EXPR), float_literal(literal) {}
-    void print(const std::string &name, int nest = 0);
+    void print(int nest = 0);
 };
 
 class Statement {
@@ -85,7 +85,7 @@ class Statement {
     ExpressionList stmt_exprs;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
-    void print(const std::string &name, int nest = 0);
+    void print(int nest = 0);
 };
 
 class Declaration {
@@ -99,7 +99,7 @@ class Declaration {
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};
     Declaration(DeclType _type) : type(_type) {};
-    void print(const std::string &name, int nest = 0);
+    void print(int nest = 0);
 };
 
 class Node {
@@ -120,7 +120,7 @@ class Node {
     Node(FuncCall c) : type(NodeType::EXPR), expr(Expression(c)) {};
     void add_children(Node &node);
     void add_children(NodeList &nodes);
-    virtual void print(const std::string &name, int nest = 0);
+    virtual void print(int nest = 0);
     static void print_nesting(int nest);
 };
 

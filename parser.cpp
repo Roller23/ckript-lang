@@ -336,7 +336,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
-    Node var_decl = Node(Declaration(DeclType::VAR_DECL), "VAR");
+    Node var_decl = Node(Declaration(DeclType::VAR_DECL));
     var_decl.decl.var_type = curr_token.value;
     advance(); // skip the variable type
     if (curr_token.type != Token::IDENTIFIER) {
@@ -386,7 +386,7 @@ Node Parser::parse(int *end_pos) {
     *end_pos = pos;
   }
   std::cout << "AST:\n";
-  program.print(program.name);
+  program.print();
   std::cout << std::endl;
   return program;
 }
