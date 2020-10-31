@@ -21,7 +21,7 @@ void Parser::fail_if_EOF(TokenType expected) {
 
 void Parser::advance(void) {
   pos++;
-  prev = curr_token;
+  prev = tokens.at(pos - 1);
   if (pos < tokens_count) {
     curr_token = tokens.at(pos);
   } else {
@@ -36,6 +36,72 @@ void Parser::retreat(void) {
   pos--;
   curr_token = tokens.at(pos);
   prev = pos > 0 ? tokens.at(pos - 1) : Token(Token::NONE);
+}
+
+Token Parser::lookahead(int offset) {
+  if (pos + offset >= tokens.size()) {
+    return {}; // empty token
+  }
+  return tokens.at(pos + offset);
+}
+
+int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
+  std::cout << "BRACE\n";
+  int i = 0;
+  int brackets = 0;
+  int size = tokens.size();
+  while (true) {
+    if (size == i) {
+      std::string msg = "Invalid function declaration, no enclosing brace found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+    if (tokens.at(start_pos + i).type == Token::LEFT_BRACE) {
+      brackets++;
+    }
+    if (tokens.at(start_pos + i).type == Token::RIGHT_BRACE) {
+      brackets--;
+      if (brackets == 0) {
+        return i;
+      }
+    }
+    i++;
+  }
+}
+
+int Parser::find_func_end_semi(TokenList &tokens, int start_pos) {
+  std::cout << "SEMI\n";
+  int i = 0;
+  int size = tokens.size();
+  while (true) {
+    if (size == i) {
+      std::string msg = "Invalid function declaration, no semicolon found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+    if (tokens.at(start_pos + i).type == Token::SEMI_COLON) {
+      return i;
+    }
+    i++;
+  }
+}
+
+ParamList Parser::parse_func_params() {
+  ParamList res;
+  TokenType sep = Token::COMMA;
+  TokenType stop = Token::RIGHT_PAREN;
+  while (true) {
+    fail_if_EOF(stop);
+    if (curr_token.type != Token::TYPE) {
+      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+    std::string type = curr_token.value;
+    advance();
+    if (curr_token.type != Token::TYPE) {
+      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+  }
+  return res;
 }
 
 NodeList Parser::get_many_expressions(TokenType sep, TokenType stop) {
@@ -55,7 +121,7 @@ NodeList Parser::get_many_expressions(TokenType sep, TokenType stop) {
 }
 
 Node Parser::parse_func_expr() {
-  // function(arg1, arg2, ...) type statement(s)
+  // function(arg1, arg2, ...) type statement(s);
   Node func = Node(Expression(ExprType::FUNC_EXPR), "function def");
   func.expr.func_expr.type = curr_token.type == Token::THREAD ? FuncType::THREAD : FuncType::FUNC;
   advance(); // skip the function/thread
@@ -64,7 +130,7 @@ Node Parser::parse_func_expr() {
     ErrorHandler::thow_syntax_error(msg);
   }
   advance(); // skip the (
-  func.expr.func_expr.params = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
+  func.expr.func_expr.params = parse_func_params();
   advance(); // skip the )
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
@@ -72,24 +138,41 @@ Node Parser::parse_func_expr() {
   }
   func.expr.func_expr.ret_type = curr_token.value;
   advance(); // skip the type
-  // oh boy
-  // here we go
-  TokenList func_start(tokens.begin() + pos, tokens.end()); // create a subvector of tokens
-  Parser func_parser(func_start, Token::SEMI_COLON);
+  int func_end = 0;
+  bool starts_with_brace = curr_token.type == Token::LEFT_BRACE;
+  if (starts_with_brace) {
+    func_end = find_func_end_brace(tokens, pos);
+  } else {
+    func_end = find_func_end_semi(tokens, pos);
+  }
+  TokenList func_start(tokens.begin() + pos, tokens.begin() + pos + func_end + 1); // create a subvector of tokens
+  Parser func_parser(func_start, Token::NONE, "FUNC");
   func.expr.func_expr.instructions = new Node;
-  *func.expr.func_expr.instructions = func_parser.parse("FUNC INSTRUCTIONS");
+  int end_pos = 0;
+  *func.expr.func_expr.instructions = func_parser.parse(&end_pos);
+  pos += end_pos;
+  advance(); // skip the semicolon
+  if (!starts_with_brace) {
+    retreat();
+  }
   return func;
 }
 
 Node Parser::get_expression(TokenType stop1, TokenType stop2) {
+  std::cout << "(" + parser_name + ") - ";
   fail_if_EOF(Token::GENERAL_EXPRESSION);
   std::cout << "consuming expression\n";
   Node res(Expression(ExprType::BOOL_EXPR), "Expression");
   while (curr_token.type != stop1 && curr_token.type != stop2) {
     if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
       Node func = parse_func_expr();
+      if (curr_token.type == stop1 || curr_token.type == stop2) {
+        return func;
+        break;
+      }
     }
     res.expr.tokens.push_back(curr_token);
+    std::cout << "(" + parser_name + ") - ";
     std::cout << "pushing " << curr_token << "\n";
     advance();
     fail_if_EOF(stop2 == Token::NONE ? stop1 : stop2);
@@ -114,6 +197,7 @@ NodeList Parser::get_many_statements(Node &node, TokenType stop) {
 }
 
 Node Parser::get_statement(Node &prev, TokenType stop) {
+  std::cout << "(" + parser_name + ") - ";
   if (curr_token.type == stop) {
     std::cout << "Encountered stop - " << Token::get_name(stop) << "\n";
     return prev;
@@ -233,9 +317,12 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   return prev;
 }
 
-Node Parser::parse(const std::string &block_name) {
-  Node start(Statement(StmtType::COMPOUND), "Compound (" + block_name + ")");
+Node Parser::parse(int *end_pos) {
+  Node start(Statement(StmtType::COMPOUND), "Compound (" + parser_name + ")");
   Node program = get_statement(start, this->terminal);
+  if (end_pos != NULL) {
+    *end_pos = pos;
+  }
   std::cout << "AST:\n";
   program.print(program.name);
   return program;

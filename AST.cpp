@@ -46,6 +46,13 @@ void Expression::print(const std::string &_name, int nest) {
       std::cout << token << " ";
     }
   }
+  if (this->func_expr.type != FuncExpression::FuncType::NONE) {
+    std::cout << "fn (ret " + this->func_expr.ret_type + ") params: ";
+    for (auto &param : this->func_expr.params) {
+      std::cout << param.param_name << "(" << param.type_name << ") ";
+    }
+    std::cout << std::endl;
+  }
   std::cout << std::endl;
 }
 

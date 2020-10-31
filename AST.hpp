@@ -6,8 +6,17 @@
 #include "token.hpp"
 
 class Node;
+class FuncParam;
 
 typedef std::vector<Node> NodeList;
+typedef std::vector<FuncParam> ParamList;
+
+class FuncParam {
+  public:
+    std::string type_name;
+    std::string param_name;
+    FuncParam(const std::string &_type, const std::string &_name) : type_name(_type), param_name(_name) {};
+};
 
 class FuncExpression {
   public:
@@ -15,7 +24,7 @@ class FuncExpression {
       THREAD, FUNC, NONE
     } FuncType;
     FuncType type;
-    NodeList params;
+    ParamList params;
     std::string ret_type;
     Node *instructions;
     FuncExpression(void) : type(FuncType::NONE) {};
