@@ -1,13 +1,12 @@
 CC=g++
-main=main.cpp
 out=main.out
 flags=-g -O0
-files=token.cpp lexer.cpp parser.cpp ckript-vm.cpp interpreter.cpp AST.cpp error-handler.cpp
+files=*.cpp
 m=Automated Makefile push message
 input_file=test.ck
 
 all:
-	$(CC) $(flags) -o $(out) $(main) $(files)
+	$(CC) $(flags) -o $(out) $(files)
 
 run:
 	./$(out) $(input_file)

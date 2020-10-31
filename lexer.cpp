@@ -12,7 +12,8 @@ static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
   "uint8", "uint16", "uint32", "uint64",
   "f64", "f32",
-  "func", "thr", "str", "void"
+  "func", "thr", "str", "void",
+  "string"
 };
 
 const char **Lexer::builtin_types = _builtin_types;

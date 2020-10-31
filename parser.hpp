@@ -7,10 +7,11 @@
 
 class Parser {
   public:
-    Parser(TokenList &_tokens) : 
+    Parser(TokenList &_tokens, Token::TokenType _terminal) : 
       tokens(_tokens),
       curr_token(_tokens.at(0)),
-      tokens_count(_tokens.size()) {}
+      tokens_count(_tokens.size()),
+      terminal(_terminal) {}
     void parse();
     void advance();
     void retreat();
@@ -25,6 +26,7 @@ class Parser {
     Token curr_token;
     int pos = 0;
     int tokens_count;
+    Token::TokenType terminal;
     void fail_if_EOF(Token::TokenType expected);
 };
 

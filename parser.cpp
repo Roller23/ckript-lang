@@ -83,6 +83,7 @@ NodeList Parser::get_many_statements(Node &node, Token::TokenType stop) {
 
 Node Parser::get_statement(Node &prev, Token::TokenType stop) {
   if (curr_token.type == stop) {
+    std::cout << "Encountered stop - " << Token::get_name(stop) << "\n";
     return prev;
   }
   if (curr_token.type == Token::LEFT_BRACE) {
@@ -116,7 +117,8 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     advance(); // skip the while keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid while statement
-      throw;
+      std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
     }
     Node while_stmt = Node(Statement(StmtType::WHILE), "WHILE");
     advance(); // skip the (
@@ -131,7 +133,8 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     advance(); // skip the for keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid for statement
-      throw;
+      std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
     }
     Node for_stmt = Node(Statement(StmtType::FOR), "FOR");
     advance(); // skip the (
@@ -155,6 +158,25 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
+    Node var_decl = Node(Declaration(DeclType::VAR_DECL), "VAR");
+    var_decl.decl.var_type = curr_token.value;
+    advance(); // skip the variable type
+    if (curr_token.type != Token::IDENTIFIER) {
+      std::string msg = "invalid variable declaration. Expected an identifier, but " + curr_token.get_name() + " found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+    var_decl.decl.id = curr_token.value; // set the declaration identifier to token value
+    advance(); // skip the identifier
+    if (curr_token.type != Token::OP_ASSIGN) {
+      std::string msg = "invalid variable declaration. Expected '=', but " + curr_token.get_name() + "found";
+      ErrorHandler::thow_syntax_error(msg);
+    }
+    advance(); // skip the =
+    var_decl.decl.var_expr = new Node; // to do, find a workaround for this
+    *var_decl.decl.var_expr = get_expression(Token::SEMI_COLON);
+    advance(); // skip the semicolon
+    prev.add_children(var_decl);
+    return get_statement(prev, stop);
   } else if (curr_token.type == Token::SEMI_COLON) {
     std::cout << "no operation\n";
     // nop;
@@ -162,9 +184,9 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
     Node nop(Expression(ExprType::NOP), "NOP");
     prev.add_children(nop);
     return prev;
-  } else if (curr_token.type == Token::NONE) {
-    std::cout << "EOF\n";
-    // end of file
+  } else if (curr_token.type == this->terminal) {
+    std::cout << "Encountered terminal - " << Token::get_name(this->terminal) << "\n";
+    // end parsing
     return prev;
   } else {
     std::cout << "found an expression\n";
@@ -180,7 +202,7 @@ Node Parser::get_statement(Node &prev, Token::TokenType stop) {
 
 void Parser::parse(void) {
   Node start(Statement(StmtType::COMPOUND), "Compound (PROGRAM START)");
-  Node program = get_statement(start, Token::NONE);
+  Node program = get_statement(start, this->terminal);
   std::cout << "AST:\n";
   program.print(program.name);
 }

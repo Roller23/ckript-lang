@@ -5,6 +5,10 @@
 #include <string>
 #include "token.hpp"
 
+class Node;
+
+typedef std::vector<Node> NodeList;
+
 class Expression {
   public:
     typedef enum expr_type {
@@ -37,15 +41,14 @@ class Declaration {
     typedef enum decl_type {
       FUNC_DECL, VAR_DECL, NONE
     } DeclType;
+    std::string var_type = "";
+    std::string id = "";
+    Node *var_expr; // to avoid forward declaration
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};
     Declaration(DeclType _type) : type(_type) {};
     void print(const std::string &name, int nest = 0);
 };
-
-class Node;
-
-typedef std::vector<Node> NodeList;
 
 class Node {
   public:
@@ -58,6 +61,7 @@ class Node {
     NodeList children;
     NodeType type;
     std::string name;
+    Node(void) : type(NodeType::UNKNOWN), name("") {};
     Node(Expression e, std::string _name = "") : type(NodeType::EXPR), expr(e), name(_name) {};
     Node(Statement s, std::string _name = "") : type(NodeType::STMT), stmt(s), name(_name) {};
     Node(Declaration d, std::string _name = ""): type(NodeType::DECL), decl(d), name(_name) {};

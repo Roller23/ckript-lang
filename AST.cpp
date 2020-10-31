@@ -51,7 +51,9 @@ void Expression::print(const std::string &_name, int nest) {
 
 void Declaration::print(const std::string &_name, int nest) {
   Node::print_nesting(nest);
-  std::cout << _name << std::endl;
+  std::cout << _name;
+  std::cout << " [type: " << this->var_type << "]" << " [id: " << this->id << "] = \n";
+  this->var_expr->print("", nest);
 }
 
 void Node::print(const std::string &_name, int nest) {

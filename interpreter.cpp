@@ -2,6 +2,7 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "ckript-vm.hpp"
+#include "token.hpp"
 
 #include <string>
 #include <iostream>
@@ -12,6 +13,6 @@ void Interpreter::process_file(const std::string &filename) {
   CkriptVM VM;
   lexer.verbose = true;
   TokenList tokens = lexer.process_file(filename);
-  Parser parser(tokens);
+  Parser parser(tokens, Token::TokenType::NONE);
   parser.parse();
 }

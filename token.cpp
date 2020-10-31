@@ -47,8 +47,3 @@ std::ostream &operator<<(std::ostream &os, const Token &t) {
   os << t.get_name();
   return os;
 }
-
-std::string &operator+(std::string &s, const Token &t) {
-  s += t.get_name();
-  return s;
-}

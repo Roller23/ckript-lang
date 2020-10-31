@@ -40,7 +40,6 @@ class Token {
     std::string get_name(void) const;
     static std::string get_name(TokenType type);
     friend std::ostream &operator<<(std::ostream& os, const Token &t);
-    friend std::string &operator+(std::string &s, const Token &t);
 };
 
 #endif // __TOKEN_
