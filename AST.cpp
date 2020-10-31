@@ -27,21 +27,27 @@ void Node::print_nesting(int nest) {
 
 void Statement::print(int nest) {
   Node::print_nesting(nest);
-  std::cout << "statement expression:\n";
-  if (stmt_expr.size() != 0) {
-    if (this->stmt_expr.at(0).type == Node::NodeType::EXPR) {
-      this->stmt_expr.at(0).print(nest);
-    }
-    std::cout << std::endl;
-  }
-  if (this->stmt_exprs.size() > 0) {
-    Node::print_nesting(nest);
-    std::cout << "expressions: ";
+  if (type == FOR) {
+    std::cout << "for ( ";
     for (auto &expr : this->stmt_exprs) {
       expr.print();
-      std::cout << " ";
+      std::cout << ";";
     }
-    std::cout << std::endl;
+    std::cout << "):\n";
+  } else {
+    if (type == RETURN) std::cout << "return";
+    if (type == WHILE) std::cout << "while";
+    if (type == IF) std::cout << "if";
+    if (type == COMPOUND) std::cout << "compound";
+    std::cout << " statement: ";
+    if (stmt_expr.size() != 0) {
+      if (this->stmt_expr.at(0).type == Node::NodeType::EXPR) {
+        this->stmt_expr.at(0).print();
+      }
+      std::cout << std::endl;
+    } else {
+      std::cout << std::endl;
+    }
   }
 }
 
@@ -85,7 +91,7 @@ void Expression::print(int nest) {
 
 void Declaration::print(int nest) {
   Node::print_nesting(nest);
-  std::cout << "decl " + id + " (" + var_type + ") = ";
+  std::cout << "decl " + id + " (" + var_type + "):\n";
   this->var_expr.at(0).print(nest);
 }
 
