@@ -110,13 +110,12 @@ ParamList Parser::parse_func_params() {
   return res;
 }
 
-NodeList Parser::get_many_expressions(TokenType sep, TokenType stop) {
+NodeList Parser::get_many_expressions(Node &prev, TokenType sep, TokenType stop) {
   NodeList res;
   while (true) {
     fail_if_EOF(stop);
-    Node expr = get_expression(sep, stop); // parse expression till either sep or stop
+    Node expr = get_expression(prev, sep, stop); // parse expression till either sep or stop
     if (curr_token.type == stop) {
-      res.push_back(expr);
       break;
     }
     res.push_back(expr);
@@ -128,7 +127,7 @@ NodeList Parser::get_many_expressions(TokenType sep, TokenType stop) {
 
 Node Parser::parse_func_expr() {
   // function(arg1, arg2, ...) type statement(s);
-  Node func = Node(Expression(ExprType::FUNC_EXPR), "function def");
+  Node func = Node(Expression(ExprType::FUNC_EXPR));
   func.expr.func_expr.type = curr_token.type == Token::THREAD ? FuncType::THREAD : FuncType::FUNC;
   advance(); // skip the function/thread
   if (curr_token.type != Token::LEFT_PAREN) {
@@ -164,42 +163,72 @@ Node Parser::parse_func_expr() {
   return func;
 }
 
-Node Parser::get_expression(TokenType stop1, TokenType stop2) {
+Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
   std::cout << "(" + parser_name + ") - ";
   fail_if_EOF(Token::GENERAL_EXPRESSION);
-  std::cout << "consuming expression\n";
-  Node res(Expression(ExprType::BOOL_EXPR), "Expression");
-  while (curr_token.type != stop1 && curr_token.type != stop2) {
-    if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
-      Node func = parse_func_expr();
-      if (curr_token.type == stop1 || curr_token.type == stop2) {
-        return func;
-        break;
-      }
-    }
-    res.expr.tokens.push_back(curr_token);
-    std::cout << "(" + parser_name + ") - ";
-    std::cout << "pushing " << curr_token << "\n";
-    advance();
-    fail_if_EOF(stop2 == Token::NONE ? stop1 : stop2);
+  if (curr_token.type == stop1 || curr_token.type == stop2) {
+    std::cout << "Expression stopped\n";
+    return prev;
   }
-  return res;
+  std::cout << "consuming expression\n";
+  if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
+    Node func = parse_func_expr();
+    if (curr_token.type == stop1 || curr_token.type == stop2) {
+      prev.add_children(func);
+      return prev;
+    }
+  }
+  if (curr_token.type == Token::IDENTIFIER) {
+    if (lookahead().type == Token::RIGHT_PAREN) {
+      // it's a function call
+      // identifier(arg1, arg2...)
+      Node call(FuncCall(this->prev.value));
+      advance(); // skip the (
+      Node expr_start(Expression(ExprType::NONE));
+      NodeList args = get_many_expressions(expr_start, Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
+      for (auto &arg : args) {
+        call.expr.func_call.arguments.push_back(arg.expr);
+      }
+      prev.add_children(call);
+      return get_expression(prev, stop1, stop2);
+    } else {
+      // it's an identifier expression
+      Node id(Expression(ExprType::IDENTIFIER_EXPR));
+      prev.add_children(id);
+      return get_expression(prev, stop1, stop2);
+    }
+  }
+  if (curr_token.type == Token::STRING_LITERAL) {
+    Node str_literal(Expression(curr_token.value));
+    prev.add_children(str_literal);
+    return get_expression(prev, stop1, stop2);
+  }
+  if (curr_token.type == Token::DECIMAL) {
+    Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, 10)));
+    prev.add_children(num_literal);
+    return get_expression(prev, stop1, stop2);;
+  }
+  if (curr_token.type == Token::FLOAT) {
+    Node float_literal(Expression(strtod(curr_token.value.c_str(), NULL), true));
+    prev.add_children(float_literal);
+    return get_expression(prev, stop1, stop2);;
+  }
+  throw "UNKNOWN";
+  return prev;
 }
 
-NodeList Parser::get_many_statements(Node &node, TokenType stop) {
-  NodeList res;
+void Parser::get_many_statements(Node &node, TokenType stop) {
   std::cout << "consuming statements in a compound statement\n";
+  Node stmt;
   while (true) {
     fail_if_EOF(stop);
-    Node stmt = get_statement(node, stop);
-    if (curr_token.type != stop) {
-      res.push_back(stmt); 
-    } else {
+    stmt = get_statement(node, stop);
+    if (curr_token.type == stop) {
       break;
     }
   }
+  node = stmt;
   advance(); // skip stop
-  return res;
 }
 
 Node Parser::get_statement(Node &prev, TokenType stop) {
@@ -213,8 +242,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // { statement(s) }
     Node stmt(Statement(StmtType::COMPOUND), "Compund");
     advance(); // skip the {
-    NodeList inner_statements = get_many_statements(stmt, Token::RIGHT_BRACE);
-    stmt.add_children(inner_statements);
+    get_many_statements(stmt, Token::RIGHT_BRACE);
     // std::cout << "compound count " << inner_statements.size() << "\n";
     prev.add_children(stmt);
     return get_statement(prev, stop);
@@ -229,7 +257,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     }
     Node if_stmt = Node(Statement(StmtType::IF), "IF");
     advance(); // skip the (
-    Node expr = get_expression(Token::RIGHT_PAREN);
+    Node expr_start(Expression(ExprType::NONE));
+    Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
     if_stmt.stmt.stmt_expr = expr.expr;
     advance(); // skip the )
     prev.add_children(if_stmt);
@@ -245,7 +274,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     }
     Node while_stmt = Node(Statement(StmtType::WHILE), "WHILE");
     advance(); // skip the (
-    Node expr = get_expression(Token::RIGHT_PAREN);
+    Node expr_start(Expression(ExprType::NONE));
+    Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
     while_stmt.stmt.stmt_expr = expr.expr;
     advance(); // skip the )
     prev.add_children(while_stmt);
@@ -261,7 +291,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     }
     Node for_stmt = Node(Statement(StmtType::FOR), "FOR");
     advance(); // skip the (
-    NodeList expressions = get_many_expressions(Token::SEMI_COLON, Token::RIGHT_PAREN);
+    Node expr_start(Expression(ExprType::NONE));
+    NodeList expressions = get_many_expressions(expr_start, Token::SEMI_COLON, Token::RIGHT_PAREN);
     for (auto &expr : expressions) {
       for_stmt.stmt.stmt_exprs.push_back(expr.expr);
     }
@@ -273,7 +304,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // return expression;
     advance(); // skip the return
     Node return_stmt(Statement(StmtType::RETURN), "RETURN");
-    Node return_expr = get_expression(Token::SEMI_COLON);
+    Node expr_start(Expression(ExprType::NONE));
+    Node return_expr = get_expression(expr_start, Token::SEMI_COLON);
     return_stmt.stmt.stmt_expr = return_expr.expr;
     prev.add_children(return_stmt);
     advance(); // skip the semicolon
@@ -296,7 +328,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     }
     advance(); // skip the =
     var_decl.decl.var_expr = new Node; // to do, find a workaround for this
-    *var_decl.decl.var_expr = get_expression(Token::SEMI_COLON);
+    Node expr_start(Expression(ExprType::NONE));
+    *var_decl.decl.var_expr = get_expression(expr_start, Token::SEMI_COLON);
     advance(); // skip the semicolon
     prev.add_children(var_decl);
     return get_statement(prev, stop);
@@ -314,7 +347,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else {
     std::cout << "found an expression\n";
     // expression;
-    Node expr = get_expression(Token::SEMI_COLON);
+    Node expr_start(Expression(ExprType::NONE));
+    Node expr = get_expression(expr_start, Token::SEMI_COLON);
     prev.add_children(expr);
     advance(); // skip the semicolon
     return get_statement(prev, stop);

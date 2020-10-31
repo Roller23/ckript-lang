@@ -54,6 +54,12 @@ void Expression::print(const std::string &_name, int nest) {
     std::cout << "fn body\n";
     (*this->func_expr.instructions).print("fn block", nest);
   }
+  if (this->type == Expression::ExprType::FUNC_CALL) {
+    std::cout << "fn call [id: " + this->func_call.name + "], args:\n";
+    for (auto &arg : this->func_call.arguments) {
+      arg.print("");
+    }
+  }
   std::cout << std::endl;
 }
 

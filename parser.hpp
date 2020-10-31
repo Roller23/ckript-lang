@@ -18,12 +18,12 @@ class Parser {
     void retreat();
     Token lookahead(int offset = 1);
     Node get_statement(Node &prev, Token::TokenType stop);
-    Node get_expression(Token::TokenType stop1, Token::TokenType stop2 = Token::NONE);
+    Node get_expression(Node &prev, Token::TokenType stop1, Token::TokenType stop2 = Token::NONE);
     Node parse_func_expr();
     ParamList parse_func_params();
-    NodeList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
+    NodeList get_many_expressions(Node &prev, Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
-    NodeList get_many_statements(Node &prev, Token::TokenType stop);
+    void get_many_statements(Node &prev, Token::TokenType stop);
   private:
     TokenList &tokens;
     Token prev;
