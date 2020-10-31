@@ -51,7 +51,8 @@ void Expression::print(const std::string &_name, int nest) {
     for (auto &param : this->func_expr.params) {
       std::cout << param.param_name << "(" << param.type_name << ") ";
     }
-    std::cout << std::endl;
+    std::cout << "fn body\n";
+    (*this->func_expr.instructions).print("fn block", nest);
   }
   std::cout << std::endl;
 }

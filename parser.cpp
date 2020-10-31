@@ -46,7 +46,6 @@ Token Parser::lookahead(int offset) {
 }
 
 int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
-  std::cout << "BRACE\n";
   int i = 0;
   int brackets = 0;
   int size = tokens.size();
@@ -69,7 +68,6 @@ int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
 }
 
 int Parser::find_func_end_semi(TokenList &tokens, int start_pos) {
-  std::cout << "SEMI\n";
   int i = 0;
   int size = tokens.size();
   while (true) {
@@ -89,17 +87,25 @@ ParamList Parser::parse_func_params() {
   TokenType sep = Token::COMMA;
   TokenType stop = Token::RIGHT_PAREN;
   while (true) {
-    fail_if_EOF(stop);
+    fail_if_EOF(Token::TYPE);
     if (curr_token.type != Token::TYPE) {
-      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
       ErrorHandler::thow_syntax_error(msg);
     }
     std::string type = curr_token.value;
     advance();
-    if (curr_token.type != Token::TYPE) {
-      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+    fail_if_EOF(Token::IDENTIFIER);
+    if (curr_token.type != Token::IDENTIFIER) {
+      std::string msg = "Invalid function declaration, expected an identifier, but " + curr_token.get_name() + " found";
       ErrorHandler::thow_syntax_error(msg);
     }
+    res.push_back({type, curr_token.value});
+    advance();
+    fail_if_EOF(stop);
+    if (curr_token.type == stop) {
+      break;
+    }
+    advance(); // skip the sep
   }
   return res;
 }
