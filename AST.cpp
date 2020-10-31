@@ -3,6 +3,12 @@
 #include <string>
 #include <iostream>
 
+BinaryOp::BinaryOp(const Node &l, Token::TokenType o, const Node &r) {
+  this->op = o;
+  this->operands.push_back(l);
+  this->operands.push_back(r);
+}
+
 void Node::add_children(Node &node) {
   this->children.push_back(node);
 }
@@ -22,10 +28,10 @@ void Node::print_nesting(int nest) {
 void Statement::print(const std::string &_name, int nest) {
   Node::print_nesting(nest);
   std::cout << _name;
-  if (this->stmt_expr.type != Expression::ExprType::NONE && this->stmt_expr.tokens.size() > 0) {
-    std::cout << ", statement expression: ";
-    for (auto &token : this->stmt_expr.tokens) {
-      std::cout << token << " ";
+  std::cout << ", statement expression:\n";
+  if (stmt_expr.size() != 0) {
+    if (this->stmt_expr.at(0).type == Node::NodeType::EXPR) {
+      this->stmt_expr.at(0).print("", nest);
     }
   }
   if (this->stmt_exprs.size() > 0) {
@@ -40,34 +46,45 @@ void Statement::print(const std::string &_name, int nest) {
 void Expression::print(const std::string &_name, int nest) {
   Node::print_nesting(nest);
   std::cout << _name;
-  if (this->tokens.size() != 0) {
-    std::cout << ", tokens: ";
-    for (auto &token : this->tokens) {
-      std::cout << token << " ";
-    }
+  if (this->type == BINARY_OP) {
+    std::cout << "op(";
+    this->op.operands.at(0).print("", 0);
+    std::cout << " " << (char)this->op.op << " ";
+    this->op.operands.at(1).print("", 0);
+    std::cout << ")";
   }
-  if (this->func_expr.type != FuncExpression::FuncType::NONE) {
+  if (this->type == STR_EXPR) {
+    std::cout << "str\"" << this->string_literal << "\"";
+  }
+  if (this->type == FLOAT_EXPR) {
+    std::cout << "float" << this->float_literal;
+  }
+  if (this->type == NUM_EXPR) {
+    std::cout << "num " << this->number_literal;
+  }
+  if (this->type == FUNC_EXPR) {
     std::cout << "fn (ret " + this->func_expr.ret_type + ") params: ";
     for (auto &param : this->func_expr.params) {
       std::cout << param.param_name << "(" << param.type_name << ") ";
     }
     std::cout << "fn body\n";
-    (*this->func_expr.instructions).print("fn block", nest);
+    this->func_expr.instructions.at(0).print("fn block", nest);
   }
-  if (this->type == Expression::ExprType::FUNC_CALL) {
+  if (this->type == FUNC_CALL) {
     std::cout << "fn call [id: " + this->func_call.name + "], args:\n";
+    int argc = 1;
     for (auto &arg : this->func_call.arguments) {
-      arg.print("");
+      arg.print("arg " + std::to_string(argc++) + " ", nest);
+      std::cout << std::endl;
     }
   }
-  std::cout << std::endl;
 }
 
 void Declaration::print(const std::string &_name, int nest) {
   Node::print_nesting(nest);
   std::cout << _name;
   std::cout << " [type: " << this->var_type << "]" << " [id: " << this->id << "] = \n";
-  this->var_expr->print("", nest);
+  this->var_expr.at(0).print("", nest);
 }
 
 void Node::print(const std::string &_name, int nest) {

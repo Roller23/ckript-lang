@@ -15,7 +15,7 @@ class Token {
       OP_MOD = '%', OP_LT = '<', OP_GT = '>', OP_NOT = '!',
       OP_OR_BIT = '|', OP_AND_BIT = '&', OP_ASSIGN = '=',
 
-      DOT = '.', COMMA = '.', COLON = ':', SEMI_COLON = ';',
+      DOT = '.', COMMA = ',', COLON = ':', SEMI_COLON = ';',
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
       RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')',
 

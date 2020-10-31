@@ -36,9 +36,17 @@ class FuncExpression {
     FuncType type;
     ParamList params;
     std::string ret_type;
-    Node *instructions;
+    NodeList instructions;
     FuncExpression(void) : type(FuncType::NONE) {};
     FuncExpression(FuncType _type) : type(_type) {};
+};
+
+class BinaryOp {
+  public:
+    BinaryOp(void) : op(Token::TokenType::NONE) {}
+    BinaryOp(const Node &l, Token::TokenType o, const Node &r);
+    NodeList operands;
+    Token::TokenType op;
 };
 
 class Expression {
@@ -47,15 +55,16 @@ class Expression {
       BINARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, NONE
     } ExprType;
     ExprType type;
-    TokenList tokens;
     FuncExpression func_expr;
     FuncCall func_call;
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
+    BinaryOp op;
     double float_literal = 0;
     bool bool_literal = false;
     Expression(void) : type(ExprType::NONE) {};
     Expression(ExprType _type) : type(_type) {};
+    Expression(const Node &l, Token::TokenType o, const Node &r) : type(BINARY_OP), op(l, o, r) {}
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}
     Expression(const FuncCall &call) : type(FUNC_CALL), func_call(call) {}
     Expression(const std::string &literal) : type(STR_EXPR), string_literal(literal) {}
@@ -70,10 +79,10 @@ class Statement {
       IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NONE
     } StmtType;
     StmtType type;
-    Expression stmt_expr;
+    NodeList stmt_expr;
     ExpressionList stmt_exprs;
-    Statement(void) : type(StmtType::NONE) {};
-    Statement(StmtType _type) : type(_type) {};
+    Statement(void) : type(NONE) {}
+    Statement(StmtType _type) : type(_type) {}
     void print(const std::string &name, int nest = 0);
 };
 
@@ -84,7 +93,7 @@ class Declaration {
     } DeclType;
     std::string var_type = "";
     std::string id = "";
-    Node *var_expr; // to avoid forward declaration
+    NodeList var_expr; // to avoid forward declaration
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};
     Declaration(DeclType _type) : type(_type) {};

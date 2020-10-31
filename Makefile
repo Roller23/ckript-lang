@@ -14,6 +14,9 @@ run:
 debug:
 	gdb ./$(out)
 
+mem:
+	valgrind -s ./$(out)
+
 clean:
 	rm *.out
 
