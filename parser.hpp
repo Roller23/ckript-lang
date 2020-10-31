@@ -25,6 +25,7 @@ class Parser {
     Token curr_token;
     int pos = 0;
     int tokens_count;
+    void fail_if_EOF(Token::TokenType expected);
 };
 
 #endif // __PARSER_

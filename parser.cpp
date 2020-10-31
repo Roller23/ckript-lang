@@ -1,5 +1,7 @@
 #include "parser.hpp"
 #include "AST.hpp"
+#include "token.hpp"
+#include "error-handler.hpp"
 
 #include <vector>
 #include <iostream>
@@ -8,6 +10,12 @@ typedef Expression::ExprType ExprType;
 typedef Declaration::DeclType DeclType;
 typedef Statement::StmtType StmtType;
 typedef Node::NodeType NodeType;
+
+void Parser::fail_if_EOF(Token::TokenType expected) {
+  if (curr_token.type == Token::NONE) {
+    ErrorHandler::thow_syntax_error("Reached end of file but " + Token::get_name(expected) + " expected");
+  }
+}
 
 void Parser::advance(void) {
   pos++;
@@ -31,6 +39,7 @@ void Parser::retreat(void) {
 NodeList Parser::get_many_expressions(Token::TokenType sep, Token::TokenType stop) {
   NodeList res;
   while (true) {
+    fail_if_EOF(stop);
     Node expr = get_expression(sep, stop); // parse expression till either sep or stop
     if (curr_token.type == stop) {
       res.push_back(expr);
@@ -38,17 +47,20 @@ NodeList Parser::get_many_expressions(Token::TokenType sep, Token::TokenType sto
     }
     res.push_back(expr);
     advance();
+    fail_if_EOF(stop);
   }
   return res;
 }
 
 Node Parser::get_expression(Token::TokenType stop1, Token::TokenType stop2) {
+  fail_if_EOF(Token::GENERAL_EXPRESSION);
   std::cout << "consuming expression\n";
   Node res(Expression(ExprType::BOOL_EXPR), "Expression");
   while (curr_token.type != stop1 && curr_token.type != stop2) {
     res.expr.tokens.push_back(curr_token);
-    std::cout << "pushing " << (char)curr_token.type << "\n";
+    std::cout << "pushing " << curr_token << "\n";
     advance();
+    fail_if_EOF(Token::NONE ? stop1 : stop2);
   }
   return res;
 }
@@ -57,6 +69,7 @@ NodeList Parser::get_many_statements(Node &node, Token::TokenType stop) {
   NodeList res;
   std::cout << "consuming statements in a compound statement\n";
   while (true) {
+    fail_if_EOF(stop);
     Node stmt = get_statement(node, stop);
     if (curr_token.type != stop) {
       res.push_back(stmt); 

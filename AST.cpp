@@ -25,7 +25,7 @@ void Statement::print(const std::string &_name, int nest) {
   if (this->stmt_expr.type != Expression::ExprType::NONE && this->stmt_expr.tokens.size() > 0) {
     std::cout << ", statement expression: ";
     for (auto &token : this->stmt_expr.tokens) {
-      std::cout << (char)token.type << " ";
+      std::cout << token << " ";
     }
   }
   if (this->stmt_exprs.size() > 0) {
@@ -43,7 +43,7 @@ void Expression::print(const std::string &_name, int nest) {
   if (this->tokens.size() != 0) {
     std::cout << ", tokens: ";
     for (auto &token : this->tokens) {
-      std::cout << (char)token.type << " ";
+      std::cout << token << " ";
     }
   }
   std::cout << std::endl;

@@ -1,4 +1,5 @@
 #include "lexer.hpp"
+#include "error-handler.hpp"
 #include <iterator>
 #include <fstream>
 #include <iostream>
@@ -53,8 +54,7 @@ void Lexer::consume_comment(void) {
 void Lexer::add_unknown_token(TokenList &tokens, std::string str) {
   log("[UNKNOWN: " + str + "], ");
   tokens.push_back(Token(Token::UNKNOWN, str));
-  this->last_error = "Syntax error: unknown token - " + str;
-  this->running = false;
+  ErrorHandler::thow_syntax_error("unknown token '" + str + "'");
 }
 
 void Lexer::add_char_token(TokenList &tokens, const char c) const {
@@ -69,10 +69,9 @@ TokenList Lexer::tokenize(const std::string &code) {
   TokenList tokens;
   this->ptr = code.begin();
   this->end = code.end();
-  this->last_error = "";
   std::string chars = ".,:;{}[]()";
   std::string chars2 = "=+-*&|/<>!%";
-  while (ptr != end && this->running) {
+  while (ptr != end) {
     consume_whitespace();
     if (ptr == end) break;
     if (*ptr == '#') {
@@ -209,7 +208,6 @@ TokenList Lexer::tokenize(const std::string &code) {
           // couldn't convert the string to any type of number
           add_unknown_token(tokens, number_str);
         }
-        if (!this->running) break;
       } else if (contains(chars2, c)) {
         std::string op = "";
         // get any combination of "=+-*&|/<>!%"
@@ -249,8 +247,7 @@ TokenList Lexer::process_file(const std::string &filename) {
   TokenList result;
   std::ifstream file(filename);
   if (!file) {
-    this->last_error = "Couldn't open " + filename;
-    return result;
+    ErrorHandler::throw_file_error("Couldn't open " + filename);
   }
   std::string buffer(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{});
   result = tokenize(buffer);

@@ -7,22 +7,11 @@
 #include <iostream>
 #include <cstdlib>
 
-void Interpreter::throw_error(const std::string &cause, bool terminate) {
-  std::cout << cause << std::endl;
-  if (terminate) {
-    std::exit(EXIT_FAILURE);
-  }
-}
-
 void Interpreter::process_file(const std::string &filename) {
   Lexer lexer;
   CkriptVM VM;
   lexer.verbose = true;
   TokenList tokens = lexer.process_file(filename);
-  if (lexer.last_error != "") {
-    throw_error(lexer.last_error, false);
-    return;
-  }
   Parser parser(tokens);
   parser.parse();
 }
