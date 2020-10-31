@@ -1,36 +1,40 @@
 #include "token.hpp"
 
+// register a new name
+#define REG(id, ret) if (type == id) return ret
+
 std::string Token::get_name(TokenType type) {
-  if (type == FUNCTION) return "function declaration";
-  if (type == THREAD) return "thread declaration";
-  if (type == RETURN) return "return";
-  if (type == IF) return "if";
-  if (type == ELSE) return "else";
-  if (type == ELSEIF) return "elseif";
-  if (type == FOR) return "for";
-  if (type == WHILE) return "while";
-  if (type == ALLOC) return "alloc";
-  if (type == TYPE) return "type";
-  if (type == CONST) return "const";
-  if (type == STRING_LITERAL) return "string";
-  if (type == DECIMAL) return "decimal number";
-  if (type == FLOAT) return "floating point number";
-  if (type == HEX) return "hex number";
-  if (type == OCTAL) return "octal number";
-  if (type == BINARY) return "binary number";
-  if (type == OP_GT_BIT) return ">> operator";
-  if (type == OP_LT_BIT) return "<< operator";
-  if (type == OP_EQ) return "== operator";
-  if (type == OP_AND) return "&& operator";
-  if (type == OP_OR) return "|| operator";
-  if (type == IDENTIFIER) return "identifier";
-  if (type == FALSE) return "false";
-  if (type == TRUE) return "true";
-  if (type == UNDEF) return "undef";
-  if (type == UNKNOWN) return "unknown token";
-  if (type == NONE) return "empty token";
-  if (type == GENERAL_EXPRESSION) return "expression";
-  if (type == GENERAL_STATEMENT) return "statement";
+  // trust me there's no better way
+  REG(FUNCTION, "function declaration");
+  REG(THREAD, "thread declaration");
+  REG(RETURN, "return");
+  REG(IF, "if");
+  REG(ELSE, "else");
+  REG(ELSEIF, "elseif");
+  REG(FOR, "for");
+  REG(WHILE, "while");
+  REG(ALLOC, "alloc");
+  REG(TYPE, "type");
+  REG(CONST, "const");
+  REG(STRING_LITERAL, "string");
+  REG(DECIMAL, "decimal number");
+  REG(FLOAT, "floating point number");
+  REG(HEX, "hex number");
+  REG(OCTAL, "octal number");
+  REG(BINARY, "binary number");
+  REG(OP_GT_BIT, ">> operator");
+  REG(OP_LT_BIT, "<< operator");
+  REG(OP_EQ, "== operator");
+  REG(OP_AND, "&& operator");
+  REG(OP_OR, "|| operator");
+  REG(IDENTIFIER, "identifier");
+  REG(FALSE, "false");
+  REG(TRUE, "true");
+  REG(UNDEF, "undef");
+  REG(UNKNOWN, "unknown token");
+  REG(NONE, "empty token");
+  REG(GENERAL_EXPRESSION, "expression");
+  REG(GENERAL_STATEMENT, "statement");
   std::string res(1, (char)type);
   return "'" + res + "'";
 }

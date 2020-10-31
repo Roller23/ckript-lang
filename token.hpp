@@ -32,7 +32,7 @@ class Token {
 
       UNKNOWN,
 
-      NONE, GENERAL_EXPRESSION, GENERAL_STATEMENT // special tokens
+      NONE, GENERAL_EXPRESSION, GENERAL_STATEMENT, // special tokens
     } TokenType;
     TokenType type;
     std::string value;
