@@ -22,11 +22,11 @@ std::string Token::get_name(TokenType type) {
   REG(HEX, "hex number");
   REG(OCTAL, "octal number");
   REG(BINARY, "binary number");
-  REG(OP_GT_BIT, ">> operator");
-  REG(OP_LT_BIT, "<< operator");
-  REG(OP_EQ, "== operator");
-  REG(OP_AND, "&& operator");
-  REG(OP_OR, "|| operator");
+  REG(OP_GT_BIT, ">>");
+  REG(OP_LT_BIT, "<<");
+  REG(OP_EQ, "==");
+  REG(OP_AND, "&&");
+  REG(OP_OR, "||");
   REG(IDENTIFIER, "identifier");
   REG(FALSE, "false");
   REG(TRUE, "true");

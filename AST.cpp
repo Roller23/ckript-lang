@@ -55,7 +55,7 @@ void Expression::print(int nest) {
   if (this->type == BINARY_OP) {
     std::cout << "(";
     this->op.operands.at(0).expr.print();
-    std::cout << " " << (char)this->op.op << " ";
+    std::cout << " " << Token::get_name(op.op) << " ";
     this->op.operands.at(1).expr.print();
     std::cout << ")";
   }

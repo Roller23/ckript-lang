@@ -5,6 +5,7 @@
 #include "AST.hpp"
 #include <vector>
 #include <cstdint>
+#include <cstring>
 
 class Parser {
   public:
@@ -13,7 +14,27 @@ class Parser {
       curr_token(_tokens.at(0)),
       tokens_count(_tokens.size()),
       terminal(_terminal),
-      parser_name(_name) {}
+      parser_name(_name) {
+        std::memset(binary_tokens_lut, 0, 200 * sizeof(bool));
+        std::memset(base_lut, 0, 200 * sizeof(char));
+        binary_tokens_lut[Token::TokenType::OP_AND] = true;
+        binary_tokens_lut[Token::TokenType::OP_AND_BIT] = true;
+        binary_tokens_lut[Token::TokenType::OP_OR] = true;
+        binary_tokens_lut[Token::TokenType::OP_OR_BIT] = true;
+        binary_tokens_lut[Token::TokenType::OP_EQ] = true;
+        binary_tokens_lut[Token::TokenType::OP_GT] = true;
+        binary_tokens_lut[Token::TokenType::OP_GT_BIT] = true;
+        binary_tokens_lut[Token::TokenType::OP_LT] = true;
+        binary_tokens_lut[Token::TokenType::OP_LT_BIT] = true;
+        binary_tokens_lut[Token::TokenType::OP_PLUS] = true;
+        binary_tokens_lut[Token::TokenType::OP_MINUS] = true;
+        binary_tokens_lut[Token::TokenType::OP_DIV] = true;
+        binary_tokens_lut[Token::TokenType::OP_MUL] = true;
+        base_lut[Token::TokenType::BINARY] = 2;
+        base_lut[Token::TokenType::DECIMAL] = 10;
+        base_lut[Token::TokenType::OCTAL] = 8;
+        base_lut[Token::TokenType::HEX] = 16;
+      }
     Node parse(int *end_pos);
     void advance();
     void retreat();
@@ -25,6 +46,9 @@ class Parser {
     NodeList get_many_expressions(Node &prev, Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
     void get_many_statements(Node &prev, Token::TokenType stop);
+    bool op_binary(Token::TokenType token);
+    bool binary_tokens_lut[200];
+    char base_lut[200];
   private:
     TokenList &tokens;
     Token prev;

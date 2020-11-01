@@ -13,6 +13,10 @@ typedef Node::NodeType NodeType;
 typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
+bool Parser::op_binary(Token::TokenType token) {
+  return binary_tokens_lut[(unsigned int)token];
+}
+
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
   ErrorHandler::throw_syntax_error(cause, line);
 }
@@ -209,26 +213,29 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
     advance();
     return get_expression(str_literal, stop1, stop2);
   }
-  if (curr_token.type == Token::OP_PLUS) {
+  if (op_binary(curr_token.type)) {
+    std::string token_name = curr_token.get_name();
+    TokenType token_type = curr_token.type;
     if (prev.type != NodeType::EXPR) {
-      std::string msg = "left side of '+' must be an expression, " + this->prev.get_name() + " found";
+      std::string msg = "left side of " + token_name + " must be an expression, " + this->prev.get_name() + " found";
       throw_error(msg, this->prev.line);
     }
-    advance(); // skip the +
+    advance(); // skip the op
     Node expr_start(Expression(ExprType::NONE));
     Node next = get_expression(expr_start, stop1, stop2);
     if (next.type != NodeType::EXPR) {
-      std::string msg = "right side of '+' must be an expression, " + curr_token.get_name() + " found";
+      std::string msg = "right side of " + token_name + " must be an expression, " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
-    Node op(Expression(prev, Token::OP_PLUS, next));
+    Node op(Expression(prev, token_type, next));
     return get_expression(op, stop1, stop2);
   }
-  if (curr_token.type == Token::DECIMAL) {
-    std::cout << "found a number literal\n";
-    Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, 10)));
+  int base = (int)base_lut[(int)curr_token.type];
+  if (base) {
+    std::cout << "found a number literal " + curr_token.value + "\n";
+    Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, base)));
     advance();
-    return get_expression(num_literal, stop1, stop2);;
+    return get_expression(num_literal, stop1, stop2);
   }
   if (curr_token.type == Token::FLOAT) {
     std::cout << "found a float literal\n";
@@ -266,7 +273,6 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     Node stmt(Statement(StmtType::COMPOUND));
     advance(); // skip the {
     get_many_statements(stmt, Token::RIGHT_BRACE);
-    // std::cout << "compound count " << inner_statements.size() << "\n";
     prev.add_children(stmt);
     return get_statement(prev, stop);
   } else if (curr_token.type == Token::IF) {
