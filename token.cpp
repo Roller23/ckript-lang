@@ -24,6 +24,8 @@ std::string Token::get_name(TokenType type) {
   REG(BINARY, "binary number");
   REG(OP_EQ, "==");
   REG(OP_NOT_EQ, "!=");
+  REG(OP_GT_EQ, ">=");
+  REG(OP_LT_EQ, "<=");
   REG(OP_AND, "&&");
   REG(OP_OR, "||");
   REG(OP_XOR, "^");

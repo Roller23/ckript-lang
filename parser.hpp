@@ -15,38 +15,42 @@ class Parser {
       tokens_count(_tokens.size()),
       terminal(_terminal),
       parser_name(_name) {
-        std::memset(binary_tokens_lut, 0, 200 * sizeof(bool));
         std::memset(base_lut, 0, 200 * sizeof(char));
-        binary_tokens_lut[Token::TokenType::OP_AND] = true;
-        binary_tokens_lut[Token::TokenType::OP_AND_BIT] = true;
-        binary_tokens_lut[Token::TokenType::OP_OR] = true;
-        binary_tokens_lut[Token::TokenType::OP_OR_BIT] = true;
-        binary_tokens_lut[Token::TokenType::OP_XOR] = true;
-        binary_tokens_lut[Token::TokenType::OP_EQ] = true;
-        binary_tokens_lut[Token::TokenType::OP_NOT_EQ] = true;
-        binary_tokens_lut[Token::TokenType::OP_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::OP_GT] = true;
-        binary_tokens_lut[Token::TokenType::LSHIFT] = true;
-        binary_tokens_lut[Token::TokenType::OP_LT] = true;
-        binary_tokens_lut[Token::TokenType::RSHIFT] = true;
-        binary_tokens_lut[Token::TokenType::OP_PLUS] = true;
-        binary_tokens_lut[Token::TokenType::OP_MINUS] = true;
-        binary_tokens_lut[Token::TokenType::OP_DIV] = true;
-        binary_tokens_lut[Token::TokenType::OP_MUL] = true;
-        binary_tokens_lut[Token::TokenType::LSHIFT_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::RSHIFT_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::PLUS_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::MINUS_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::MUL_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::DIV_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::AND_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::OR_ASSIGN] = true;
-        binary_tokens_lut[Token::TokenType::XOR_ASSIGN] = true;
-
+        std::memset(op_precedence, 0, 200 * sizeof(char));
         base_lut[Token::TokenType::BINARY] = 2;
         base_lut[Token::TokenType::DECIMAL] = 10;
         base_lut[Token::TokenType::OCTAL] = 8;
         base_lut[Token::TokenType::HEX] = 16;
+        // from lowest to highest
+        op_precedence[Token::TokenType::AND_ASSIGN] = 1; // &=
+        op_precedence[Token::TokenType::OR_ASSIGN] = 1; // |=
+        op_precedence[Token::TokenType::XOR_ASSIGN] = 1; // ^=
+        op_precedence[Token::TokenType::OP_ASSIGN] = 1; // =
+        op_precedence[Token::TokenType::PLUS_ASSIGN] = 1; // +=
+        op_precedence[Token::TokenType::MINUS_ASSIGN] = 1; // -=
+        op_precedence[Token::TokenType::MUL_ASSIGN] = 1; // *=
+        op_precedence[Token::TokenType::DIV_ASSIGN] = 1; // /=
+        op_precedence[Token::TokenType::MOD_ASSIGN] = 1; // %=
+        op_precedence[Token::TokenType::LSHIFT_ASSIGN] = 1; // <<=
+        op_precedence[Token::TokenType::RSHIFT_ASSIGN] = 1; // >>=
+        op_precedence[Token::TokenType::OP_OR] = 2; // ||
+        op_precedence[Token::TokenType::OP_AND] = 3; // &&
+        op_precedence[Token::TokenType::OP_OR_BIT] = 4; // |
+        op_precedence[Token::TokenType::OP_XOR] = 5; // ^
+        op_precedence[Token::TokenType::OP_AND] = 6; // &
+        op_precedence[Token::TokenType::OP_NOT_EQ] = 7; // !=
+        op_precedence[Token::TokenType::OP_EQ] = 7; // ==
+        op_precedence[Token::TokenType::OP_GT] = 8; // >
+        op_precedence[Token::TokenType::OP_LT] = 8; // <
+        op_precedence[Token::TokenType::OP_GT_EQ] = 8; // >=
+        op_precedence[Token::TokenType::OP_LT_EQ] = 8; // <=
+        op_precedence[Token::TokenType::LSHIFT] = 9; // <<
+        op_precedence[Token::TokenType::RSHIFT] = 9; // >>
+        op_precedence[Token::TokenType::OP_PLUS] = 10; // +
+        op_precedence[Token::TokenType::OP_MINUS] = 10; // -
+        op_precedence[Token::TokenType::OP_MUL] = 11; // *
+        op_precedence[Token::TokenType::OP_DIV] = 11; // /
+        op_precedence[Token::TokenType::OP_MOD] = 11; // %
       }
     Node parse(int *end_pos);
     void advance();
@@ -61,8 +65,9 @@ class Parser {
     NodeList get_many_statements(Node &prev, Token::TokenType stop);
     bool op_binary(Token::TokenType token);
     bool op_unary(Token::TokenType token);
-    bool binary_tokens_lut[200];
+    char get_precedence(Token::TokenType token);
     char base_lut[200];
+    char op_precedence[200];
   private:
     TokenList &tokens;
     Token prev;

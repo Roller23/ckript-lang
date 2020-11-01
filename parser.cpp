@@ -14,11 +14,18 @@ typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
 bool Parser::op_binary(TokenType token) {
-  return binary_tokens_lut[(unsigned int)token];
+  return op_precedence[token] && !op_unary(token);
 }
 
-bool op_unary(TokenType token) {
-  return token == TokenType::OP_MINUS || token == TokenType::OP_NOT;
+bool Parser::op_unary(TokenType token) {
+  return token == TokenType::OP_MINUS || token == TokenType::OP_NOT || token == TokenType::OP_NOT_BIT;
+}
+
+char Parser::get_precedence(Token::TokenType token) {
+  if (op_unary(token)) {
+    return 12;
+  }
+  return op_precedence[token];
 }
 
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
