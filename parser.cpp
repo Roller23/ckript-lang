@@ -249,7 +249,13 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
     std::cout << "found a float literal\n";
     Node float_literal(Expression(strtod(curr_token.value.c_str(), NULL), true));
     advance();
-    return get_expression(float_literal, stop1, stop2);;
+    return get_expression(float_literal, stop1, stop2);
+  }
+  if (curr_token.type == Token::TRUE || curr_token.type == Token::FALSE) {
+    std::cout << "found a boolean literal\n";
+    Node boolean(Expression(curr_token.type == Token::TRUE, 0.0f));
+    advance();
+    return get_expression(boolean, stop1, stop2);
   }
   std::cout << "unknown expression token " << curr_token << "\n";
   return prev;
@@ -257,17 +263,31 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
 
 void Parser::get_many_statements(Node &node, TokenType stop) {
   std::cout << "consuming statements in a compound statement\n";
-  Node stmt;
   while (true) {
     fail_if_EOF(stop);
-    stmt = get_statement(node, stop);
+    get_statement(node, stop);
     if (curr_token.type == stop) {
+      std::cout << "THeres a stop - "  << Token::get_name(stop) << "\n";
       break;
     }
   }
-  node = stmt;
   advance(); // skip stop
 }
+
+// NodeList Parser::get_many_expressions(Node &prev, TokenType sep, TokenType stop) {
+//   NodeList res;
+//   while (true) {
+//     fail_if_EOF(stop);
+//     Node expr = get_expression(prev, sep, stop); // parse expression till either sep or stop
+//     res.push_back(expr);
+//     if (curr_token.type == stop) {
+//       break;
+//     }
+//     advance();
+//     fail_if_EOF(stop);
+//   }
+//   return res;
+// }
 
 Node Parser::get_statement(Node &prev, TokenType stop) {
   std::cout << "(" + parser_name + ") - ";
@@ -420,12 +440,12 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
 
 Node Parser::parse(int *end_pos) {
   Node start(Statement(StmtType::COMPOUND), "Compound (" + parser_name + ")");
-  Node program = get_statement(start, this->terminal);
+  get_many_statements(start, this->terminal);
   if (end_pos != NULL) {
     *end_pos = pos;
   }
   std::cout << "Abstract syntax tree:\n";
-  program.print();
+  start.print();
   std::cout << std::endl;
-  return program;
+  return start;
 }

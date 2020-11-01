@@ -10,6 +10,6 @@ int main(int argc, char *argv[]) {
   // }
   Interpreter interpreter;
   // std::string filename = argv[1];
-  interpreter.process_file("expr.ck");
+  interpreter.process_file("test.ck");
   return 0;
 }

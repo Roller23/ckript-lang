@@ -64,6 +64,7 @@ class Expression {
     double float_literal = 0;
     bool bool_literal = false;
     Expression(void) : type(ExprType::NONE) {};
+    Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};
     Expression(const Node &l, Token::TokenType o, const Node &r) : type(BINARY_OP), op(l, o, r) {}
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}

@@ -68,6 +68,9 @@ void Expression::print(int nest) {
   if (this->type == FLOAT_EXPR) {
     std::cout << "float " << this->float_literal;
   }
+  if (this->type == BOOL_EXPR) {
+    std::cout << "bool " << this->bool_literal;
+  }
   if (this->type == NUM_EXPR) {
     std::cout << "num " << this->number_literal;
   }
@@ -103,6 +106,7 @@ void Declaration::print(int nest) {
 void Node::print(int nest) {
   if (type == DECL) decl.print(nest);
   if (type == EXPR) {
+    print_nesting(nest);
     std::cout << "expression: ";
     expr.print();
     std::cout << std::endl;
@@ -110,7 +114,7 @@ void Node::print(int nest) {
   if (type == STMT) stmt.print(nest);
   if (children.size() == 0) return;
   print_nesting(nest);
-  std::cout << "Node children:\n";
+  std::cout << "Node children(" << children.size() << "):\n";
   print_nesting(nest);
   for (auto &child : children) {
     child.print(nest + 1);
