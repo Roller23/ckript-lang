@@ -103,7 +103,7 @@ TokenList Lexer::tokenize(const std::string &code) {
       c = *ptr;
       if (isalpha(c, loc)) {
         std::string token_str(1, c);
-        while (++ptr != end && isalnum(*ptr, loc)) {
+        while (++ptr != end && (isalnum(*ptr, loc) || *ptr == '_')) {
           token_str += *ptr;
         }
         ptr--;

@@ -54,9 +54,8 @@ Token Parser::lookahead(int offset) {
   return tokens.at(pos + offset);
 }
 
-int Parser::find_enclosing_brace(TokenList &tokens, int start_pos) {
+int Parser::find_enclosing_brace(int start_pos, int braces) {
   int i = 0;
-  int brackets = 0;
   int size = tokens.size();
   while (true) {
     if (size == i) {
@@ -64,11 +63,11 @@ int Parser::find_enclosing_brace(TokenList &tokens, int start_pos) {
       throw_error(msg, tokens.at(start_pos + i - 1).line);
     }
     if (tokens.at(start_pos + i).type == Token::LEFT_BRACE) {
-      brackets++;
+      braces++;
     }
     if (tokens.at(start_pos + i).type == Token::RIGHT_BRACE) {
-      brackets--;
-      if (brackets == 0) {
+      braces--;
+      if (braces == 0) {
         return i;
       }
     }
@@ -76,7 +75,7 @@ int Parser::find_enclosing_brace(TokenList &tokens, int start_pos) {
   }
 }
 
-int Parser::find_enclosing_semi(TokenList &tokens, int start_pos) {
+int Parser::find_enclosing_semi(int start_pos) {
   int i = 0;
   int size = tokens.size();
   while (true) {
@@ -93,9 +92,9 @@ int Parser::find_enclosing_semi(TokenList &tokens, int start_pos) {
 
 int Parser::find_block_end(void) {
   if (curr_token.type == Token::LEFT_BRACE) {
-    return find_enclosing_brace(tokens, pos);
+    return find_enclosing_brace(pos);
   }
-  return find_enclosing_semi(tokens, pos);
+  return find_enclosing_semi(pos);
 }
 
 ParamList Parser::parse_func_params() {
@@ -147,14 +146,14 @@ Node Parser::parse_func_expr() {
   func.expr.func_expr.type = curr_token.type == Token::THREAD ? FuncType::THREAD : FuncType::FUNC;
   advance(); // skip the function/thread
   if (curr_token.type != Token::LEFT_PAREN) {
-    std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + "found";
+    std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
   }
   advance(); // skip the (
   func.expr.func_expr.params = parse_func_params();
   advance(); // skip the )
   if (curr_token.type != Token::TYPE) {
-    std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + "found";
+    std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
   }
   func.expr.func_expr.ret_type = curr_token.value;
@@ -168,7 +167,7 @@ Node Parser::parse_func_expr() {
   pos += end_pos;
   advance(); // skip the semicolon
   if (!starts_with_brace) {
-    retreat();
+    // retreat();
   }
   return func;
 }
@@ -182,7 +181,12 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
   }
   std::cout << "consuming expression\n";
   if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
+    std::cout << "found function expression\n";
     Node func = parse_func_expr();
+    if (curr_token.type == stop1 || curr_token.type == stop2) {
+      std::cout << "Expression stopped (fn)\n";
+      return func;
+    }
     return get_expression(func, stop1, stop2);
   }
   if (curr_token.type == Token::IDENTIFIER) {
@@ -264,7 +268,7 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
 }
 
 NodeList Parser::get_many_statements(Node &node, TokenType stop) {
-  std::cout << "consuming many statements\n";
+  std::cout << "consuming multiple statements\n";
   NodeList res;
   while (true) {
     Node statement = get_statement(node, this->terminal);
@@ -273,8 +277,9 @@ NodeList Parser::get_many_statements(Node &node, TokenType stop) {
     }
     res.push_back(statement);
     std::cout << "------- PUSHED STATEMENT --------\n";
+    std::cout << "type " << statement.type << ", ";
     statement.print();
-    std::cout << "------- PUSHED STATEMENT --------\n";
+    std::cout << "-------       END        --------\n";
   }
   return res;
 }
@@ -290,8 +295,13 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // { statement(s) }
     advance(); // skip the {
     Node comp(Statement(StmtType::COMPOUND));
-    Node block;
-    comp.stmt.statements = get_many_statements(block, Token::RIGHT_BRACE);
+    int block_end = find_enclosing_brace(pos, 1);
+    TokenList block_start(tokens.begin() + pos, tokens.begin() + pos + block_end + 1); // create a subvector of tokens
+    Parser block_parser(block_start, Token::RIGHT_BRACE, "BLOCK");
+    int end_pos = 0;
+    comp.stmt.statements.push_back(block_parser.parse(&end_pos));
+    pos += end_pos;
+    advance(); // skip the }
     return comp;
   } else if (curr_token.type == Token::IF) {
     std::cout << "Found if\n";
@@ -299,7 +309,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the if keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid if statement
-      std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
+      std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     Node if_stmt = Node(Statement(StmtType::IF));
@@ -316,7 +326,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the while keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid while statement
-      std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + "found";
+      std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     Node while_stmt = Node(Statement(StmtType::WHILE));
@@ -333,7 +343,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the for keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid for statement
-      std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + "found";
+      std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     Node for_stmt = Node(Statement(StmtType::FOR));
@@ -374,7 +384,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     var_decl.decl.id = curr_token.value; // set the declaration identifier to token value
     advance(); // skip the identifier
     if (curr_token.type != Token::OP_ASSIGN) {
-      std::string msg = "invalid variable declaration. Expected '=', but " + curr_token.get_name() + "found";
+      std::string msg = "invalid variable declaration. Expected '=', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     advance(); // skip the =
@@ -391,7 +401,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "Found alloc\n";
     advance(); // skip the alloc
     if (curr_token.type != Token::TYPE) {
-      std::string msg = "invalid variable allocation. Expected a type, but " + curr_token.get_name() + "found";
+      std::string msg = "invalid variable allocation. Expected a type, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     return get_statement(prev, stop);
@@ -400,7 +410,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "found const\n";
     advance(); // skip the const
     if (curr_token.type != Token::TYPE && curr_token.type != Token::ALLOC) {
-      std::string msg = "invalid constant variable declaration. Expected a type or alloc, but " + curr_token.get_name() + "found";
+      std::string msg = "invalid constant variable declaration. Expected a type or alloc, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     return get_statement(prev, stop);
@@ -429,6 +439,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
 }
 
 Node Parser::parse(int *end_pos) {
+  std::cout << "MY TOKENS ARE\n";
+  for (auto &token : tokens) {
+    std::cout << token << "\n";
+  }
+  std::cout << "END\n";
   Node Main;
   NodeList instructions = get_many_statements(Main, this->terminal);
   Main.add_children(instructions);

@@ -51,6 +51,9 @@ void Statement::print(int nest) {
     if (statements.size() != 0) {
       statements.at(0).print(nest + 1);
     }
+    if (declaration.size() != 0) {
+      declaration.at(0).print(nest + 1);
+    }
     if (type != EXPR) std::cout << std::endl;
   }
 }
@@ -63,6 +66,9 @@ void Expression::print(int nest) {
     std::cout << " " << Token::get_name(op.op) << " ";
     this->op.operands.at(1).expr.print();
     std::cout << ")";
+  }
+  if (this->type == NONE) {
+    std::cout << "none";
   }
   if (this->type == NOP) {
     std::cout << "nop";

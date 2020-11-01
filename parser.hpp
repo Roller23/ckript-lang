@@ -11,7 +11,7 @@ class Parser {
   public:
     Parser(TokenList &_tokens, Token::TokenType _terminal, const std::string &_name = "MAIN") : 
       tokens(_tokens),
-      curr_token(_tokens.at(0)),
+      curr_token(_tokens.size() ? _tokens.at(0) : Token::TokenType::NONE),
       tokens_count(_tokens.size()),
       terminal(_terminal),
       parser_name(_name) {
@@ -58,8 +58,8 @@ class Parser {
     std::string parser_name;
     Token::TokenType terminal;
     void fail_if_EOF(Token::TokenType expected);
-    int find_enclosing_brace(TokenList &tokens, int start_pos);
-    int find_enclosing_semi(TokenList &tokens, int start_pos);
+    int find_enclosing_brace(int start_pos, int braces = 0);
+    int find_enclosing_semi(int start_pos);
     int find_block_end(void);
     void throw_error(const std::string &cause, std::uint32_t line);
 };
