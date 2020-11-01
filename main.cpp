@@ -8,8 +8,9 @@ int main(int argc, char *argv[]) {
   //   // to do - create a shell
   //   return 0;
   // }
-  Interpreter interpreter;
+  Interpreter python;
   // std::string filename = argv[1];
-  interpreter.process_file("test.ck");
+  python.process_file("test.ck");
+  std::cout << std::endl;
   return 0;
 }

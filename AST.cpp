@@ -45,16 +45,18 @@ void Statement::print(int nest) {
     std::cout << " ";
     if (expressions.size() != 0) {
       for (auto &expr : expressions) {
-        expr.print(nest);
+        expr.print();
       }
     }
     if (statements.size() != 0) {
-      statements.at(0).print(nest + 1);
+      std::cout << std::endl;
+      statements.at(0).print(nest);
+      std::cout << std::endl;
     }
     if (declaration.size() != 0) {
-      declaration.at(0).print(nest + 1);
+      declaration.at(0).print();
+      std::cout << std::endl;
     }
-    if (type != EXPR) std::cout << std::endl;
   }
 }
 
@@ -111,20 +113,15 @@ void Declaration::print(int nest) {
   if (allocated) std::cout << "allocated ";
   std::cout << "decl " + id + " (" + var_type + ") = ";
   var_expr.at(0).expr.print();
-  std::cout << std::endl;
 }
 
 void Node::print(int nest) {
   if (type == DECL) decl.print(nest);
-  if (type == EXPR) {
-    expr.print(nest);
-    std::cout << std::endl;
-  };
+  if (type == EXPR) expr.print(nest);
   if (type == STMT) stmt.print(nest);
   if (children.size() == 0) return;
   print_nesting(nest);
   std::cout << "Node children(" << children.size() << "):\n";
-  print_nesting(nest);
   for (auto &child : children) {
     child.print(nest + 1);
   }
