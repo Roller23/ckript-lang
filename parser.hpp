@@ -55,7 +55,6 @@ class Parser {
     Token curr_token;
     int pos = 0;
     int tokens_count;
-    int statement_limit = -1;
     std::string parser_name;
     Token::TokenType terminal;
     void fail_if_EOF(Token::TokenType expected);

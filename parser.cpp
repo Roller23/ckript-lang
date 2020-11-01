@@ -47,6 +47,7 @@ void Parser::retreat(void) {
 }
 
 Token Parser::lookahead(int offset) {
+  if (pos + offset < 0) return {};
   if (pos + offset >= tokens.size()) {
     return {}; // empty token
   }
@@ -213,6 +214,13 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
     advance();
     return get_expression(str_literal, stop1, stop2);
   }
+  if (curr_token.type == Token::UNDEF) {
+    // undef literal
+    std::cout << "found undef\n";
+    Node undef(Expression(curr_token.value));
+    advance();
+    return get_expression(undef, stop1, stop2);
+  }
   if (op_binary(curr_token.type)) {
     std::string token_name = curr_token.get_name();
     TokenType token_type = curr_token.type;
@@ -342,6 +350,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
+    bool allocated = this->prev.type == Token::ALLOC;
+    bool constant = this->prev.type == Token::CONST;
+    if (allocated && lookahead(-2).type == Token::CONST) {
+      constant = true;
+    }
     Node var_decl = Node(Declaration(DeclType::VAR_DECL));
     var_decl.decl.var_type = curr_token.value;
     advance(); // skip the variable type
@@ -358,8 +371,28 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the =
     Node expr_start(Expression(ExprType::NONE));
     var_decl.decl.var_expr.push_back(get_expression(expr_start, Token::SEMI_COLON));
+    var_decl.decl.allocated = allocated;
+    var_decl.decl.constant = constant;
     advance(); // skip the semicolon
     prev.add_children(var_decl);
+    return get_statement(prev, stop);
+  } else if (curr_token.type == Token::ALLOC) {
+    // alloc declaration
+    std::cout << "Found alloc\n";
+    advance(); // skip the alloc
+    if (curr_token.type != Token::TYPE) {
+      std::string msg = "invalid variable allocation. Expected a type, but " + curr_token.get_name() + "found";
+      throw_error(msg, curr_token.line);
+    }
+    return get_statement(prev, stop);
+  } else if (curr_token.type == Token::CONST) {
+    // const declaration
+    std::cout << "found const\n";
+    advance(); // skip the const
+    if (curr_token.type != Token::TYPE && curr_token.type != Token::ALLOC) {
+      std::string msg = "invalid constant variable declaration. Expected a type or alloc, but " + curr_token.get_name() + "found";
+      throw_error(msg, curr_token.line);
+    }
     return get_statement(prev, stop);
   } else if (curr_token.type == Token::SEMI_COLON) {
     std::cout << "no operation\n";

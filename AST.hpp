@@ -95,6 +95,8 @@ class Declaration {
     } DeclType;
     std::string var_type = "";
     std::string id = "";
+    bool constant = false;
+    bool allocated = false;
     NodeList var_expr; // to avoid forward declaration
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};

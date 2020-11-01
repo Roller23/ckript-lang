@@ -93,8 +93,11 @@ void Expression::print(int nest) {
 
 void Declaration::print(int nest) {
   Node::print_nesting(nest);
+  if (constant) std::cout << "const ";
+  if (allocated) std::cout << "allocated ";
   std::cout << "decl " + id + " (" + var_type + ") = ";
   var_expr.at(0).expr.print();
+  std::cout << std::endl;
 }
 
 void Node::print(int nest) {
