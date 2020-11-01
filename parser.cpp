@@ -264,20 +264,17 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
 }
 
 NodeList Parser::get_many_statements(Node &node, TokenType stop) {
-  std::cout << "consuming statements in a compound statement\n";
+  std::cout << "consuming many statements\n";
   NodeList res;
   while (true) {
-    fail_if_EOF(stop);
     Node stmt = get_statement(node, stop);
-    res.push_back(stmt);
-    if (curr_token.type == stop) {
-      std::cout << "THeres a stop - "  << Token::get_name(stop) << "\n";
+    // std::cout << stmt.type << "\n";
+    // stmt.print();
+    if (stmt.type == NodeType::UNKNOWN) {
       break;
     }
-    advance();
-    fail_if_EOF(stop);
+    res.push_back(stmt);
   }
-  std::cout << "res = " << res.size() << "\n";
   return res;
 }
 
@@ -290,11 +287,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";
     // { statement(s) }
-    Node stmt(Statement(StmtType::COMPOUND));
     advance(); // skip the {
-    get_many_statements(stmt, Token::RIGHT_BRACE);
-    prev.add_children(stmt);
-    return get_statement(prev, stop);
+    Node comp(Statement(StmtType::COMPOUND));
+    comp.stmt.statements = get_many_statements(prev, Token::RIGHT_BRACE);
+    return comp;
   } else if (curr_token.type == Token::IF) {
     std::cout << "Found if\n";
     // if (expression) statement
@@ -308,10 +304,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the (
     Node expr_start(Expression(ExprType::NONE));
     Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
-    if_stmt.stmt.stmt_expr.push_back(expr.expr);
+    if_stmt.stmt.expressions.push_back(expr);
     advance(); // skip the )
-    prev.add_children(if_stmt);
-    return get_statement(prev, stop);
+    if_stmt.stmt.statements.push_back(get_statement(prev, stop)); // get the statement block
+    return if_stmt;
   } else if (curr_token.type == Token::WHILE) {
     std::cout << "Found while\n";
     // while (expression) statement
@@ -325,10 +321,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the (
     Node expr_start(Expression(ExprType::NONE));
     Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
-    while_stmt.stmt.stmt_expr.push_back(expr.expr);
+    while_stmt.stmt.expressions.push_back(expr);
     advance(); // skip the )
-    prev.add_children(while_stmt);
-    return get_statement(prev, stop);
+    while_stmt.stmt.statements.push_back(get_statement(prev, stop));
+    return while_stmt;
   } else if (curr_token.type == Token::FOR) {
     std::cout << "Found for\n";
     // for (expression; expression; expression) statement
@@ -343,11 +339,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     Node expr_start(Expression(ExprType::NONE));
     NodeList expressions = get_many_expressions(expr_start, Token::SEMI_COLON, Token::RIGHT_PAREN);
     for (auto &expr : expressions) {
-      for_stmt.stmt.stmt_exprs.push_back(expr.expr);
+      for_stmt.stmt.expressions.push_back(expr);
     }
     advance(); // skip the )
     prev.add_children(for_stmt);
-    return get_statement(prev, stop);
+    return get_statement(for_stmt, stop);
   } else if (curr_token.type == Token::RETURN) {
     std::cout << "Found return\n";
     // return expression;
@@ -355,10 +351,9 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     Node return_stmt(Statement(StmtType::RETURN));
     Node expr_start(Expression(ExprType::NONE));
     Node return_expr = get_expression(expr_start, Token::SEMI_COLON);
-    return_stmt.stmt.stmt_expr.push_back(return_expr);
-    prev.add_children(return_stmt);
+    return_stmt.stmt.expressions.push_back(return_expr);
     advance(); // skip the semicolon
-    return get_statement(prev, stop);
+    return return_stmt;
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
@@ -385,9 +380,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     var_decl.decl.var_expr.push_back(get_expression(expr_start, Token::SEMI_COLON));
     var_decl.decl.allocated = allocated;
     var_decl.decl.constant = constant;
+    Node decl_stmt(Statement(StmtType::DECL));
+    decl_stmt.stmt.declaration.push_back(var_decl);
     advance(); // skip the semicolon
-    prev.add_children(var_decl);
-    return get_statement(prev, stop);
+    return decl_stmt;
   } else if (curr_token.type == Token::ALLOC) {
     // alloc declaration
     std::cout << "Found alloc\n";
@@ -406,13 +402,12 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       throw_error(msg, curr_token.line);
     }
     return get_statement(prev, stop);
-  } else if (curr_token.type == Token::SEMI_COLON) {
+  } else if (curr_token.type == Token::SEMI_COLON && prev.type == NodeType::UNKNOWN) {
     std::cout << "no operation\n";
     // nop;
+    Node nop_stmt(Statement(StmtType::NOP));
     advance(); // skip the semicolon
-    Node nop(Expression(ExprType::NOP));
-    prev.add_children(nop);
-    return get_statement(prev, stop);
+    return nop_stmt;
   } else if (curr_token.type == this->terminal) {
     std::cout << "Encountered terminal - " << Token::get_name(this->terminal) << "\n";
     // end parsing
@@ -422,22 +417,40 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // expression;
     Node expr_start(Expression(ExprType::NONE));
     Node expr = get_expression(expr_start, Token::SEMI_COLON);
-    prev.add_children(expr);
+    Node expr_stmt(Statement(StmtType::EXPR));
+    expr_stmt.stmt.expressions.push_back(expr);
     advance(); // skip the semicolon
-    return get_statement(prev, stop);
+    return expr_stmt;
   }
   throw_error("unrecognized token " + curr_token.get_name(), curr_token.line);
   return prev;
 }
 
 Node Parser::parse(int *end_pos) {
-  Node start(Statement(StmtType::COMPOUND), "Compound (" + parser_name + ")");
-  get_many_statements(start, this->terminal);
+  // Node start;
+  // Node program = get_statement(start, this->terminal);
+  // program.print();
+  // program = get_statement(start, this->terminal);
+  // program.print();
+  Node start;
+  NodeList statements;
+  while (true) {
+    Node statement = get_statement(start, this->terminal);
+    if (statement.type == NodeType::UNKNOWN) {
+      break;
+    }
+    statements.push_back(statement);
+    std::cout << "------- PUSHED STATEMENT --------\n";
+    statement.print();
+    std::cout << "------- PUSHED STATEMENT --------\n";
+  }
+  Node Main;
+  Main.add_children(statements);
   if (end_pos != NULL) {
     *end_pos = pos;
   }
   std::cout << "Abstract syntax tree:\n";
-  start.print();
+  Main.print();
   std::cout << std::endl;
   return start;
 }

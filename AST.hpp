@@ -79,11 +79,12 @@ class Expression {
 class Statement {
   public:
     typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NONE
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, NONE
     } StmtType;
     StmtType type;
-    NodeList stmt_expr;
-    ExpressionList stmt_exprs;
+    NodeList expressions;
+    NodeList declaration;
+    NodeList statements;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
     void print(int nest = 0);
