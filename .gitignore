@@ -2,3 +2,5 @@
 *.ck
 .vscode/
 .vscode/*
+.VSCodeCounter/
+.VSCodeCounter/*

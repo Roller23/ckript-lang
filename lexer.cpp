@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstdint>
 #include <cstdlib>
+#include <cassert>
 
 static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
@@ -46,11 +47,15 @@ void Lexer::consume_whitespace(void) {
 }
 
 void Lexer::consume_comment(void) {
+  if (*ptr != '#') return;
   while (ptr != end) {
     const char c = *++ptr;
-    if (c == '\n' || c == '#') break;
+    if (c == '\n') {
+      current_line++;
+      break;
+    }
   }
-  if (ptr != end) ptr++; // skip the closing \n or #
+  if (ptr != end) ptr++; // skip the closing \n
 }
 
 void Lexer::add_token(Token::TokenType type) {
@@ -91,10 +96,11 @@ TokenList Lexer::tokenize(const std::string &code) {
       consume_whitespace();
       if (ptr == end) break;
     }
-    const char c = *ptr;
+    char c = *ptr;
     if (contains(chars, c)) {
       add_char_token(c);
     } else {
+      c = *ptr;
       if (isalpha(c, loc)) {
         std::string token_str(1, c);
         while (++ptr != end && isalnum(*ptr, loc)) {

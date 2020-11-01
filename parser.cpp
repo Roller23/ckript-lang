@@ -263,7 +263,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";
     // { statement(s) }
-    Node stmt(Statement(StmtType::COMPOUND), "Compund");
+    Node stmt(Statement(StmtType::COMPOUND));
     advance(); // skip the {
     get_many_statements(stmt, Token::RIGHT_BRACE);
     // std::cout << "compound count " << inner_statements.size() << "\n";
@@ -278,7 +278,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + "found";
       throw_error(msg, curr_token.line);
     }
-    Node if_stmt = Node(Statement(StmtType::IF), "IF");
+    Node if_stmt = Node(Statement(StmtType::IF));
     advance(); // skip the (
     Node expr_start(Expression(ExprType::NONE));
     Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
@@ -295,7 +295,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + "found";
       throw_error(msg, curr_token.line);
     }
-    Node while_stmt = Node(Statement(StmtType::WHILE), "WHILE");
+    Node while_stmt = Node(Statement(StmtType::WHILE));
     advance(); // skip the (
     Node expr_start(Expression(ExprType::NONE));
     Node expr = get_expression(expr_start, Token::RIGHT_PAREN);
@@ -312,7 +312,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + "found";
       throw_error(msg, curr_token.line);
     }
-    Node for_stmt = Node(Statement(StmtType::FOR), "FOR");
+    Node for_stmt = Node(Statement(StmtType::FOR));
     advance(); // skip the (
     Node expr_start(Expression(ExprType::NONE));
     NodeList expressions = get_many_expressions(expr_start, Token::SEMI_COLON, Token::RIGHT_PAREN);
@@ -326,7 +326,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "Found return\n";
     // return expression;
     advance(); // skip the return
-    Node return_stmt(Statement(StmtType::RETURN), "RETURN");
+    Node return_stmt(Statement(StmtType::RETURN));
     Node expr_start(Expression(ExprType::NONE));
     Node return_expr = get_expression(expr_start, Token::SEMI_COLON);
     return_stmt.stmt.stmt_expr.push_back(return_expr);
@@ -359,9 +359,9 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "no operation\n";
     // nop;
     advance(); // skip the semicolon
-    Node nop(Expression(ExprType::NOP), "NOP");
+    Node nop(Expression(ExprType::NOP));
     prev.add_children(nop);
-    return prev;
+    return get_statement(prev, stop);
   } else if (curr_token.type == this->terminal) {
     std::cout << "Encountered terminal - " << Token::get_name(this->terminal) << "\n";
     // end parsing
@@ -385,7 +385,7 @@ Node Parser::parse(int *end_pos) {
   if (end_pos != NULL) {
     *end_pos = pos;
   }
-  std::cout << "AST:\n";
+  std::cout << "Abstract syntax tree:\n";
   program.print();
   std::cout << std::endl;
   return program;
