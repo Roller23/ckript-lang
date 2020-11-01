@@ -54,7 +54,7 @@ Token Parser::lookahead(int offset) {
   return tokens.at(pos + offset);
 }
 
-int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
+int Parser::find_enclosing_brace(TokenList &tokens, int start_pos) {
   int i = 0;
   int brackets = 0;
   int size = tokens.size();
@@ -76,7 +76,7 @@ int Parser::find_func_end_brace(TokenList &tokens, int start_pos) {
   }
 }
 
-int Parser::find_func_end_semi(TokenList &tokens, int start_pos) {
+int Parser::find_enclosing_semi(TokenList &tokens, int start_pos) {
   int i = 0;
   int size = tokens.size();
   while (true) {
@@ -89,6 +89,13 @@ int Parser::find_func_end_semi(TokenList &tokens, int start_pos) {
     }
     i++;
   }
+}
+
+int Parser::find_block_end(void) {
+  if (curr_token.type == Token::LEFT_BRACE) {
+    return find_enclosing_brace(tokens, pos);
+  }
+  return find_enclosing_semi(tokens, pos);
 }
 
 ParamList Parser::parse_func_params() {
@@ -152,13 +159,8 @@ Node Parser::parse_func_expr() {
   }
   func.expr.func_expr.ret_type = curr_token.value;
   advance(); // skip the type
-  int func_end = 0;
   bool starts_with_brace = curr_token.type == Token::LEFT_BRACE;
-  if (starts_with_brace) {
-    func_end = find_func_end_brace(tokens, pos);
-  } else {
-    func_end = find_func_end_semi(tokens, pos);
-  }
+  int func_end = find_block_end();
   TokenList func_start(tokens.begin() + pos, tokens.begin() + pos + func_end + 1); // create a subvector of tokens
   Parser func_parser(func_start, Token::NONE, "FUNC");
   int end_pos = 0;
@@ -261,33 +263,23 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
   return prev;
 }
 
-void Parser::get_many_statements(Node &node, TokenType stop) {
+NodeList Parser::get_many_statements(Node &node, TokenType stop) {
   std::cout << "consuming statements in a compound statement\n";
+  NodeList res;
   while (true) {
     fail_if_EOF(stop);
-    get_statement(node, stop);
+    Node stmt = get_statement(node, stop);
+    res.push_back(stmt);
     if (curr_token.type == stop) {
       std::cout << "THeres a stop - "  << Token::get_name(stop) << "\n";
       break;
     }
+    advance();
+    fail_if_EOF(stop);
   }
-  advance(); // skip stop
+  std::cout << "res = " << res.size() << "\n";
+  return res;
 }
-
-// NodeList Parser::get_many_expressions(Node &prev, TokenType sep, TokenType stop) {
-//   NodeList res;
-//   while (true) {
-//     fail_if_EOF(stop);
-//     Node expr = get_expression(prev, sep, stop); // parse expression till either sep or stop
-//     res.push_back(expr);
-//     if (curr_token.type == stop) {
-//       break;
-//     }
-//     advance();
-//     fail_if_EOF(stop);
-//   }
-//   return res;
-// }
 
 Node Parser::get_statement(Node &prev, TokenType stop) {
   std::cout << "(" + parser_name + ") - ";

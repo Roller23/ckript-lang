@@ -45,7 +45,7 @@ class Parser {
     ParamList parse_func_params();
     NodeList get_many_expressions(Node &prev, Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
-    void get_many_statements(Node &prev, Token::TokenType stop);
+    NodeList get_many_statements(Node &prev, Token::TokenType stop);
     bool op_binary(Token::TokenType token);
     bool binary_tokens_lut[200];
     char base_lut[200];
@@ -58,8 +58,9 @@ class Parser {
     std::string parser_name;
     Token::TokenType terminal;
     void fail_if_EOF(Token::TokenType expected);
-    int find_func_end_brace(TokenList &tokens, int start_pos);
-    int find_func_end_semi(TokenList &tokens, int start_pos);
+    int find_enclosing_brace(TokenList &tokens, int start_pos);
+    int find_enclosing_semi(TokenList &tokens, int start_pos);
+    int find_block_end(void);
     void throw_error(const std::string &cause, std::uint32_t line);
 };
 
