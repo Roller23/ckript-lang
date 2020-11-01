@@ -267,13 +267,14 @@ NodeList Parser::get_many_statements(Node &node, TokenType stop) {
   std::cout << "consuming many statements\n";
   NodeList res;
   while (true) {
-    Node stmt = get_statement(node, stop);
-    // std::cout << stmt.type << "\n";
-    // stmt.print();
-    if (stmt.type == NodeType::UNKNOWN) {
+    Node statement = get_statement(node, this->terminal);
+    if (statement.type == NodeType::UNKNOWN) {
       break;
     }
-    res.push_back(stmt);
+    res.push_back(statement);
+    std::cout << "------- PUSHED STATEMENT --------\n";
+    statement.print();
+    std::cout << "------- PUSHED STATEMENT --------\n";
   }
   return res;
 }
@@ -289,7 +290,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // { statement(s) }
     advance(); // skip the {
     Node comp(Statement(StmtType::COMPOUND));
-    comp.stmt.statements = get_many_statements(prev, Token::RIGHT_BRACE);
+    Node block;
+    comp.stmt.statements = get_many_statements(block, Token::RIGHT_BRACE);
     return comp;
   } else if (curr_token.type == Token::IF) {
     std::cout << "Found if\n";
@@ -427,30 +429,14 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
 }
 
 Node Parser::parse(int *end_pos) {
-  // Node start;
-  // Node program = get_statement(start, this->terminal);
-  // program.print();
-  // program = get_statement(start, this->terminal);
-  // program.print();
-  Node start;
-  NodeList statements;
-  while (true) {
-    Node statement = get_statement(start, this->terminal);
-    if (statement.type == NodeType::UNKNOWN) {
-      break;
-    }
-    statements.push_back(statement);
-    std::cout << "------- PUSHED STATEMENT --------\n";
-    statement.print();
-    std::cout << "------- PUSHED STATEMENT --------\n";
-  }
   Node Main;
-  Main.add_children(statements);
+  NodeList instructions = get_many_statements(Main, this->terminal);
+  Main.add_children(instructions);
   if (end_pos != NULL) {
     *end_pos = pos;
   }
   std::cout << "Abstract syntax tree:\n";
   Main.print();
   std::cout << std::endl;
-  return start;
+  return Main;
 }
