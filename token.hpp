@@ -14,7 +14,7 @@ class Token {
     typedef enum type {
       OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
       OP_MOD = '%', OP_LT = '<', OP_GT = '>', OP_NOT = '!',
-      OP_OR_BIT = '|', OP_AND_BIT = '&', OP_ASSIGN = '=',
+      OP_OR_BIT = '|', OP_AND_BIT = '&', OP_ASSIGN = '=', OP_XOR = '^',
 
       DOT = '.', COMMA = ',', COLON = ':', SEMI_COLON = ';',
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
@@ -25,7 +25,12 @@ class Token {
 
       STRING_LITERAL, DECIMAL, FLOAT, HEX, OCTAL, BINARY,
 
-      OP_GT_BIT, OP_LT_BIT, OP_AND, OP_OR, OP_EQ,
+      PLUS_ASSIGN, MINUS_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,
+      LSHIFT_ASSIGN, RSHIFT_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+
+      LSHIFT, RSHIFT,
+
+      OP_AND, OP_OR, OP_EQ, OP_NOT_EQ,
 
       IDENTIFIER,
 

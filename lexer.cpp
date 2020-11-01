@@ -101,7 +101,7 @@ TokenList Lexer::tokenize(const std::string &code) {
       add_char_token(c);
     } else {
       c = *ptr;
-      if (isalpha(c, loc)) {
+      if (isalpha(c, loc) || c == '_') {
         std::string token_str(1, c);
         while (++ptr != end && (isalnum(*ptr, loc) || *ptr == '_')) {
           token_str += *ptr;
@@ -236,6 +236,9 @@ TokenList Lexer::tokenize(const std::string &code) {
           if (op == "==") {
             log("[OP_EQ: " + op + "], ");
             add_token(Token::OP_EQ);
+          } else if (op == "!=") {
+            log("[OP_EQ: " + op + "], ");
+            add_token(Token::OP_NOT_EQ);
           } else if (op == "&&") {
             log("[OP_AND: " + op + "], ");
             add_token(Token::OP_AND);

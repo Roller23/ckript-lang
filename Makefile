@@ -1,12 +1,16 @@
 CC=g++
 out=main.out
-flags=-g -O0
+production_flags=-g -O0
+release_flags=-O3
 files=*.cpp
 m=Automated Makefile push message
 input_file=call.ck
 
-all:
-	$(CC) $(flags) -o $(out) $(files)
+production:
+	$(CC) $(production_flags) -o $(out) $(files)
+
+release:
+	$(CC) $(release_flags) -o $(out) $(files)
 
 run:
 	./$(out) $(input_file)

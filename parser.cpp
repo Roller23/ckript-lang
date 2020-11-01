@@ -13,8 +13,12 @@ typedef Node::NodeType NodeType;
 typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
-bool Parser::op_binary(Token::TokenType token) {
+bool Parser::op_binary(TokenType token) {
   return binary_tokens_lut[(unsigned int)token];
+}
+
+bool op_unary(TokenType token) {
+  return token == TokenType::OP_MINUS || token == TokenType::OP_NOT;
 }
 
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
@@ -99,7 +103,6 @@ int Parser::find_block_end(void) {
 
 ParamList Parser::parse_func_params() {
   ParamList res;
-  TokenType sep = Token::COMMA;
   TokenType stop = Token::RIGHT_PAREN;
   while (true) {
     fail_if_EOF(Token::TYPE);
@@ -439,19 +442,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
 }
 
 Node Parser::parse(int *end_pos) {
-  std::cout << "MY TOKENS ARE\n";
-  for (auto &token : tokens) {
-    std::cout << token << "\n";
-  }
-  std::cout << "END\n";
   Node Main;
   NodeList instructions = get_many_statements(Main, this->terminal);
   Main.add_children(instructions);
   if (end_pos != NULL) {
     *end_pos = pos;
   }
-  std::cout << "Abstract syntax tree:\n";
-  Main.print();
-  std::cout << std::endl;
   return Main;
 }
