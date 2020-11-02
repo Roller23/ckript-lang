@@ -51,6 +51,7 @@ class Parser {
         op_precedence[Token::TokenType::OP_MUL] = 11; // *
         op_precedence[Token::TokenType::OP_DIV] = 11; // /
         op_precedence[Token::TokenType::OP_MOD] = 11; // %
+        op_precedence[Token::TokenType::DOT] = 13; // .
       }
     Node parse(int *end_pos);
     void advance();

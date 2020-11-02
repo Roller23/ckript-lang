@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <cassert>
 
+#define REG(tok_str, tok_sym) if(op==#tok_str){log("["#tok_sym"], ");add_token(Token::tok_sym);}else
+
 static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
   "uint8", "uint16", "uint32", "uint64",
@@ -232,22 +234,24 @@ TokenList Lexer::tokenize(const std::string &code) {
         ptr--;
         if (op.size() == 1) {
           add_char_token(c);
-        } else if (op.size() == 2) {
-          if (op == "==") {
-            log("[OP_EQ: " + op + "], ");
-            add_token(Token::OP_EQ);
-          } else if (op == "!=") {
-            log("[OP_EQ: " + op + "], ");
-            add_token(Token::OP_NOT_EQ);
-          } else if (op == "&&") {
-            log("[OP_AND: " + op + "], ");
-            add_token(Token::OP_AND);
-          } else if (op == "||") {
-            log("[OP_OR: " + op + "], ");
-            add_token(Token::OP_OR);
-          } else {
-            add_unknown_token(op);
-          }
+        } else if (op.size() > 1 && op.size() < 4) {
+          REG(==, OP_EQ)
+          REG(!=, OP_NOT_EQ)
+          REG(&&, OP_AND)
+          REG(||, OP_OR)
+          REG(>>, RSHIFT)
+          REG(<<, LSHIFT)
+          REG(>>=, RSHIFT_ASSIGN)
+          REG(<<=, LSHIFT_ASSIGN)
+          REG(+=, PLUS_ASSIGN)
+          REG(-=, MINUS_ASSIGN)
+          REG(*=, MUL_ASSIGN)
+          REG(/=, DIV_ASSIGN)
+          REG(|=, OR_ASSIGN)
+          REG(&=, AND_ASSIGN)
+          REG(^=, XOR_ASSIGN)
+          REG(%=, MOD_ASSIGN)
+          add_unknown_token(op);
         } else {
           add_unknown_token(op);
         }
