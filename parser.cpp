@@ -146,7 +146,18 @@ ParamList Parser::parse_func_params() {
       throw_error(msg, curr_token.line);
     }
     std::string type = curr_token.value;
-    advance();
+    advance(); // skip the type
+    if (type == "void") {
+      if (res.size() != 0) {
+        std::string msg = "invalid function expression, illegal void placement";
+        ErrorHandler::throw_syntax_error(msg);
+      }
+      if (curr_token.type != Token::RIGHT_PAREN) {
+        std::string msg = "invalid function expression, expected ), but " + curr_token.get_name() + " found";
+        ErrorHandler::throw_syntax_error(msg);
+      }
+      return res;
+    }
     fail_if_EOF(Token::IDENTIFIER);
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "Invalid function declaration, expected an identifier, but " + curr_token.get_name() + " found";
