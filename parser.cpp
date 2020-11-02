@@ -290,7 +290,6 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
   while (curr_token.type != stop1 && curr_token.type != stop2) {
     Node tok = get_expr_node();
     if (!tok.expr.is_operation()) {
-      std::cout << "pushing to queue 1\n";
       queue.push_back(tok);
     } else {
       Node top = stack_peek(stack);
@@ -300,20 +299,15 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
             (get_precedence(top.expr.op) == get_precedence(tok.expr.op) && !right_assoc(tok))
           )
       ) {
-        std::cout << "pushing to queue 2\n";
         auto res = stack.back();
-        std::cout << "popping from stack\n";
         stack.pop_back();
-        std::cout << "popped\n";
         queue.push_back(res);
-        std::cout << "pushed\n";
+        top = stack_peek(stack);
       }
-      std::cout << "pushing to stack\n";
       stack.push_back(tok);
     }
   }
   while (stack_peek(stack).type != NodeType::UNKNOWN) {
-    std::cout << "pushing to queue 3\n";
     auto res = stack.back();
     stack.pop_back();
     queue.push_back(res);
