@@ -18,7 +18,7 @@ bool Parser::op_binary(TokenType token) {
 }
 
 bool Parser::op_unary(TokenType token) {
-  return token == TokenType::OP_NOT || token == TokenType::OP_NEG;
+  return token == TokenType::OP_NOT || token == TokenType::OP_NEG || token == TokenType::DEL;
 }
 
 bool Parser::right_assoc(const Node &n) {
@@ -202,9 +202,6 @@ Node Parser::parse_func_expr() {
   func.expr.func_expr.instructions.push_back(func_parser.parse(&end_pos));
   pos += end_pos;
   advance(); // skip the semicolon
-  if (!starts_with_brace) {
-    // retreat();
-  }
   return func;
 }
 
@@ -228,7 +225,8 @@ Node Parser::get_expr_node() {
       std::cout << "found a fn call\n";
       // it's a function call
       // identifier(arg1, arg2...)
-      Node call(FuncCall(""));
+      FuncCall fc;
+      Node call(fc);
       advance(); // skip the (
       std::cout << "parsing arguments\n";
       call.expr.func_call.arguments = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
@@ -547,11 +545,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
 }
 
 Node Parser::parse(int *end_pos) {
-  Node Main;
-  NodeList instructions = get_many_statements(Main, this->terminal);
-  Main.add_children(instructions);
+  Node block;
+  NodeList instructions = get_many_statements(block, this->terminal);
+  block.add_children(instructions);
   if (end_pos != NULL) {
     *end_pos = pos;
   }
-  return Main;
+  return block;
 }

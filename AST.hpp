@@ -19,14 +19,13 @@ class FuncParam {
   public:
     std::string type_name;
     std::string param_name;
-    FuncParam(const std::string &_type, const std::string &_name) : type_name(_type), param_name(_name) {};
+    FuncParam(const std::string &_type, const std::string &_name) 
+      : type_name(_type), param_name(_name) {};
 };
 
 class FuncCall {
   public:
-    std::string name;
     NodeListList arguments;
-    FuncCall(const std::string &_name = "") : name(_name) {}
 };
 
 class FuncExpression {
@@ -121,12 +120,14 @@ class Node {
     Declaration decl;
     NodeList children;
     NodeType type;
-    std::string name;
-    Node(void) : type(NodeType::UNKNOWN), name("") {};
-    Node(Expression e, std::string _name = "") : type(NodeType::EXPR), expr(e), name(_name) {};
-    Node(Statement s, std::string _name = "") : type(NodeType::STMT), stmt(s), name(_name) {};
-    Node(Declaration d, std::string _name = ""): type(NodeType::DECL), decl(d), name(_name) {};
-    Node(FuncCall c) : type(NodeType::EXPR), expr(Expression(c)) {};
+    Node(void) : type(NodeType::UNKNOWN) {};
+    Node(const Expression &e) :
+      type(NodeType::EXPR), expr(e) {};
+    Node(const Statement &s) :
+      type(NodeType::STMT), stmt(s) {};
+    Node(const Declaration &d) :
+      type(NodeType::DECL), decl(d) {};
+    Node(const FuncCall &c) : type(NodeType::EXPR), expr(Expression(c)) {};
     void add_children(Node &node);
     void add_children(NodeList &nodes);
     virtual void print(int nest = 0);

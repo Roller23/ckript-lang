@@ -14,6 +14,7 @@ std::string Token::get_name(TokenType type) {
   REG(FOR, "for");
   REG(WHILE, "while");
   REG(ALLOC, "alloc");
+  REG(DEL, "del");
   REG(TYPE, "type");
   REG(CONST, "const");
   REG(STRING_LITERAL, "string");
@@ -47,8 +48,7 @@ std::string Token::get_name(TokenType type) {
   REG(NONE, "empty token");
   REG(GENERAL_EXPRESSION, "expression");
   REG(GENERAL_STATEMENT, "statement");
-  std::string res(1, (char)type);
-  return "'" + res + "'";
+  return {1, (char)type};
 }
 
 std::string Token::get_name(void) const {
