@@ -193,12 +193,7 @@ Node Parser::get_expr_node() {
   std::cout << "consuming expression\n";
   if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
     std::cout << "found function expression\n";
-    Node func = parse_func_expr();
-    // if (curr_token.type == stop1 || curr_token.type == stop2) {
-    //   std::cout << "Expression stopped (fn)\n";
-    //   return func;
-    // }
-    return func;
+    return parse_func_expr();
   }
   if (curr_token.type == Token::IDENTIFIER) {
     if (lookahead().type == Token::LEFT_PAREN) {
@@ -273,7 +268,7 @@ Node Parser::get_expr_node() {
     return boolean;
   }
   std::string msg = "expected an expression, but " + curr_token.get_name() + " found";
-  ErrorHandler::throw_syntax_error(msg);
+  ErrorHandler::throw_syntax_error(msg, curr_token.line);
   return {};
 }
 

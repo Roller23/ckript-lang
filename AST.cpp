@@ -42,8 +42,11 @@ void Statement::print(int nest) {
     if (type == DECL) std::cout << "declaration";
     std::cout << " ";
     if (expressions.size() != 0) {
-      for (auto &expr : expressions) {
-        // expr.print();
+      for (auto &expr_rpn : expressions) {
+        for (auto &expr_el : expr_rpn) {
+          expr_el.print();
+          std::cout << " ";
+        }
       }
     }
     if (statements.size() != 0) {
@@ -98,9 +101,11 @@ void Expression::print(int nest) {
   }
   if (this->type == FUNC_CALL) {
     std::cout << "call " + this->func_call.name + ", args: ";
-    for (auto &arg : this->func_call.arguments) {
-      // arg.print();
-      std::cout << " ";
+    for (auto &arg_rpn : this->func_call.arguments) {
+      for (auto &el : arg_rpn) {
+        el.print();
+        std::cout << " ";
+      }
     }
   }
 }
