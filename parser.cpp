@@ -368,6 +368,7 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
   }
   std::cout << "\nQUEUE START\n";
   for (auto &q : queue) {
+    std::cout << " ";
     q.print();
     std::cout << " ";
   }
@@ -456,8 +457,8 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     advance(); // skip the (
     for_stmt.stmt.expressions = get_many_expressions(Token::SEMI_COLON, Token::RIGHT_PAREN);
     advance(); // skip the )
-    prev.add_children(for_stmt);
-    return get_statement(for_stmt, stop);
+    for_stmt.stmt.statements.push_back(get_statement(prev, stop));
+    return for_stmt;
   } else if (curr_token.type == Token::RETURN) {
     std::cout << "Found return\n";
     // return expression;

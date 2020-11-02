@@ -34,34 +34,40 @@ void Node::print_nesting(int nest) {
 void Statement::print(int nest) {
   Node::print_nesting(nest);
   if (type == FOR) {
-    std::cout << "for ( ";
-    for (auto &expr : this->expressions) {
-      // expr.print();
+    std::cout << "for (";
+    for (auto &expr_rpns : expressions) {
+      for (auto &rpn : expr_rpns) {
+        rpn.expr.print();
+        std::cout << " ";
+      }
       std::cout << ";";
     }
     std::cout << "):";
+    for (auto &statement : statements) {
+      std::cout << std::endl;
+      statement.print(nest);
+      std::cout << std::endl;
+    }
   } else {
     if (type == RETURN) std::cout << "return";
     if (type == WHILE) std::cout << "while";
     if (type == IF) std::cout << "if";
     if (type == COMPOUND) std::cout << "compound";
-    if (type == EXPR) std::cout << "expression";
+    if (type == EXPR) std::cout << "expr";
     if (type == NOP) std::cout << "nop";
-    if (type == DECL) std::cout << "declaration";
+    if (type == DECL) std::cout << "decl";
     std::cout << " ";
-    if (expressions.size() != 0) {
-      for (auto &expr_rpn : expressions) {
-        std::cout << "(";
-        for (auto &expr_el : expr_rpn) {
-          expr_el.print();
-          std::cout << " ";
-        }
-        std::cout << ")";
+    for (auto &expr_rpns : expressions) {
+      std::cout << "(";
+      for (auto &rpn : expr_rpns) {
+        rpn.expr.print();
+        std::cout << " ";
       }
+      std::cout << ")";
     }
-    if (statements.size() != 0) {
+    for (auto &statement : statements) {
       std::cout << std::endl;
-      statements.at(0).print(nest);
+      statement.print();
       std::cout << std::endl;
     }
     if (declaration.size() != 0) {
@@ -139,8 +145,10 @@ void Declaration::print(int nest) {
   Node::print_nesting(nest);
   if (constant) std::cout << "const ";
   if (allocated) std::cout << "allocated ";
-  std::cout << "decl " + id + " (" + var_type + ") = ";
-  var_expr.at(0).expr.print();
+  std::cout << id + " (" + var_type + ") = ";
+  for (auto &var : var_expr) {
+    var.print(nest);
+  }
 }
 
 void Node::print(int nest) {
@@ -150,7 +158,9 @@ void Node::print(int nest) {
   if (children.size() == 0) return;
   print_nesting(nest);
   std::cout << "Node children(" << children.size() << "):\n";
+  int i = 0;
   for (auto &child : children) {
+    std::cout << "CHILD " << (i++) << " "; 
     child.print(nest + 1);
   }
 }
