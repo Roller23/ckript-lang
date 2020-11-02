@@ -46,7 +46,7 @@ class Expression {
   public:
     typedef enum expr_type {
       BINARY_OP, UNARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR,
-      IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, LPAREN, RPAREN, NONE
+      IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, LPAREN, RPAREN, INDEX, NONE
     } ExprType;
     ExprType type;
     NodeList rpn_stack;
@@ -66,6 +66,7 @@ class Expression {
     Expression(Token::TokenType _paren) : type(_paren == '(' ? LPAREN : RPAREN) {};
     Expression(Token::TokenType _op, ExprType _type) : type(_type), op(_op) {};
     Expression(const NodeList &rpn) : type(RPN), rpn_stack(rpn) {}
+    Expression(const NodeList &rpn, bool is_index) : type(INDEX), rpn_stack(rpn), op(Token::LEFT_BRACKET) {}
     Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}

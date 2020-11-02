@@ -51,10 +51,12 @@ void Statement::print(int nest) {
     std::cout << " ";
     if (expressions.size() != 0) {
       for (auto &expr_rpn : expressions) {
+        std::cout << "(";
         for (auto &expr_el : expr_rpn) {
           expr_el.print();
           std::cout << " ";
         }
+        std::cout << ")";
       }
     }
     if (statements.size() != 0) {
@@ -79,6 +81,20 @@ void Expression::print(int nest) {
   }
   if (this->type == NOP) {
     std::cout << "nop";
+  }
+  if (this->type == RPN) {
+    std::cout << "(";
+    for (auto &r : rpn_stack) {
+      r.print();
+    }
+    std::cout << ")";
+  }
+  if (this->type == INDEX) {
+    std::cout << "[";
+    for (auto &r : rpn_stack) {
+      r.print();
+    }
+    std::cout << "]";
   }
   if (this->type == STR_EXPR) {
     std::cout << "str \"" << this->string_literal << "\"";
@@ -108,13 +124,14 @@ void Expression::print(int nest) {
     this->func_expr.instructions.at(0).print(nest);
   }
   if (this->type == FUNC_CALL) {
-    std::cout << "call " + this->func_call.name + ", args: ";
+    std::cout << "call(";
     for (auto &arg_rpn : this->func_call.arguments) {
       for (auto &el : arg_rpn) {
         el.print();
         std::cout << " ";
       }
     }
+    std::cout << ")";
   }
 }
 

@@ -106,6 +106,29 @@ int Parser::find_enclosing_semi(int start_pos) {
   }
 }
 
+int Parser::find_enclosing_paren() {
+  int start_pos = pos;
+  int i = 0;
+  int size = tokens.size();
+  int lparen = 1;
+  while (true) {
+    if (size == i) {
+      std::string msg = "Invalid expression, no enclosing parenthesis found";
+      throw_error(msg, tokens.at(start_pos + i - 1).line);
+    }
+    if (tokens.at(start_pos + i).type == Token::LEFT_PAREN) {
+      lparen++;
+    }
+    if (tokens.at(start_pos + i).type == Token::RIGHT_PAREN) {
+      lparen--;
+      if (lparen == 0) {
+        return i;
+      }
+    }
+    i++;
+  }
+}
+
 int Parser::find_block_end(void) {
   if (curr_token.type == Token::LEFT_BRACE) {
     return find_enclosing_brace(pos);
@@ -146,9 +169,7 @@ NodeListList Parser::get_many_expressions(TokenType sep, TokenType stop) {
     fail_if_EOF(stop);
     NodeList rpn = get_expression(sep, stop); // parse expression till either sep or stop
     res.push_back(rpn);
-    if (curr_token.type == stop) {
-      break;
-    }
+    if (curr_token.type == stop) break;
     advance();
     fail_if_EOF(stop);
   }
@@ -203,18 +224,28 @@ Node Parser::get_expr_node() {
     return id;
   }
   if (curr_token.type == Token::LEFT_PAREN) {
-    if (prev.type == Token::LEFT_PAREN || prev.type == Token::IDENTIFIER) {
+    if (prev.type == Token::RIGHT_PAREN || prev.type == Token::IDENTIFIER) {
       std::cout << "found a fn call\n";
       // it's a function call
       // identifier(arg1, arg2...)
-      Node call(FuncCall(curr_token.value));
-      advance(); // skip the id entifier
+      Node call(FuncCall(""));
       advance(); // skip the (
       std::cout << "parsing arguments\n";
       call.expr.func_call.arguments = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
       advance(); // skip the )
       return call;
     }
+  }
+  if (curr_token.type == Token::LEFT_BRACKET) {
+    // it's an indexing expresion 
+    // expression[expression]
+    std::cout << "found an index\n";
+    advance(); // skip the [
+    NodeList rpn = get_expression(Token::RIGHT_BRACKET);
+    advance(); // skip the ]
+    Expression e(rpn, true);
+    Node index(e);
+    return index;
   }
   if (curr_token.type == Token::STRING_LITERAL) {
     // string literal
@@ -268,11 +299,14 @@ Node Parser::get_expr_node() {
     advance(); // skip the boolean
     return boolean;
   }
-  if (curr_token.type == Token::LEFT_PAREN || curr_token.type == Token::RIGHT_PAREN) {
-    std::cout << "found " << curr_token << "\n";
-    Node paren(Expression(curr_token.type));
-    advance(); // skip the paren
-    return paren;
+  if (curr_token.type == Token::LEFT_PAREN) {
+    std::cout << "found left paren, recursion!\n";
+    advance(); // skip the (
+    NodeList rpn = get_expression(Token::RIGHT_PAREN);
+    advance(); // skip the )
+    Expression e(rpn);
+    Node rpn_expr(e);
+    return rpn_expr;
   }
   std::string msg = "expected an expression, but " + curr_token.get_name() + " found";
   ErrorHandler::throw_syntax_error(msg, curr_token.line);
@@ -303,7 +337,7 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
             (get_precedence(top.expr.op) == get_precedence(tok.expr.op) && !right_assoc(tok))
           )
         && 
-          (!top.expr.is_paren())
+          (top.expr.type != ExprType::LPAREN)
       ) {
         auto res = stack.back();
         stack.pop_back();
@@ -314,17 +348,15 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
     } else if (tok.expr.type == ExprType::LPAREN) {
       stack.push_back(tok);
     } else if (tok.expr.type == ExprType::RPAREN) {
-      Node top = stack_peek(stack);
-      while (top.expr.type != ExprType::LPAREN) {
+      while (stack_peek(stack).expr.type != ExprType::LPAREN) {
         auto res = stack.back();
         stack.pop_back();
         queue.push_back(res);
-        top = stack_peek(stack);
       }
       if (stack_peek(stack).expr.type == ExprType::LPAREN) {
         stack.pop_back();
       } else {
-        std::string msg = "no enclosing parentheses";
+        std::string msg = "no enclosing parenthesis";
         ErrorHandler::throw_syntax_error(msg, curr_token.line);
       }
     }
@@ -334,10 +366,12 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
     stack.pop_back();
     queue.push_back(res);
   }
+  std::cout << "\nQUEUE START\n";
   for (auto &q : queue) {
     q.print();
     std::cout << " ";
   }
+  std::cout << "\nQUEUE END\n";
   return queue;
 }
 
@@ -350,7 +384,7 @@ NodeList Parser::get_many_statements(Node &node, TokenType stop) {
       break;
     }
     res.push_back(statement);
-    std::cout << "------- PUSHED STATEMENT --------\n";
+    std::cout << "\n------- PUSHED STATEMENT --------\n";
     std::cout << "type " << statement.type << ", ";
     statement.print();
     std::cout << "\n-------       END        --------\n";

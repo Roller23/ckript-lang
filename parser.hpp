@@ -52,6 +52,7 @@ class Parser {
         op_precedence[Token::TokenType::OP_DIV] = 11; // /
         op_precedence[Token::TokenType::OP_MOD] = 11; // %
         op_precedence[Token::TokenType::DOT] = 13; // .
+        op_precedence[Token::TokenType::LEFT_BRACKET] = 13; // []
       }
     Node parse(int *end_pos);
     void advance();
@@ -82,6 +83,7 @@ class Parser {
     void fail_if_EOF(Token::TokenType expected);
     int find_enclosing_brace(int start_pos, int braces = 0);
     int find_enclosing_semi(int start_pos);
+    int find_enclosing_paren();
     int find_block_end(void);
     void throw_error(const std::string &cause, std::uint32_t line);
 };

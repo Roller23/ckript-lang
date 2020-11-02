@@ -28,7 +28,6 @@ std::string Token::get_name(TokenType type) {
   REG(OP_LT_EQ, "<=");
   REG(OP_AND, "&&");
   REG(OP_OR, "||");
-  REG(OP_XOR, "^");
   REG(LSHIFT, "<<");
   REG(RSHIFT, ">>");
   REG(LSHIFT_ASSIGN, "<<=");

@@ -86,7 +86,7 @@ TokenList Lexer::tokenize(const std::string &code) {
   this->ptr = code.begin();
   this->end = code.end();
   std::string chars = ".,:;{}[]()~";
-  std::string chars2 = "=+-*&|/<>!%";
+  std::string chars2 = "=+-*&|/<>!%^";
   while (ptr != end) {
     consume_whitespace();
     if (ptr == end) break;
