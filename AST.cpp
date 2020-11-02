@@ -85,7 +85,11 @@ void Expression::print(int nest) {
     std::cout << "bool " << this->bool_literal;
   }
   if (this->type == NUM_EXPR) {
-    std::cout << "num " << this->number_literal;
+    if (this->is_negative) {
+      std::cout << "num " << (std::int64_t)this->number_literal;
+    } else {
+      std::cout << "num " << this->number_literal;
+    }
   }
   if (this->type == IDENTIFIER_EXPR) {
     std::cout << "id " << this->id_name;

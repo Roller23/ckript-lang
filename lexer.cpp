@@ -184,6 +184,11 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         ptr--;
         bool converted = false;
+        bool negation = tokens.size() != 0 && tokens.back().type == Token::OP_MINUS;
+        if (negation) {
+          number_str = "-" + number_str;
+          tokens.pop_back();
+        }
         if (contains(number_str, 'x')) {
           // might be a hex
           if (valid_number(number_str, 16)) {
@@ -193,7 +198,10 @@ TokenList Lexer::tokenize(const std::string &code) {
           }
         } else if (contains(number_str, 'b') && number_str.size() > 2) {
           // might be a binary number
-          std::string binary_num = number_str.substr(2);
+          std::string binary_num = number_str.substr(2 + negation);
+          if (negation) {
+            binary_num = "-" + binary_num;
+          }
           if (valid_number(binary_num, 2)) {
             log("[BINARY: " + binary_num + "], ");
             add_token(Token::BINARY, binary_num);
@@ -231,6 +239,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         while (contains(chars2, *ptr)) {
           op += *ptr++;
         }
+        std::cout << "op " + op << "\n";
         ptr--;
         if (op.size() == 1) {
           add_char_token(c);

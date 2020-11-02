@@ -57,6 +57,7 @@ class Expression {
     ExprType type;
     FuncExpression func_expr;
     FuncCall func_call;
+    bool is_negative = false;
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
     std::string id_name = "";
@@ -71,7 +72,10 @@ class Expression {
     Expression(const FuncCall &call) : type(FUNC_CALL), func_call(call) {}
     Expression(const std::string &literal) : type(STR_EXPR), string_literal(literal) {}
     Expression(const std::string &_id, bool identifier) : type(IDENTIFIER_EXPR), id_name(_id) {} 
-    Expression(const std::uint64_t literal) : type(NUM_EXPR), number_literal(literal) {}
+    Expression(const std::uint64_t literal, bool neg, bool is_int) : 
+      type(NUM_EXPR),
+      number_literal(literal),
+      is_negative(neg) {}
     Expression(const double literal, bool is_double) : type(FLOAT_EXPR), float_literal(literal) {}
     void print(int nest = 0);
 };

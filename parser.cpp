@@ -13,16 +13,16 @@ typedef Node::NodeType NodeType;
 typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
-bool Parser::op_binary(TokenType token) {
-  return op_precedence[token] && !op_unary(token);
+bool Parser::op_binary() {
+  return op_precedence[curr_token.type] && !op_unary();
 }
 
-bool Parser::op_unary(TokenType token) {
-  return token == TokenType::OP_MINUS || token == TokenType::OP_NOT || token == TokenType::OP_NOT_BIT;
+bool Parser::op_unary() {
+  return curr_token.type == TokenType::OP_NOT || curr_token.type == TokenType::OP_NEG;
 }
 
 char Parser::get_precedence(Token::TokenType token) {
-  if (op_unary(token)) {
+  if (op_unary()) {
     return 12;
   }
   return op_precedence[token];
@@ -237,7 +237,7 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
     advance();
     return get_expression(undef, stop1, stop2);
   }
-  if (op_binary(curr_token.type)) {
+  if (op_binary()) {
     std::string token_name = curr_token.get_name();
     TokenType token_type = curr_token.type;
     if (prev.type != NodeType::EXPR) {
@@ -257,7 +257,8 @@ Node Parser::get_expression(Node &prev, TokenType stop1, TokenType stop2) {
   int base = (int)base_lut[(int)curr_token.type];
   if (base) {
     std::cout << "found a number literal " + curr_token.value + "\n";
-    Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, base)));
+    int is_neg = curr_token.value.c_str()[0] == '-';
+    Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, base), is_neg, true));
     advance();
     return get_expression(num_literal, stop1, stop2);
   }
@@ -289,7 +290,7 @@ NodeList Parser::get_many_statements(Node &node, TokenType stop) {
     std::cout << "------- PUSHED STATEMENT --------\n";
     std::cout << "type " << statement.type << ", ";
     statement.print();
-    std::cout << "-------       END        --------\n";
+    std::cout << "\n-------       END        --------\n";
   }
   return res;
 }

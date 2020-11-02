@@ -15,6 +15,10 @@ release:
 run:
 	./$(out) $(input_file)
 
+rerun:
+	make production
+	make run
+
 debug:
 	gdb ./$(out)
 

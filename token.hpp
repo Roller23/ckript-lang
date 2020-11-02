@@ -13,7 +13,7 @@ class Token {
   public:
     typedef enum type {
       OP_PLUS = '+', OP_MINUS = '-', OP_DIV = '/', OP_MUL = '*',
-      OP_MOD = '%', OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_NOT_BIT = '~',
+      OP_MOD = '%', OP_LT = '<', OP_GT = '>', OP_NOT = '!', OP_NEG = '~',
       OP_OR_BIT = '|', OP_AND_BIT = '&', OP_ASSIGN = '=', OP_XOR = '^',
 
       DOT = '.', COMMA = ',', COLON = ':', SEMI_COLON = ';',

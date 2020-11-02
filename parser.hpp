@@ -64,8 +64,8 @@ class Parser {
     NodeList get_many_expressions(Node &prev, Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
     NodeList get_many_statements(Node &prev, Token::TokenType stop);
-    bool op_binary(Token::TokenType token);
-    bool op_unary(Token::TokenType token);
+    bool op_binary();
+    bool op_unary();
     char get_precedence(Token::TokenType token);
     char base_lut[200];
     char op_precedence[200];
