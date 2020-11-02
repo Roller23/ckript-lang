@@ -3,12 +3,6 @@
 #include <string>
 #include <iostream>
 
-BinaryOp::BinaryOp(const Node &l, Token::TokenType o, const Node &r) {
-  this->op = o;
-  this->operands.push_back(l);
-  this->operands.push_back(r);
-}
-
 void Node::add_children(Node &node) {
   this->children.push_back(node);
 }
@@ -30,7 +24,7 @@ void Statement::print(int nest) {
   if (type == FOR) {
     std::cout << "for ( ";
     for (auto &expr : this->expressions) {
-      expr.print();
+      // expr.print();
       std::cout << ";";
     }
     std::cout << "):";
@@ -45,7 +39,7 @@ void Statement::print(int nest) {
     std::cout << " ";
     if (expressions.size() != 0) {
       for (auto &expr : expressions) {
-        expr.print();
+        // expr.print();
       }
     }
     if (statements.size() != 0) {
@@ -62,15 +56,11 @@ void Statement::print(int nest) {
 
 void Expression::print(int nest) {
   Node::print_nesting(nest);
-  if (this->type == BINARY_OP) {
-    std::cout << "(";
-    this->op.operands.at(0).expr.print();
-    std::cout << " " << Token::get_name(op.op) << " ";
-    this->op.operands.at(1).expr.print();
-    std::cout << ")";
-  }
   if (this->type == NONE) {
     std::cout << "none";
+  }
+  if (this->type == OPERATION) {
+    std::cout << Token::get_name(this->op.op);
   }
   if (this->type == NOP) {
     std::cout << "nop";
@@ -105,7 +95,7 @@ void Expression::print(int nest) {
   if (this->type == FUNC_CALL) {
     std::cout << "call " + this->func_call.name + ", args: ";
     for (auto &arg : this->func_call.arguments) {
-      arg.print();
+      // arg.print();
       std::cout << " ";
     }
   }

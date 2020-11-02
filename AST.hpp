@@ -11,6 +11,7 @@ class FuncParam;
 class Expression;
 
 typedef std::vector<Node> NodeList;
+typedef std::vector<NodeList> NodeListList;
 typedef std::vector<FuncParam> ParamList;
 typedef std::vector<Expression> ExpressionList;
 
@@ -24,7 +25,7 @@ class FuncParam {
 class FuncCall {
   public:
     std::string name;
-    ExpressionList arguments;
+    NodeListList arguments;
     FuncCall(const std::string &_name = "") : name(_name) {}
 };
 
@@ -41,18 +42,21 @@ class FuncExpression {
     FuncExpression(FuncType _type) : type(_type) {};
 };
 
-class BinaryOp {
+class Operation {
   public:
-    BinaryOp(void) : op(Token::TokenType::NONE) {}
-    BinaryOp(const Node &l, Token::TokenType o, const Node &r);
-    NodeList operands;
+    typedef enum operation_type {
+      BINARY, UNARY, NONE
+    } OperationType;
+    OperationType type;
     Token::TokenType op;
+    Operation(void) : type(NONE) {};
+    Operation(OperationType _type, Token::TokenType tok) : type(_type), op(tok) {};
 };
 
 class Expression {
   public:
     typedef enum expr_type {
-      BINARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, NONE
+      OPERATION, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, NONE
     } ExprType;
     ExprType type;
     NodeList rpn_stack;
@@ -62,14 +66,14 @@ class Expression {
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
     std::string id_name = "";
-    BinaryOp op;
+    Operation op;
     double float_literal = 0;
     bool bool_literal = false;
     Expression(void) : type(NONE) {};
+    Expression(const Operation &operation) : op(operation) {};
     Expression(const NodeList &rpn) : type(RPN), rpn_stack(rpn) {}
     Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};
-    Expression(const Node &l, Token::TokenType o, const Node &r) : type(BINARY_OP), op(l, o, r) {}
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}
     Expression(const FuncCall &call) : type(FUNC_CALL), func_call(call) {}
     Expression(const std::string &literal) : type(STR_EXPR), string_literal(literal) {}
@@ -88,7 +92,7 @@ class Statement {
       IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, NONE
     } StmtType;
     StmtType type;
-    NodeList expressions;
+    NodeListList expressions;
     NodeList declaration;
     NodeList statements;
     Statement(void) : type(NONE) {}
