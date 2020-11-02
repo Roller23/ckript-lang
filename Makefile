@@ -23,7 +23,7 @@ debug:
 	gdb ./$(out)
 
 mem:
-	valgrind -s ./$(out)
+	valgrind -s --track-origins=yes --leak-check=full ./$(out)
 
 clean:
 	rm *.out

@@ -42,21 +42,11 @@ class FuncExpression {
     FuncExpression(FuncType _type) : type(_type) {};
 };
 
-class Operation {
-  public:
-    typedef enum operation_type {
-      BINARY, UNARY, NONE
-    } OperationType;
-    OperationType type;
-    Token::TokenType op;
-    Operation(void) : type(NONE) {};
-    Operation(OperationType _type, Token::TokenType tok) : type(_type), op(tok) {};
-};
-
 class Expression {
   public:
     typedef enum expr_type {
-      OPERATION, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, NONE
+      BINARY_OP, UNARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR,
+      IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, NONE
     } ExprType;
     ExprType type;
     NodeList rpn_stack;
@@ -66,11 +56,12 @@ class Expression {
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
     std::string id_name = "";
-    Operation op;
-    double float_literal = 0;
+    Token::TokenType op;
+    double float_literal = 0.0f;
     bool bool_literal = false;
+    bool is_operation();
     Expression(void) : type(NONE) {};
-    Expression(const Operation &operation) : op(operation) {};
+    Expression(Token::TokenType _op, ExprType _type) : type(_type), op(_op) {};
     Expression(const NodeList &rpn) : type(RPN), rpn_stack(rpn) {}
     Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};

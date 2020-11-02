@@ -3,6 +3,10 @@
 #include <string>
 #include <iostream>
 
+bool Expression::is_operation() {
+  return type == BINARY_OP || type == UNARY_OP;
+}
+
 void Node::add_children(Node &node) {
   this->children.push_back(node);
 }
@@ -59,8 +63,8 @@ void Expression::print(int nest) {
   if (this->type == NONE) {
     std::cout << "none";
   }
-  if (this->type == OPERATION) {
-    std::cout << Token::get_name(this->op.op);
+  if (this->is_operation()) {
+    std::cout << Token::get_name(this->op);
   }
   if (this->type == NOP) {
     std::cout << "nop";

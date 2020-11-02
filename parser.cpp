@@ -22,7 +22,7 @@ bool Parser::op_unary(TokenType token) {
 }
 
 bool Parser::right_assoc(const Node &n) {
-  auto precedence = get_precedence(n.expr.op.op);
+  auto precedence = get_precedence(n.expr.op);
   return precedence == 12 || precedence == 1; // REMEMBER TO CHANGE IF YOU EVER CHANGE PRECEDENCE
 }
 
@@ -240,9 +240,7 @@ Node Parser::get_expr_node() {
     TokenType token_type = curr_token.type;
     advance(); // skip the op
     fail_if_EOF(TokenType::GENERAL_EXPRESSION);
-    Operation o(Operation::OperationType::UNARY, token_type);
-    Expression e(o);
-    Node oper(e);
+    Node oper(Expression(token_type, ExprType::UNARY_OP));
     return oper;
   }
   if (op_binary(curr_token.type)) {
@@ -250,9 +248,8 @@ Node Parser::get_expr_node() {
     std::string token_name = curr_token.get_name();
     TokenType token_type = curr_token.type;
     advance(); // skip the op
-    Operation o(Operation::OperationType::BINARY, token_type);
-    Expression e(o);
-    Node oper(e);
+    fail_if_EOF(TokenType::GENERAL_EXPRESSION);
+    Node oper(Expression(token_type, ExprType::BINARY_OP));
     return oper;
   }
   int base = (int)base_lut[(int)curr_token.type];
@@ -292,24 +289,31 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
   NodeList stack;
   while (curr_token.type != stop1 && curr_token.type != stop2) {
     Node tok = get_expr_node();
-    if (tok.expr.type != ExprType::OPERATION) {
+    if (!tok.expr.is_operation()) {
+      std::cout << "pushing to queue 1\n";
       queue.push_back(tok);
     } else {
       Node top = stack_peek(stack);
       while (
-        top.type != NodeType::UNKNOWN && top.expr.type == ExprType::OPERATION &&
-          (get_precedence(top.expr.op.op) > get_precedence(tok.expr.op.op) ||
-            (get_precedence(top.expr.op.op) == get_precedence(tok.expr.op.op) && !right_assoc(tok))
+        top.type != NodeType::UNKNOWN && top.expr.is_operation() &&
+          (get_precedence(top.expr.op) > get_precedence(tok.expr.op) ||
+            (get_precedence(top.expr.op) == get_precedence(tok.expr.op) && !right_assoc(tok))
           )
       ) {
+        std::cout << "pushing to queue 2\n";
         auto res = stack.back();
+        std::cout << "popping from stack\n";
         stack.pop_back();
+        std::cout << "popped\n";
         queue.push_back(res);
+        std::cout << "pushed\n";
       }
+      std::cout << "pushing to stack\n";
       stack.push_back(tok);
     }
   }
   while (stack_peek(stack).type != NodeType::UNKNOWN) {
+    std::cout << "pushing to queue 3\n";
     auto res = stack.back();
     stack.pop_back();
     queue.push_back(res);
