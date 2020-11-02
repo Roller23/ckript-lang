@@ -7,6 +7,14 @@ bool Expression::is_operation() {
   return type == BINARY_OP || type == UNARY_OP;
 }
 
+bool Expression::is_paren() {
+  return type == LPAREN || type == RPAREN;
+}
+
+bool Expression::is_evaluable() {
+  return !is_operation() && !is_paren();
+}
+
 void Node::add_children(Node &node) {
   this->children.push_back(node);
 }

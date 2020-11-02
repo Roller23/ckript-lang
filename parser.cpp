@@ -196,23 +196,24 @@ Node Parser::get_expr_node() {
     return parse_func_expr();
   }
   if (curr_token.type == Token::IDENTIFIER) {
-    if (lookahead().type == Token::LEFT_PAREN) {
+    std::cout << "found an identifier expression\n";
+    // it's an identifier expression
+    Node id(Expression(curr_token.value, true));
+    advance(); // skip the identifier
+    return id;
+  }
+  if (curr_token.type == Token::LEFT_PAREN) {
+    if (prev.type == Token::LEFT_PAREN || prev.type == Token::IDENTIFIER) {
       std::cout << "found a fn call\n";
       // it's a function call
       // identifier(arg1, arg2...)
       Node call(FuncCall(curr_token.value));
-      advance(); // skip the identifier
+      advance(); // skip the id entifier
       advance(); // skip the (
       std::cout << "parsing arguments\n";
       call.expr.func_call.arguments = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN); // (arg1, arg2...)
       advance(); // skip the )
       return call;
-    } else {
-      std::cout << "found an identifier expression\n";
-      // it's an identifier expression
-      Node id(Expression(curr_token.value, true));
-      advance(); // skip the identifier
-      return id;
     }
   }
   if (curr_token.type == Token::STRING_LITERAL) {
@@ -252,20 +253,26 @@ Node Parser::get_expr_node() {
     std::cout << "found a number literal " + curr_token.value + "\n";
     int is_neg = curr_token.value.c_str()[0] == '-';
     Node num_literal(Expression(strtoull(curr_token.value.c_str(), NULL, base), is_neg, true));
-    advance();
+    advance(); // skip the number
     return num_literal;
   }
   if (curr_token.type == Token::FLOAT) {
     std::cout << "found a float literal\n";
     Node float_literal(Expression(strtod(curr_token.value.c_str(), NULL), true));
-    advance();
+    advance(); // skip the float
     return float_literal;
   }
   if (curr_token.type == Token::TRUE || curr_token.type == Token::FALSE) {
     std::cout << "found a boolean literal\n";
     Node boolean(Expression(curr_token.type == Token::TRUE, 0.0f));
-    advance();
+    advance(); // skip the boolean
     return boolean;
+  }
+  if (curr_token.type == Token::LEFT_PAREN || curr_token.type == Token::RIGHT_PAREN) {
+    std::cout << "found " << curr_token << "\n";
+    Node paren(Expression(curr_token.type));
+    advance(); // skip the paren
+    return paren;
   }
   std::string msg = "expected an expression, but " + curr_token.get_name() + " found";
   ErrorHandler::throw_syntax_error(msg, curr_token.line);
@@ -284,15 +291,19 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
   NodeList stack;
   while (curr_token.type != stop1 && curr_token.type != stop2) {
     Node tok = get_expr_node();
-    if (!tok.expr.is_operation()) {
+    if (tok.expr.is_evaluable()) {
       queue.push_back(tok);
-    } else {
+    } else if (tok.expr.is_operation()) {
       Node top = stack_peek(stack);
       while (
-        top.type != NodeType::UNKNOWN && top.expr.is_operation() &&
-          (get_precedence(top.expr.op) > get_precedence(tok.expr.op) ||
+        top.type != NodeType::UNKNOWN && top.expr.is_operation()
+        &&
+          (get_precedence(top.expr.op) > get_precedence(tok.expr.op)
+          ||
             (get_precedence(top.expr.op) == get_precedence(tok.expr.op) && !right_assoc(tok))
           )
+        && 
+          (!top.expr.is_paren())
       ) {
         auto res = stack.back();
         stack.pop_back();
@@ -300,6 +311,22 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
         top = stack_peek(stack);
       }
       stack.push_back(tok);
+    } else if (tok.expr.type == ExprType::LPAREN) {
+      stack.push_back(tok);
+    } else if (tok.expr.type == ExprType::RPAREN) {
+      Node top = stack_peek(stack);
+      while (top.expr.type != ExprType::LPAREN) {
+        auto res = stack.back();
+        stack.pop_back();
+        queue.push_back(res);
+        top = stack_peek(stack);
+      }
+      if (stack_peek(stack).expr.type == ExprType::LPAREN) {
+        stack.pop_back();
+      } else {
+        std::string msg = "no enclosing parentheses";
+        ErrorHandler::throw_syntax_error(msg, curr_token.line);
+      }
     }
   }
   while (stack_peek(stack).type != NodeType::UNKNOWN) {
