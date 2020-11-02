@@ -52,9 +52,10 @@ class BinaryOp {
 class Expression {
   public:
     typedef enum expr_type {
-      BINARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, NONE
+      BINARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR, IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, NONE
     } ExprType;
     ExprType type;
+    NodeList rpn_stack;
     FuncExpression func_expr;
     FuncCall func_call;
     bool is_negative = false;
@@ -64,7 +65,8 @@ class Expression {
     BinaryOp op;
     double float_literal = 0;
     bool bool_literal = false;
-    Expression(void) : type(ExprType::NONE) {};
+    Expression(void) : type(NONE) {};
+    Expression(const NodeList &rpn) : type(RPN), rpn_stack(rpn) {}
     Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};
     Expression(const Node &l, Token::TokenType o, const Node &r) : type(BINARY_OP), op(l, o, r) {}
