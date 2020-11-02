@@ -44,6 +44,7 @@ bool Lexer::valid_float(const std::string &str) const {
 
 void Lexer::consume_whitespace(void) {
   while (ptr != end && isspace(*ptr, loc)) {
+    deleted_spaces++;
     if (*ptr++ == '\n') current_line++;
   }
 }
@@ -88,6 +89,7 @@ TokenList Lexer::tokenize(const std::string &code) {
   std::string chars = ".,:;{}[]()~";
   std::string chars2 = "=+-*&|/<>!%^";
   while (ptr != end) {
+    deleted_spaces = 0;
     consume_whitespace();
     if (ptr == end) break;
     if (*ptr == '#') {
@@ -133,6 +135,9 @@ TokenList Lexer::tokenize(const std::string &code) {
         } else if (token_str == "while") {
           log("[WHILE], ");
           add_token(Token::WHILE);
+        } else if (token_str == "break") {
+          log("[WHILE], ");
+          add_token(Token::BREAK);
         } else if (token_str == "alloc") {
           log("[ALLOC], ");
           add_token(Token::ALLOC);
@@ -184,7 +189,10 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         ptr--;
         bool converted = false;
-        bool negation = tokens.size() != 0 && tokens.back().type == Token::OP_MINUS;
+        bool negation = tokens.size() != 0 && tokens.back().type == Token::OP_MINUS && !deleted_spaces;
+        if (negation && prev_deleted_spaces == 0) {
+          negation = false;
+        } 
         if (negation) {
           number_str = "-" + number_str;
           tokens.pop_back();
@@ -223,7 +231,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           }
         } else {
           // might be a decimal
-          if (valid_number(number_str, 16)) {
+          if (valid_number(number_str, 10)) {
             log("[DECIMAL: " + number_str + "], ");
             add_token(Token::DECIMAL, number_str);
             converted = true;
@@ -268,6 +276,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         add_unknown_token(junk);
       }
     }
+    prev_deleted_spaces = deleted_spaces;
     ptr++;
   }
   return tokens;

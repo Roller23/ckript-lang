@@ -84,7 +84,7 @@ class Expression {
 class Statement {
   public:
     typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, NONE
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, BREAK, NONE
     } StmtType;
     StmtType type;
     NodeListList expressions;

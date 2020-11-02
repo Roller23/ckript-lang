@@ -56,6 +56,7 @@ void Statement::print(int nest) {
     if (type == EXPR) std::cout << "expr";
     if (type == NOP) std::cout << "nop";
     if (type == DECL) std::cout << "decl";
+    if (type == BREAK) std::cout << "break";
     std::cout << " ";
     for (auto &expr_rpns : expressions) {
       std::cout << "(";

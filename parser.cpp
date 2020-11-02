@@ -468,6 +468,14 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     return_stmt.stmt.expressions.push_back(rpn);
     advance(); // skip the semicolon
     return return_stmt;
+  } else if (curr_token.type == Token::BREAK) {
+    advance(); // skip the break
+    if (curr_token.type != Token::SEMI_COLON) {
+      std::string msg = "expected ';', but " + curr_token.get_name() + " found";
+      ErrorHandler::throw_syntax_error(msg);
+    }
+    advance(); // skip the ;
+    return Statement(StmtType::BREAK);
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;

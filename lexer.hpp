@@ -30,6 +30,8 @@ class Lexer {
     std::string::const_iterator end;
     std::locale loc{""};
     std::int32_t current_line = 1;
+    int deleted_spaces = 0;
+    int prev_deleted_spaces = 0;
     TokenList tokens;
 };
 
