@@ -161,7 +161,7 @@ void Node::print(int nest) {
   std::cout << "Node children(" << children.size() << "):\n";
   int i = 0;
   for (auto &child : children) {
-    std::cout << "CHILD " << (i++) << " "; 
+    std::cout << "\nCHILD " << (i++) << " "; 
     child.print(nest + 1);
   }
 }
