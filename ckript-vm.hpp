@@ -7,8 +7,8 @@
 
 class Variable {
   public:
-    std::string id;
-    std::string type;
+    const std::string id;
+    const std::string type;
     std::int64_t heap_reference = -1; // its own reference on heap
     std::int64_t var_reference = -1; // reference to another variable on heap
     bool is_allocated() const;
@@ -30,7 +30,7 @@ class Heap {
 
 class CkriptVM {
   public:
-    std::map<std::string, Variable> globals;
+    std::map<std::string, Variable *> globals;
     Heap heap;
 };
 

@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
   // }
   Interpreter python;
   // std::string filename = argv[1];
-  python.process_file("test.ck");
+  python.process_file("hello.ck");
   std::cout << std::endl;
   return 0;
 }
