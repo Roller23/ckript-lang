@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cassert>
 
-#define REG(tok_str, tok_sym) if(op==#tok_str){log("["#tok_sym"], ");add_token(Token::tok_sym);}else
+#define REG(tok_str, tok_sym) if(op==#tok_str){log("token ["#tok_sym"], ");add_token(Token::tok_sym);}else
 
 static const char *_builtin_types[] = {
   "int8", "int16", "int32", "int64",
@@ -70,14 +70,14 @@ void Lexer::add_token(Token::TokenType type, const std::string &val) {
 }
 
 void Lexer::add_unknown_token(std::string str) {
-  log("[UNKNOWN: " + str + "], ");
+  log("token [UNKNOWN: " + str + "], ");
   add_token(Token::UNKNOWN, str);
   ErrorHandler::throw_syntax_error("unknown token '" + str + "'", current_line);
 }
 
 void Lexer::add_char_token(const char c) {
   std::stringstream s;
-  s << "[" << c << "], ";
+  s << "token [" << c << "], ";
   log(s.str());
   std::cout << std::flush;
   add_token((Token::TokenType)c);
@@ -112,49 +112,49 @@ TokenList Lexer::tokenize(const std::string &code) {
         }
         ptr--;
         if (token_str == "function") {
-          log("[FUNCTION], ");
+          log("token [FUNCTION], ");
           add_token(Token::FUNCTION);
         } else if (token_str == "thread") {
-          log("[THREAD], ");
+          log("token [THREAD], ");
           add_token(Token::THREAD);
         } else if (token_str == "return") {
-          log("[RETURN], ");
+          log("token [RETURN], ");
           add_token(Token::RETURN);
         } else if (token_str == "if") {
-          log("[IF], ");
+          log("token [IF], ");
           add_token(Token::IF);
         } else if (token_str == "else") {
-          log("[ELSE], ");
+          log("token [ELSE], ");
           add_token(Token::ELSE);
         } else if (token_str == "elseif") {
-          log("[ELSEIF], ");
+          log("token [ELSEIF], ");
           add_token(Token::ELSEIF);
         } else if (token_str == "for") {
-          log("[FOR], ");
+          log("token [FOR], ");
           add_token(Token::FOR);
         } else if (token_str == "while") {
-          log("[WHILE], ");
+          log("token [WHILE], ");
           add_token(Token::WHILE);
         } else if (token_str == "break") {
-          log("[WHILE], ");
+          log("token [WHILE], ");
           add_token(Token::BREAK);
         } else if (token_str == "alloc") {
-          log("[ALLOC], ");
+          log("token [ALLOC], ");
           add_token(Token::ALLOC);
         } else if (token_str == "del") {
-          log("[DEL], ");
+          log("token [DEL], ");
           add_token(Token::DEL);
         } else if (token_str == "true") {
-          log("[TRUE], ");
+          log("token [TRUE], ");
           add_token(Token::TRUE);
         } else if (token_str == "false") {
-          log("[FALSE], ");
+          log("token [FALSE], ");
           add_token(Token::FALSE);
         } else if (token_str == "undef") {
-          log("[UNDEF], ");
+          log("token [UNDEF], ");
           add_token(Token::UNDEF);
         } else if (token_str == "const") {
-          log("[CONST], ");
+          log("token [CONST], ");
           add_token(Token::CONST);
         } else {
           // to do - speed this up (LUT maybe?)
@@ -167,10 +167,10 @@ TokenList Lexer::tokenize(const std::string &code) {
           }
           if (found_type == "") {
             // probably an identifier
-            log("[IDENTIFIER: " + token_str + "], ");
+            log("token [IDENTIFIER: " + token_str + "], ");
             add_token(Token::IDENTIFIER, token_str);
           } else {
-            log("[TYPE: " + token_str + "], ");
+            log("token [TYPE: " + token_str + "], ");
             add_token(Token::TYPE, token_str);
           }
         }
@@ -182,7 +182,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           str += *ptr;
           ptr++;
         }
-        log("[STRING_LITERAL: " + str + "], ");
+        log("token [STRING_LITERAL: " + str + "], ");
         add_token(Token::STRING_LITERAL, str);
       } else if (isdigit(c, loc)) {
         // might be some kind of number
@@ -193,7 +193,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         ptr--;
         bool converted = false;
         bool negation = tokens.size() != 0 && tokens.back().type == Token::OP_MINUS && !deleted_spaces;
-        if (negation && prev_deleted_spaces == 0) {
+        if (negation && !prev_deleted_spaces) {
           negation = false;
         } 
         if (negation) {
@@ -203,7 +203,7 @@ TokenList Lexer::tokenize(const std::string &code) {
         if (contains(number_str, 'x')) {
           // might be a hex
           if (valid_number(number_str, 16)) {
-            log("[HEX: " + number_str + "], ");
+            log("token [HEX: " + number_str + "], ");
             add_token(Token::HEX, number_str);
             converted = true;
           }
@@ -214,28 +214,28 @@ TokenList Lexer::tokenize(const std::string &code) {
             binary_num = "-" + binary_num;
           }
           if (valid_number(binary_num, 2)) {
-            log("[BINARY: " + binary_num + "], ");
+            log("token [BINARY: " + binary_num + "], ");
             add_token(Token::BINARY, binary_num);
             converted = true;
           }
         } else if (contains(number_str, '.')) {
           // might be a float
           if (valid_float(number_str)) {
-            log("[FLOAT: " + number_str + "], ");
+            log("token [FLOAT: " + number_str + "], ");
             add_token(Token::FLOAT, number_str);
             converted = true;
           }
         } else if (number_str.c_str()[0] == '0') {
           // might be an octal number
           if (valid_number(number_str, 8)) {
-            log("[OCTAL: " + number_str + "], ");
+            log("token [OCTAL: " + number_str + "], ");
             add_token(Token::OCTAL, number_str);
             converted = true;
           }
         } else {
           // might be a decimal
           if (valid_number(number_str, 10)) {
-            log("[DECIMAL: " + number_str + "], ");
+            log("token [DECIMAL: " + number_str + "], ");
             add_token(Token::DECIMAL, number_str);
             converted = true;
           }
