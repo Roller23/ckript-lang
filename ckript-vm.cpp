@@ -1,7 +1,18 @@
 #include "ckript-vm.hpp"
 
+#include <cassert>
+
+bool Variable::is_reference() const {
+  return var_reference != -1;
+}
+
+bool Variable::is_allocated() const {
+  return heap_reference != -1;
+}
+
 Chunk &Heap::allocate() {
-  std::uint64_t index;
+  std::int64_t index;
+  // try to find a free chunk
   for (auto &chunk : chunks) {
     if (!chunk.used) {
       chunk.used = true;
@@ -11,7 +22,8 @@ Chunk &Heap::allocate() {
     }
     index++;
   }
-  chunks.push_back(Chunk()); // add a new chunk
+  // add a new chunk
+  chunks.push_back(Chunk());
   Chunk &chunk_ref = chunks.back();
   chunk_ref.used = true;
   chunk_ref.data = new Variable;
@@ -20,8 +32,16 @@ Chunk &Heap::allocate() {
 }
 
 void Heap::free(Variable *var) {
-  chunks.at(var->heap_reference).used = false;
-  delete chunks.at(var->heap_reference).data;
+  // check for all possible errors
+  assert(var->is_allocated());
+  assert(var->heap_reference < chunks.size());
+  Chunk &chunk = chunks.at(var->heap_reference);
+  assert(chunk.used == true);
+  assert(chunk.data != nullptr);
+
+  delete chunk.data;
+  chunk.data = nullptr;
+  chunk.used = false;
   var->heap_reference = -1;
   // shrink the heap if possible
   while (chunks.size() && !chunks.back().used) {

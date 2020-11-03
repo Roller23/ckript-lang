@@ -7,10 +7,12 @@
 
 class Variable {
   public:
-    std::string id; // the identifier
+    std::string id;
     std::string type;
-    bool is_reference;
-    std::int64_t heap_reference = -1;
+    std::int64_t heap_reference = -1; // its own reference on heap
+    std::int64_t var_reference = -1; // reference to another variable on heap
+    bool is_allocated() const;
+    bool is_reference() const;
 };
 
 class Chunk {
