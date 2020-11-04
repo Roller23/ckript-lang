@@ -61,7 +61,7 @@ class Parser {
     Node get_statement(Node &prev, Token::TokenType stop);
     Node get_expr_node();
     NodeList get_expression(Token::TokenType stop1, Token::TokenType stop2 = Token::TokenType::NONE);
-    bool right_assoc(const Node &n);
+    bool right_assoc(Node &n);
     Node parse_func_expr();
     ParamList parse_func_params();
     NodeListList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
@@ -69,7 +69,7 @@ class Parser {
     NodeList get_many_statements(Node &prev, Token::TokenType stop);
     bool op_binary(Token::TokenType token);
     bool op_unary(Token::TokenType token);
-    char get_precedence(Token::TokenType token);
+    char get_precedence(Expression &e);
     char base_lut[200];
     char op_precedence[200];
   private:

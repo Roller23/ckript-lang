@@ -21,16 +21,17 @@ bool Parser::op_unary(TokenType token) {
   return token == TokenType::OP_NOT || token == TokenType::OP_NEG || token == TokenType::DEL;
 }
 
-bool Parser::right_assoc(const Node &n) {
-  auto precedence = get_precedence(n.expr.op);
+bool Parser::right_assoc(Node &n) {
+  auto precedence = get_precedence(n.expr);
   return precedence == 12 || precedence == 1; // REMEMBER TO CHANGE IF YOU EVER CHANGE PRECEDENCE
 }
 
-char Parser::get_precedence(Token::TokenType token) {
-  if (op_unary(token)) {
-    return 12;
+char Parser::get_precedence(Expression &e) {
+  if (e.type == ExprType::FUNC_CALL || e.type == ExprType::INDEX) {
+    return 13;
   }
-  return op_precedence[token];
+  if (op_unary(e.op)) return 12;
+  return op_precedence[e.op];
 }
 
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
@@ -341,9 +342,9 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
       while (
         top.type != NodeType::UNKNOWN && top.expr.is_operation()
         &&
-          (get_precedence(top.expr.op) > get_precedence(tok.expr.op)
+          (get_precedence(top.expr) > get_precedence(tok.expr)
           ||
-            (get_precedence(top.expr.op) == get_precedence(tok.expr.op) && !right_assoc(tok))
+            (get_precedence(top.expr) == get_precedence(tok.expr) && !right_assoc(tok))
           )
         && 
           (top.expr.type != ExprType::LPAREN)
