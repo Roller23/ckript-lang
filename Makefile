@@ -4,16 +4,17 @@ bin := bin/
 out := $(bin)ckript
 flags := -O0 -g
 src := src/
-b := build/
-
+build := build/
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
 
 all: $(out)
 
 build/%.o: src/%.cpp src/%.hpp
+	@mkdir -p $(build)
 	$(CC) $(flags) -c $< -o $@
 
 $(out): $(objs) main.cpp
+	@mkdir -p $(bin)
 	$(CC) $(flags) -o $@ $^
 
 run:
@@ -26,7 +27,7 @@ mem:
 	valgrind -s --track-origins=yes --leak-check=full ./$(out)
 
 clean:
-	rm $(b)*.o
+	rm $(build)*.o
 	rm $(out)
 
 update:
