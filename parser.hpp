@@ -3,56 +3,25 @@
 
 #include "token.hpp"
 #include "AST.hpp"
+#include "utils.hpp"
 #include <vector>
 #include <cstdint>
 #include <cstring>
 
 class Parser {
   public:
-    Parser(TokenList &_tokens, Token::TokenType _terminal, const std::string &_name = "MAIN") : 
+    Parser(TokenList &_tokens, Token::TokenType _terminal, const std::string &_name, Utils _utils) : 
       tokens(_tokens),
       curr_token(_tokens.size() ? _tokens.at(0) : Token::TokenType::NONE),
       tokens_count(_tokens.size()),
       terminal(_terminal),
-      parser_name(_name) {
-        std::memset(base_lut, 0, 200 * sizeof(char));
-        std::memset(op_precedence, 0, 200 * sizeof(char));
+      parser_name(_name),
+      utils(_utils) {
+        std::memset(base_lut, 0, sizeof(base_lut));
         base_lut[Token::TokenType::BINARY] = 2;
         base_lut[Token::TokenType::DECIMAL] = 10;
         base_lut[Token::TokenType::OCTAL] = 8;
         base_lut[Token::TokenType::HEX] = 16;
-        // from lowest to highest
-        op_precedence[Token::TokenType::AND_ASSIGN] = 1; // &=
-        op_precedence[Token::TokenType::OR_ASSIGN] = 1; // |=
-        op_precedence[Token::TokenType::XOR_ASSIGN] = 1; // ^=
-        op_precedence[Token::TokenType::OP_ASSIGN] = 1; // =
-        op_precedence[Token::TokenType::PLUS_ASSIGN] = 1; // +=
-        op_precedence[Token::TokenType::MINUS_ASSIGN] = 1; // -=
-        op_precedence[Token::TokenType::MUL_ASSIGN] = 1; // *=
-        op_precedence[Token::TokenType::DIV_ASSIGN] = 1; // /=
-        op_precedence[Token::TokenType::MOD_ASSIGN] = 1; // %=
-        op_precedence[Token::TokenType::LSHIFT_ASSIGN] = 1; // <<=
-        op_precedence[Token::TokenType::RSHIFT_ASSIGN] = 1; // >>=
-        op_precedence[Token::TokenType::OP_OR] = 2; // ||
-        op_precedence[Token::TokenType::OP_AND] = 3; // &&
-        op_precedence[Token::TokenType::OP_OR_BIT] = 4; // |
-        op_precedence[Token::TokenType::OP_XOR] = 5; // ^
-        op_precedence[Token::TokenType::OP_AND] = 6; // &
-        op_precedence[Token::TokenType::OP_NOT_EQ] = 7; // !=
-        op_precedence[Token::TokenType::OP_EQ] = 7; // ==
-        op_precedence[Token::TokenType::OP_GT] = 8; // >
-        op_precedence[Token::TokenType::OP_LT] = 8; // <
-        op_precedence[Token::TokenType::OP_GT_EQ] = 8; // >=
-        op_precedence[Token::TokenType::OP_LT_EQ] = 8; // <=
-        op_precedence[Token::TokenType::LSHIFT] = 9; // <<
-        op_precedence[Token::TokenType::RSHIFT] = 9; // >>
-        op_precedence[Token::TokenType::OP_PLUS] = 10; // +
-        op_precedence[Token::TokenType::OP_MINUS] = 10; // -
-        op_precedence[Token::TokenType::OP_MUL] = 11; // *
-        op_precedence[Token::TokenType::OP_DIV] = 11; // /
-        op_precedence[Token::TokenType::OP_MOD] = 11; // %
-        op_precedence[Token::TokenType::DOT] = 13; // .
-        op_precedence[Token::TokenType::LEFT_BRACKET] = 13; // []
       }
     Node parse(int *end_pos);
     void advance();
@@ -67,12 +36,9 @@ class Parser {
     NodeListList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
     NodeList get_many_statements(Node &prev, Token::TokenType stop);
-    bool op_binary(Token::TokenType token);
-    bool op_unary(Token::TokenType token);
-    char get_precedence(Expression &e);
     char base_lut[200];
-    char op_precedence[200];
   private:
+    Utils &utils;
     TokenList &tokens;
     Token prev;
     Token curr_token;

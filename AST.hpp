@@ -53,7 +53,7 @@ class Expression {
     FuncCall func_call;
     NodeList index;
     bool is_negative = false;
-    std::uint64_t number_literal = 0;
+    std::int64_t number_literal = 0;
     std::string string_literal = "";
     std::string id_name = "";
     Token::TokenType op;

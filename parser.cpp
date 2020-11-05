@@ -13,27 +13,6 @@ typedef Node::NodeType NodeType;
 typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
-bool Parser::op_binary(TokenType token) {
-  return op_precedence[token] && !op_unary(token);
-}
-
-bool Parser::op_unary(TokenType token) {
-  return token == TokenType::OP_NOT || token == TokenType::OP_NEG || token == TokenType::DEL;
-}
-
-bool Parser::right_assoc(Node &n) {
-  auto precedence = get_precedence(n.expr);
-  return precedence == 12 || precedence == 1; // REMEMBER TO CHANGE IF YOU EVER CHANGE PRECEDENCE
-}
-
-char Parser::get_precedence(Expression &e) {
-  if (e.type == ExprType::FUNC_CALL || e.type == ExprType::INDEX) {
-    return 13;
-  }
-  if (op_unary(e.op)) return 12;
-  return op_precedence[e.op];
-}
-
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
   ErrorHandler::throw_syntax_error(cause, line);
 }
@@ -209,7 +188,7 @@ Node Parser::parse_func_expr() {
   bool starts_with_brace = curr_token.type == Token::LEFT_BRACE;
   int func_end = find_block_end();
   TokenList func_start(tokens.begin() + pos, tokens.begin() + pos + func_end + 1); // create a subvector of tokens
-  Parser func_parser(func_start, Token::NONE, "FUNC");
+  Parser func_parser(func_start, Token::NONE, "FUNC", utils);
   int end_pos = 0;
   func.expr.func_expr.instructions.push_back(func_parser.parse(&end_pos));
   pos += end_pos;
@@ -271,7 +250,7 @@ Node Parser::get_expr_node() {
     advance();
     return undef;
   }
-  if (op_unary(curr_token.type)) {
+  if (utils.op_unary(curr_token.type)) {
     std::cout << "Found an unary operator " << curr_token << "\n";
     std::string token_name = curr_token.get_name();
     TokenType token_type = curr_token.type;
@@ -280,7 +259,8 @@ Node Parser::get_expr_node() {
     Node oper(Expression(token_type, ExprType::UNARY_OP));
     return oper;
   }
-  if (op_binary(curr_token.type)) {
+  std::cout << "is " << curr_token << " binary\n";
+  if (utils.op_binary(curr_token.type)) {
     std::cout << "Found a binary operator " << curr_token << "\n";
     std::string token_name = curr_token.get_name();
     TokenType token_type = curr_token.type;
@@ -289,6 +269,7 @@ Node Parser::get_expr_node() {
     Node oper(Expression(token_type, ExprType::BINARY_OP));
     return oper;
   }
+  std::cout << "nope\n";
   int base = (int)base_lut[(int)curr_token.type];
   if (base) {
     std::cout << "found a number literal " + curr_token.value + "\n";
@@ -342,9 +323,11 @@ NodeList Parser::get_expression(TokenType stop1, TokenType stop2) {
       while (
         top.type != NodeType::UNKNOWN && top.expr.is_operation()
         &&
-          (get_precedence(top.expr) > get_precedence(tok.expr)
+          (utils.get_precedence(top.expr) > utils.get_precedence(tok.expr)
           ||
-            (get_precedence(top.expr) == get_precedence(tok.expr) && !right_assoc(tok))
+            (utils.get_precedence(top.expr) == utils.get_precedence(tok.expr) 
+              && !utils.right_assoc(tok)
+            )
           )
         && 
           (top.expr.type != ExprType::LPAREN)
@@ -416,7 +399,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     Node comp(Statement(StmtType::COMPOUND));
     int block_end = find_enclosing_brace(pos, 1);
     TokenList block_start(tokens.begin() + pos, tokens.begin() + pos + block_end + 1); // create a subvector of tokens
-    Parser block_parser(block_start, Token::RIGHT_BRACE, "BLOCK");
+    Parser block_parser(block_start, Token::RIGHT_BRACE, "BLOCK", utils);
     int end_pos = 0;
     comp.stmt.statements.push_back(block_parser.parse(&end_pos));
     pos += end_pos;

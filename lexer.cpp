@@ -12,9 +12,8 @@
 #define REG(tok_str, tok_sym) if(op==#tok_str){log("token ["#tok_sym"], ");add_token(Token::tok_sym);}else
 
 static const char *_builtin_types[] = {
-  "int8", "int16", "int32", "int64",
-  "uint8", "uint16", "uint32", "uint64",
-  "f64", "f32",
+  "int",
+  "double",
   "func", "thr", "str", "void"
 };
 

@@ -4,6 +4,7 @@
 #include "ckript-vm.hpp"
 #include "AST.hpp"
 #include "token.hpp"
+#include "utils.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -11,14 +12,16 @@
 class Value {
   public:
     typedef enum value_type {
-      BOOLEAN, FLOAT, STRING, NUMBER, REFERENCE, UNKNOWN
+      BOOLEAN, FLOAT, STRING, NUMBER, REFERENCE, FUNC, UNKNOWN
     } ValueType;
     ValueType type;
     bool boolean_value = 0;
     double float_value = 0;
     std::string string_value;
-    std::uint64_t number_value = 0;
+    std::int64_t number_value = 0;
+    bool is_neg = false;
     Variable *reference = nullptr;
+    std::string reference_name = "";
     bool is_lvalue();
     Value(void) : type(UNKNOWN) {};
     Value(ValueType _type) : type(_type) {};
@@ -58,7 +61,8 @@ class Evaluator {
   public:
     CkriptVM &VM;
     Node &AST;
-    Evaluator(Node &_AST, CkriptVM &_VM) : VM(_VM), AST(_AST) {};
+    Utils &utils;
+    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils) : VM(_VM), AST(_AST), utils(_utils) {};
     void start();
   private:
     void execute_statement(Node &statement);
@@ -68,8 +72,8 @@ class Evaluator {
     RpnElement node_to_element(Node &node);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
-    bool op_binary(Token::TokenType token);
-    bool op_unary(Token::TokenType token);
+    std::string stringify(Value &val);
+    double to_double(Value &val);
     RpnElement perform_addition(RpnElement &x, RpnElement &y);
     RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);

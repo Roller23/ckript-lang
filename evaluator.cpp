@@ -1,4 +1,6 @@
 #include "evaluator.hpp"
+#include "utils.hpp"
+#include "error-handler.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -42,24 +44,175 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
   RpnStack res_stack;
   for (auto &token : rpn_stack) {
     if (token.type == RpnElement::OPERATOR) {
-      if (token.op.type == Operator::BASIC) {
-        if (token.op.type == Token::OP_PLUS) {
+      if (token.op.op_type == Operator::BASIC) {
+        if (utils.op_binary(token.op.type)) {
+          if (res_stack.size() < 2) {
+            ErrorHandler::throw_syntax_error("Cannot perform this operation\n");
+          }
           RpnElement y = res_stack.back();
           res_stack.pop_back();
           RpnElement x = res_stack.back();
           res_stack.pop_back();
-          RpnElement result = perform_addition(x, y);
+          RpnElement result;
+          if (token.op.type == Token::OP_PLUS) {
+            result = perform_addition(x, y);
+          } else if (token.op.type == Token::OP_MINUS) {
+            result = perform_subtraction(x, y);
+          } else if (token.op.type == Token::OP_MUL) {
+            result = perform_multiplication(x, y);
+          } else if (token.op.type == Token::OP_DIV) {
+            result = perform_division(x, y);
+          }
           res_stack.push_back(result);
+        } else if (utils.op_unary(token.op.type)) {
+
         }
-      } else if (token.op.type == Operator::FUNC) {
+      } else if (token.op.op_type == Operator::FUNC) {
         // to do
-      } else if (token.op.type == Operator::INDEX) {
+      } else if (token.op.op_type == Operator::INDEX) {
         // to do
       }
     } else {
       res_stack.push_back(token);
     }
   }
+  std::cout << "Expression result = " << stringify(res_stack.at(0).value) << "\n";
+  return {};
+}
+
+std::string Evaluator::stringify(Value &val) {
+  if (val.type == Value::STRING) {
+    return val.string_value;
+  }
+  if (val.type == Value::BOOLEAN) {
+    return val.boolean_value ? "true" : "false";
+  }
+  if (val.type == Value::FLOAT) {
+    return std::to_string(val.float_value);
+  }
+  if (val.type == Value::NUMBER) {
+    return std::to_string(val.number_value);
+  }
+  if (val.type == Value::REFERENCE) {
+    // to do
+  }
+  return "";
+}
+
+double Evaluator::to_double(Value &val) {
+  if (val.type == Value::FLOAT) {
+    return val.float_value;
+  }
+  if (val.type == Value::NUMBER) {
+    return (double)val.number_value;
+  }
+  ErrorHandler::throw_runtime_error("Cannot convert " + stringify(val) + " to double");
+  return 0;
+}
+
+RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
+  Value val;
+  if (x.value.type == Value::STRING || y.value.type == Value::STRING) {
+    std::string str1 = stringify(x.value);
+    std::string str2 = stringify(y.value);
+    std::cout << "concating " << str1 << " to " << str2 << "\n";
+    val.type = Value::STRING;
+    val.string_value = str1 + str2;
+    std::cout << "result = " + val.string_value << "\n";
+    return {val};
+  }
+  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+    std::cout << "adding " << x.value.number_value << " to " << y.value.number_value << "\n";
+    val.type = Value::NUMBER;
+    val.number_value = x.value.number_value + y.value.number_value;
+    std::cout << "result = " << val.number_value << "\n";
+    return {val};
+  }
+  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+    double f1 = to_double(x.value);
+    double f2 = to_double(y.value);
+    val.type = Value::FLOAT;
+    val.float_value = f1 + f2;
+    std::cout << "result = " << val.float_value << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot perform addition on " + stringify(x.value) + " and " + stringify(y.value);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
+  Value val;
+  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+    std::cout << "subtracting " << x.value.number_value << " from " << y.value.number_value << "\n";
+    val.type = Value::NUMBER;
+    val.number_value = x.value.number_value - y.value.number_value;
+    std::cout << "result = " << val.number_value << "\n";
+    return {val};
+  }
+  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+    double f1 = to_double(x.value);
+    double f2 = to_double(y.value);
+    std::cout << "subtracting " << f1 << " from " << f2 << "\n";
+    val.type = Value::FLOAT;
+    val.float_value = f1 - f2;
+    std::cout << "result = " << val.float_value << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot perform subtraction on " + stringify(x.value) + " and " + stringify(y.value);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
+  Value val;
+  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+    std::cout << "multiplicating " << x.value.number_value << " by " << y.value.number_value << "\n";
+    val.type = Value::NUMBER;
+    val.number_value = x.value.number_value * y.value.number_value;
+    std::cout << "result = " << val.number_value << "\n";
+    return {val};
+  }
+  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+    double f1 = to_double(x.value);
+    double f2 = to_double(y.value);
+    std::cout << "multiplicating " << f1 << " by " << f2 << "\n";
+    val.type = Value::FLOAT;
+    val.float_value = f1 * f2;
+    std::cout << "result = " << val.float_value << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot perform multiplication on " + stringify(x.value) + " and " + stringify(y.value);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
+  Value val;
+  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+    if (y.value.number_value == 0) {
+      ErrorHandler::throw_runtime_error("Cannot divide by zero");
+    }
+    std::cout << "dividing " << x.value.number_value << " by " << y.value.number_value << "\n";
+    val.type = Value::NUMBER;
+    val.number_value = x.value.number_value / y.value.number_value;
+    std::cout << "result = " << val.number_value << "\n";
+    return {val};
+  }
+  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+    double f1 = to_double(x.value);
+    double f2 = to_double(y.value);
+    if (f2 == 0.0f) {
+      ErrorHandler::throw_runtime_error("Cannot divide by zero");
+    }
+    std::cout << "dividing " << f1 << " by " << f2 << "\n";
+    val.type = Value::FLOAT;
+    val.float_value = f1 / f2;
+    std::cout << "result = " << val.float_value << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot perform subtraction on " + stringify(x.value) + " and " + stringify(y.value);
+  ErrorHandler::throw_runtime_error(msg);
   return {};
 }
 
@@ -82,29 +235,31 @@ RpnElement Evaluator::node_to_element(Node &node) {
   if (node.expr.type == Expression::BOOL_EXPR) {
     val.type = Value::BOOLEAN;
     val.boolean_value = node.expr.bool_literal;
-    return val;
+    return {val};
   }
   if (node.expr.type == Expression::STR_EXPR) {
     val.type = Value::STRING;
     val.string_value = node.expr.string_literal;
-    return val;
+    return {val};
   }
   if (node.expr.type == Expression::FLOAT_EXPR) {
     val.type = Value::FLOAT;
     val.float_value = node.expr.float_literal;
-    return val;
+    return {val};
   }
   if (node.expr.type == Expression::NUM_EXPR) {
     val.type = Value::NUMBER;
     val.number_value = node.expr.number_literal;
-    return val;
+    val.is_neg = node.expr.is_negative;
+    return {val};
   }
   if (node.expr.type == Expression::IDENTIFIER_EXPR) {
     val.type = Value::REFERENCE;
     val.reference = get_reference_by_name(node.expr.id_name); // will break
-    return val;
+    return {val};
   }
-  throw "\n\nUndentified expression type!\n\n";
+  ErrorHandler::throw_runtime_error("Undentified expression type!\n");
+  return {};
 }
 
 Variable *Evaluator::get_reference_by_name(const std::string &name) {
@@ -117,7 +272,9 @@ void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {
       flatten_tree(res, node.expr.rpn_stack);
       node.expr.rpn_stack.clear();
     }
-    res.push_back(node_to_element(node));
+    if (node.expr.type != Expression::RPN) {
+      res.push_back(node_to_element(node));
+    }
   }
   expression_tree.clear();
 }

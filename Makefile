@@ -1,6 +1,6 @@
 CC=g++
 out=main.out
-production_flags=-g -O0
+production_flags=-O2 -g
 release_flags=-O3
 files=*.cpp
 m=Automated Makefile push message
