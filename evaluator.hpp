@@ -9,21 +9,6 @@
 #include <cstdint>
 #include <vector>
 
-class Value {
-  public:
-    Utils::VarType type;
-    bool boolean_value = 0;
-    double float_value = 0;
-    std::string string_value;
-    std::int64_t number_value = 0;
-    bool is_neg = false;
-    Variable *reference = nullptr;
-    std::string reference_name = "";
-    bool is_lvalue();
-    Value(void) : type(Utils::UNKNOWN) {};
-    Value(Utils::VarType _type) : type(_type) {};
-};
-
 class Operator {
   public:
     typedef enum operator_type {
@@ -67,6 +52,7 @@ class Evaluator {
     void declare_variable(Node &declaration);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
     RpnElement node_to_element(Node &node);
+    RpnElement var_to_element(Variable *var);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(Value &val);

@@ -1,16 +1,13 @@
 #include "evaluator.hpp"
 #include "utils.hpp"
 #include "error-handler.hpp"
+#include "ckript-vm.hpp"
 
 #include <iostream>
 #include <cassert>
 
 typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
-
-bool Value::is_lvalue() {
-  return reference != nullptr;
-}
 
 void Evaluator::start() {
   std::cout << "\n------ START -------\n";
@@ -82,7 +79,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
     }
   }
   std::cout << "Expression result = " << stringify(res_stack.at(0).value) << "\n";
-  return {};
+  return res_stack.at(0).value;
 }
 
 std::string Evaluator::stringify(Value &val) {
@@ -98,8 +95,11 @@ std::string Evaluator::stringify(Value &val) {
   if (val.type == VarType::INT) {
     return std::to_string(val.number_value);
   }
-  if (val.type == VarType::REF) {
-    // to do
+  if (val.type == VarType::FUNC) {
+    return "function";
+  }
+  if (val.type == VarType::ID) {
+    return val.reference_name;
   }
   return "";
 }
@@ -226,8 +226,16 @@ void Evaluator::declare_variable(Node &declaration) {
   std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
   Value var_val = evaluate_expression(decl.var_expr);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
-  if (var_type != var_val.type);
+  if (var_type != var_val.type) {
+    std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
+    ErrorHandler::throw_runtime_error(msg);
+  }
   std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
+  Variable *var = new Variable;
+  var->id = decl.id;
+  var->type = decl.var_type;
+  var->val = var_val;
+  VM.stack.push_back(var);
 }
 
 RpnElement Evaluator::node_to_element(Node &node) {
@@ -264,8 +272,13 @@ RpnElement Evaluator::node_to_element(Node &node) {
     return {val};
   }
   if (node.expr.type == Expression::IDENTIFIER_EXPR) {
-    val.type = VarType::REF;
-    val.reference = get_reference_by_name(node.expr.id_name); // will break
+    val.type = VarType::ID;
+    val.reference_name = node.expr.id_name;
+    return {val};
+  }
+  if (node.expr.type == Expression::FUNC_EXPR) {
+    val.type = VarType::FUNC;
+    val.func = node.expr.func_expr;
     return {val};
   }
   ErrorHandler::throw_runtime_error("Undentified expression type!\n");
@@ -273,6 +286,11 @@ RpnElement Evaluator::node_to_element(Node &node) {
 }
 
 Variable *Evaluator::get_reference_by_name(const std::string &name) {
+  for (auto &var : VM.stack) {
+    if (var->id == name) {
+      return var;
+    }
+  }
   return nullptr;
 }
 

@@ -2,6 +2,10 @@
 
 #include <cassert>
 
+bool Value::is_lvalue() {
+  return reference_name.size() != 0;
+}
+
 bool Variable::is_reference() const {
   return var_reference != -1;
 }
