@@ -3,10 +3,11 @@ CC := g++
 bin := bin/
 out := $(bin)ckript
 flags := -O0 -g
-src = := src/
-build := build/
+src := src/
+b := build/
 obj_rule = $(CC) $(flags) -c $< -o $@
-objs := build/AST.o build/ckript-vm.o build/error-handler.o build/evaluator.o build/interpreter.o build/lexer.o build/parser.o build/token.o build/utils.o
+
+objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
 
 all: $(out)
 
@@ -50,7 +51,7 @@ mem:
 	valgrind -s --track-origins=yes --leak-check=full ./$(out)
 
 clean:
-	rm $(build)*.o
+	rm $(b)*.o
 	rm $(out)
 
 update:
@@ -62,3 +63,5 @@ push:
 	git add .
 	git commit -m "$(m)"
 	git push
+
+# objs := $(b)AST.o $(b)ckript-vm.o $(b)error-handler.o $(b)evaluator.o $(b)interpreter.o $(b)lexer.o $(b)parser.o $(b)token.o $(b)utils.o
