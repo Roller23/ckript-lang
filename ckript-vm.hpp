@@ -15,8 +15,9 @@ class Value {
     double float_value = 0;
     std::string string_value;
     std::int64_t number_value = 0;
-    bool is_neg = false;
     std::string reference_name = "";
+    std::int64_t heap_reference = -1;
+    std::int64_t reference = -1;
     FuncExpression func;
     bool is_lvalue();
     Value(void) : type(Utils::UNKNOWN) {};
@@ -27,16 +28,16 @@ class Variable {
   public:
     std::string id;
     std::string type;
-    std::int64_t heap_reference = -1; // its own reference on heap
-    std::int64_t var_reference = -1; // reference to another variable on heap
     Value val;
+    bool constant = false;
     bool is_allocated() const;
     bool is_reference() const;
 };
 
 class Chunk {
   public:
-    Variable *data = nullptr;
+    Value *data = nullptr;
+    std::int64_t heap_reference;
     bool used = false;
 };
 

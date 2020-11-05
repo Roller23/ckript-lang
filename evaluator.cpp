@@ -233,10 +233,21 @@ void Evaluator::declare_variable(Node &declaration) {
     ErrorHandler::throw_runtime_error(msg);
   }
   std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
+  if (decl.allocated) {
+    std::cout << "allocating " + decl.id + " on the heap\n";
+    Chunk &chunk = VM.heap.allocate();
+    Variable *var = new Variable;
+    var->val.heap_reference = chunk.heap_reference;
+    var->id = decl.id;
+    *chunk.data = var_val;
+    VM.stack.push_back(var);
+    return;
+  }
   Variable *var = new Variable;
   var->id = decl.id;
   var->type = decl.var_type;
   var->val = var_val;
+  var->constant = decl.constant;
   VM.stack.push_back(var);
 }
 
@@ -270,7 +281,6 @@ RpnElement Evaluator::node_to_element(Node &node) {
   if (node.expr.type == Expression::NUM_EXPR) {
     val.type = VarType::INT;
     val.number_value = node.expr.number_literal;
-    val.is_neg = node.expr.is_negative;
     return {val};
   }
   if (node.expr.type == Expression::IDENTIFIER_EXPR) {
@@ -297,13 +307,19 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
 }
 
 Value Evaluator::get_value(RpnElement &el) {
-  if (!el.value.is_lvalue()) {
+  if (!el.value.is_lvalue() && el.value.heap_reference < 0) {
     return el.value;
   }
   Variable *var = get_reference_by_name(el.value.reference_name);
   if (var == nullptr) {
     std::string msg = el.value.reference_name + " is undefined";
     ErrorHandler::throw_runtime_error(msg);
+  }
+  std::cout << "var heap reference " << var->val.heap_reference << "\n";
+  if (var->val.heap_reference > -1) {
+    Value *ptr = VM.heap.chunks.at(var->val.heap_reference).data;
+    assert(ptr != nullptr);
+    return *ptr;
   }
   return var->val;
 }
