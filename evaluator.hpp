@@ -11,10 +11,7 @@
 
 class Value {
   public:
-    typedef enum value_type {
-      BOOLEAN, FLOAT, STRING, NUMBER, REFERENCE, FUNC, UNKNOWN
-    } ValueType;
-    ValueType type;
+    Utils::VarType type;
     bool boolean_value = 0;
     double float_value = 0;
     std::string string_value;
@@ -23,8 +20,8 @@ class Value {
     Variable *reference = nullptr;
     std::string reference_name = "";
     bool is_lvalue();
-    Value(void) : type(UNKNOWN) {};
-    Value(ValueType _type) : type(_type) {};
+    Value(void) : type(Utils::UNKNOWN) {};
+    Value(Utils::VarType _type) : type(_type) {};
 };
 
 class Operator {

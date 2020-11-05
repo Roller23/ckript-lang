@@ -12,9 +12,9 @@
 #define REG(tok_str, tok_sym) if(op==#tok_str){log("token ["#tok_sym"], ");add_token(Token::tok_sym);}else
 
 static const char *_builtin_types[] = {
-  "int",
-  "double",
-  "func", "thr", "str", "void"
+  "int", "double",
+  "func", "thr", "str", "void",
+  "obj", "arr"
 };
 
 const char **Lexer::builtin_types = _builtin_types;

@@ -6,6 +6,7 @@
 #include <cassert>
 
 typedef Statement::StmtType StmtType;
+typedef Utils::VarType VarType;
 
 bool Value::is_lvalue() {
   return reference != nullptr;
@@ -31,9 +32,13 @@ void Evaluator::execute_statement(Node &statement) {
   //   }
   // }
   if (statement.stmt.type == StmtType::EXPR) {
-    if (statement.stmt.expressions.size() == 0) return;
-    evaluate_expression(statement.stmt.expressions.at(0));
+    if (statement.stmt.expressions.size() != 1) return;
+    Value result = evaluate_expression(statement.stmt.expressions.at(0));
     return;
+  }
+  if (statement.stmt.type == StmtType::DECL) {
+    if (statement.stmt.declaration.size() != 1) return;
+    declare_variable(statement.stmt.declaration.at(0));
   }
 }
 
@@ -81,29 +86,29 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
 }
 
 std::string Evaluator::stringify(Value &val) {
-  if (val.type == Value::STRING) {
+  if (val.type == VarType::STR) {
     return val.string_value;
   }
-  if (val.type == Value::BOOLEAN) {
+  if (val.type == VarType::BOOL) {
     return val.boolean_value ? "true" : "false";
   }
-  if (val.type == Value::FLOAT) {
+  if (val.type == VarType::FLOAT) {
     return std::to_string(val.float_value);
   }
-  if (val.type == Value::NUMBER) {
+  if (val.type == VarType::INT) {
     return std::to_string(val.number_value);
   }
-  if (val.type == Value::REFERENCE) {
+  if (val.type == VarType::REF) {
     // to do
   }
   return "";
 }
 
 double Evaluator::to_double(Value &val) {
-  if (val.type == Value::FLOAT) {
+  if (val.type == VarType::FLOAT) {
     return val.float_value;
   }
-  if (val.type == Value::NUMBER) {
+  if (val.type == VarType::INT) {
     return (double)val.number_value;
   }
   ErrorHandler::throw_runtime_error("Cannot convert " + stringify(val) + " to double");
@@ -112,26 +117,26 @@ double Evaluator::to_double(Value &val) {
 
 RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   Value val;
-  if (x.value.type == Value::STRING || y.value.type == Value::STRING) {
+  if (x.value.type == VarType::STR || y.value.type == VarType::STR) {
     std::string str1 = stringify(x.value);
     std::string str2 = stringify(y.value);
     std::cout << "concating " << str1 << " to " << str2 << "\n";
-    val.type = Value::STRING;
+    val.type = VarType::STR;
     val.string_value = str1 + str2;
     std::cout << "result = " + val.string_value << "\n";
     return {val};
   }
-  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+  if (x.value.type == VarType::INT && y.value.type == VarType::INT) {
     std::cout << "adding " << x.value.number_value << " to " << y.value.number_value << "\n";
-    val.type = Value::NUMBER;
+    val.type = VarType::INT;
     val.number_value = x.value.number_value + y.value.number_value;
     std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
-  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+  if (x.value.type == VarType::FLOAT || y.value.type == VarType::FLOAT) {
     double f1 = to_double(x.value);
     double f2 = to_double(y.value);
-    val.type = Value::FLOAT;
+    val.type = VarType::FLOAT;
     val.float_value = f1 + f2;
     std::cout << "result = " << val.float_value << "\n";
     return {val};
@@ -143,18 +148,18 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
 
 RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
   Value val;
-  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+  if (x.value.type == VarType::INT && y.value.type == VarType::INT) {
     std::cout << "subtracting " << x.value.number_value << " from " << y.value.number_value << "\n";
-    val.type = Value::NUMBER;
+    val.type = VarType::INT;
     val.number_value = x.value.number_value - y.value.number_value;
     std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
-  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+  if (x.value.type == VarType::FLOAT || y.value.type == VarType::FLOAT) {
     double f1 = to_double(x.value);
     double f2 = to_double(y.value);
     std::cout << "subtracting " << f1 << " from " << f2 << "\n";
-    val.type = Value::FLOAT;
+    val.type = VarType::FLOAT;
     val.float_value = f1 - f2;
     std::cout << "result = " << val.float_value << "\n";
     return {val};
@@ -166,18 +171,18 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
 
 RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
   Value val;
-  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+  if (x.value.type == VarType::INT && y.value.type == VarType::INT) {
     std::cout << "multiplicating " << x.value.number_value << " by " << y.value.number_value << "\n";
-    val.type = Value::NUMBER;
+    val.type = VarType::INT;
     val.number_value = x.value.number_value * y.value.number_value;
     std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
-  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+  if (x.value.type == VarType::FLOAT || y.value.type == VarType::FLOAT) {
     double f1 = to_double(x.value);
     double f2 = to_double(y.value);
     std::cout << "multiplicating " << f1 << " by " << f2 << "\n";
-    val.type = Value::FLOAT;
+    val.type = VarType::FLOAT;
     val.float_value = f1 * f2;
     std::cout << "result = " << val.float_value << "\n";
     return {val};
@@ -189,24 +194,24 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
 
 RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
   Value val;
-  if (x.value.type == Value::NUMBER && y.value.type == Value::NUMBER) {
+  if (x.value.type == VarType::INT && y.value.type == VarType::INT) {
     if (y.value.number_value == 0) {
       ErrorHandler::throw_runtime_error("Cannot divide by zero");
     }
     std::cout << "dividing " << x.value.number_value << " by " << y.value.number_value << "\n";
-    val.type = Value::NUMBER;
+    val.type = VarType::INT;
     val.number_value = x.value.number_value / y.value.number_value;
     std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
-  if (x.value.type == Value::FLOAT || y.value.type == Value::FLOAT) {
+  if (x.value.type == VarType::FLOAT || y.value.type == VarType::FLOAT) {
     double f1 = to_double(x.value);
     double f2 = to_double(y.value);
     if (f2 == 0.0f) {
       ErrorHandler::throw_runtime_error("Cannot divide by zero");
     }
     std::cout << "dividing " << f1 << " by " << f2 << "\n";
-    val.type = Value::FLOAT;
+    val.type = VarType::FLOAT;
     val.float_value = f1 / f2;
     std::cout << "result = " << val.float_value << "\n";
     return {val};
@@ -217,7 +222,12 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
 }
 
 void Evaluator::declare_variable(Node &declaration) {
-
+  Declaration &decl = declaration.decl;
+  std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
+  Value var_val = evaluate_expression(decl.var_expr);
+  Utils::VarType var_type = utils.var_lut.at(decl.var_type);
+  if (var_type != var_val.type);
+  std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
 }
 
 RpnElement Evaluator::node_to_element(Node &node) {
@@ -233,28 +243,28 @@ RpnElement Evaluator::node_to_element(Node &node) {
   }
   Value val;
   if (node.expr.type == Expression::BOOL_EXPR) {
-    val.type = Value::BOOLEAN;
+    val.type = VarType::BOOL;
     val.boolean_value = node.expr.bool_literal;
     return {val};
   }
   if (node.expr.type == Expression::STR_EXPR) {
-    val.type = Value::STRING;
+    val.type = VarType::STR;
     val.string_value = node.expr.string_literal;
     return {val};
   }
   if (node.expr.type == Expression::FLOAT_EXPR) {
-    val.type = Value::FLOAT;
+    val.type = VarType::FLOAT;
     val.float_value = node.expr.float_literal;
     return {val};
   }
   if (node.expr.type == Expression::NUM_EXPR) {
-    val.type = Value::NUMBER;
+    val.type = VarType::INT;
     val.number_value = node.expr.number_literal;
     val.is_neg = node.expr.is_negative;
     return {val};
   }
   if (node.expr.type == Expression::IDENTIFIER_EXPR) {
-    val.type = Value::REFERENCE;
+    val.type = VarType::REF;
     val.reference = get_reference_by_name(node.expr.id_name); // will break
     return {val};
   }

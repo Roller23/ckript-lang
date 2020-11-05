@@ -4,13 +4,20 @@
 #include "token.hpp"
 #include "AST.hpp"
 
+#include <map>
+
 class Utils {
   public:
+    typedef enum var_type {
+      INT, FLOAT, STR, ARR, OBJ, BOOL, FUNC, THR, REF, UNKNOWN
+    } VarType;
     bool op_binary(Token::TokenType token);
     bool op_unary(Token::TokenType token);
     int get_precedence(Expression &e);
     bool right_assoc(Node &n);
-    int op_precedence[200];
+    std::map<std::string, VarType> var_lut;
+    std::map<Token::TokenType, int> op_precedence;
+    bool has_key(Token::TokenType key);
     Utils(void);
 };
 
