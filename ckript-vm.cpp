@@ -46,6 +46,7 @@ void Heap::free(Variable *var) {
   delete chunk.data;
   chunk.data = nullptr;
   chunk.used = false;
+  chunk.heap_reference = -1;
   var->val.heap_reference = -1;
   // shrink the heap if possible
   while (chunks.size() && !chunks.back().used) {
