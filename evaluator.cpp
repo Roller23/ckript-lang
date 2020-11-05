@@ -117,31 +117,33 @@ double Evaluator::to_double(Value &val) {
 
 RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   Value val;
-  if (x.value.type == VarType::STR || y.value.type == VarType::STR) {
-    std::string str1 = stringify(x.value);
-    std::string str2 = stringify(y.value);
+  Value x_val = get_value(x);
+  Value y_val = get_value(y);
+  if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
+    std::string str1 = stringify(x_val);
+    std::string str2 = stringify(y_val);
     std::cout << "concating " << str1 << " to " << str2 << "\n";
     val.type = VarType::STR;
     val.string_value = str1 + str2;
     std::cout << "result = " + val.string_value << "\n";
     return {val};
   }
-  if (x.value.type == VarType::INT && y.value.type == VarType::INT) {
-    std::cout << "adding " << x.value.number_value << " to " << y.value.number_value << "\n";
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    std::cout << "adding " << x_val.number_value << " to " << y_val.number_value << "\n";
     val.type = VarType::INT;
-    val.number_value = x.value.number_value + y.value.number_value;
+    val.number_value = x_val.number_value + y_val.number_value;
     std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
-  if (x.value.type == VarType::FLOAT || y.value.type == VarType::FLOAT) {
-    double f1 = to_double(x.value);
-    double f2 = to_double(y.value);
+  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+    double f1 = to_double(x_val);
+    double f2 = to_double(y_val);
     val.type = VarType::FLOAT;
     val.float_value = f1 + f2;
     std::cout << "result = " << val.float_value << "\n";
     return {val};
   }
-  std::string msg = "Cannot perform addition on " + stringify(x.value) + " and " + stringify(y.value);
+  std::string msg = "Cannot perform addition on " + stringify(x_val) + " and " + stringify(y_val);
   ErrorHandler::throw_runtime_error(msg);
   return {};
 }
@@ -292,6 +294,18 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
     }
   }
   return nullptr;
+}
+
+Value Evaluator::get_value(RpnElement &el) {
+  if (!el.value.is_lvalue()) {
+    return el.value;
+  }
+  Variable *var = get_reference_by_name(el.value.reference_name);
+  if (var == nullptr) {
+    std::string msg = el.value.reference_name + " is undefined";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  return var->val;
 }
 
 void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {

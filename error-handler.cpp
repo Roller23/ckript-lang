@@ -19,7 +19,7 @@ void ErrorHandler::throw_syntax_error(const std::string &cause, std::uint32_t li
 }
 
 void ErrorHandler::throw_runtime_error(const std::string &cause, std::uint32_t line) {
-  throw_generic_error("Syntax error: " + cause, line);
+  throw_generic_error("Runtime error: " + cause, line);
 }
 
 void ErrorHandler::throw_file_error(const std::string &cause) {

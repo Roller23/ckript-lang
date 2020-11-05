@@ -57,6 +57,7 @@ class Evaluator {
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(Value &val);
     double to_double(Value &val);
+    Value get_value(RpnElement &el);
     RpnElement perform_addition(RpnElement &x, RpnElement &y);
     RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
