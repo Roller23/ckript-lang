@@ -1,4 +1,4 @@
-#include "interpreter.hpp"
+#include "src/interpreter.hpp"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -8,9 +8,9 @@ int main(int argc, char *argv[]) {
   //   // to do - create a shell
   //   return 0;
   // }
-  Interpreter python;
-  // std::string filename = argv[1];
-  python.process_file("hello.ck");
+  Interpreter interpreter;
+  std::string filename = argv[1];
+  interpreter.process_file(filename);
   std::cout << std::endl;
   return 0;
 }

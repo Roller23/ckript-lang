@@ -5,3 +5,6 @@
 .VSCodeCounter/
 .VSCodeCounter/*
 grammar.txt
+build/*
+doc/*
+bin/*
