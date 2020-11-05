@@ -5,14 +5,13 @@ out := $(bin)ckript
 flags := -O0 -g
 src := src/
 b := build/
-obj_rule = $(CC) $(flags) -c $< -o $@
 
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
 
 all: $(out)
 
 build/%.o: src/%.cpp src/%.hpp
-	$(obj_rule)
+	$(CC) $(flags) -c $< -o $@
 
 $(out): $(objs) main.cpp
 	$(CC) $(flags) -o $@ $^

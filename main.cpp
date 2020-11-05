@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
   // if (argc == 1) {
-  //   // to do - create a shell
+  //   // TODO - create a shell
   //   return 0;
   // }
   Interpreter interpreter;
