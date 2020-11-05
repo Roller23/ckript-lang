@@ -11,7 +11,7 @@ bool Variable::is_allocated() const {
 }
 
 Chunk &Heap::allocate() {
-  std::int64_t index;
+  std::int64_t index = 0;
   // try to find a free chunk
   for (auto &chunk : chunks) {
     if (!chunk.used) {

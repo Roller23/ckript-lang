@@ -10,7 +10,7 @@
 
 class Parser {
   public:
-    Parser(TokenList &_tokens, Token::TokenType _terminal, const std::string &_name, Utils _utils) : 
+    Parser(TokenList &_tokens, Token::TokenType _terminal, const std::string &_name, Utils &_utils) : 
       tokens(_tokens),
       curr_token(_tokens.size() ? _tokens.at(0) : Token::TokenType::NONE),
       tokens_count(_tokens.size()),

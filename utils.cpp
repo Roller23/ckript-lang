@@ -49,11 +49,6 @@ Utils::Utils(void) {
   var_lut.insert(std::make_pair("bool", BOOL));
   var_lut.insert(std::make_pair("func", FUNC));
   var_lut.insert(std::make_pair("thr", THR));
-
-  for (auto &pair : op_precedence) {
-    std::cout << "second " << pair.second << "\n";
-  }
-
 }
 
 bool Utils::has_key(Token::TokenType key) {
@@ -61,11 +56,6 @@ bool Utils::has_key(Token::TokenType key) {
 }
 
 bool Utils::op_binary(Token::TokenType token) {
-  if (!has_key(token)) {
-    for (auto &pair : op_precedence) {
-      std::cout << "first " << pair.first << "  second " << pair.second << "\n";
-    }
-  }
   return has_key(token) && !op_unary(token);
 }
 
