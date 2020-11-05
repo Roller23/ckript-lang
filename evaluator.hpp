@@ -10,20 +10,33 @@
 
 class Value {
   public:
-    std::string type;
+    typedef enum value_type {
+      BOOLEAN, FLOAT, STRING, NUMBER, REFERENCE, UNKNOWN
+    } ValueType;
+    ValueType type;
     bool boolean_value = 0;
     double float_value = 0;
     std::string string_value;
     std::uint64_t number_value = 0;
     Variable *reference = nullptr;
     bool is_lvalue();
+    Value(void) : type(UNKNOWN) {};
+    Value(ValueType _type) : type(_type) {};
 };
 
 class Operator {
   public:
+    typedef enum operator_type {
+      BASIC, FUNC, INDEX, UNKNOWN
+    } OperatorType;
+    OperatorType op_type;
+    FuncCall func_call;
+    NodeList index_rpn;
     Token::TokenType type;
-    Operator(void) : type(Token::TokenType::UNKNOWN) {};
-    Operator(Token::TokenType _type) : type(_type) {};
+    Operator(void) : op_type(UNKNOWN) {};
+    Operator(Token::TokenType _type) : op_type(BASIC), type(_type) {};
+    Operator(const FuncCall &call) : op_type(FUNC), func_call(call) {};
+    Operator(const NodeList &index) : op_type(INDEX), index_rpn(index) {};
 };
 
 class RpnElement {
@@ -53,7 +66,14 @@ class Evaluator {
     void declare_variable(Node &declaration);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
     RpnElement node_to_element(Node &node);
+    Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
+    bool op_binary(Token::TokenType token);
+    bool op_unary(Token::TokenType token);
+    RpnElement perform_addition(RpnElement &x, RpnElement &y);
+    RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
+    RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
+    RpnElement perform_division(RpnElement &x, RpnElement &y);
 };
 
 #endif // __EVALUATOR_

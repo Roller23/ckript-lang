@@ -51,6 +51,7 @@ class Expression {
     NodeList rpn_stack;
     FuncExpression func_expr;
     FuncCall func_call;
+    NodeList index;
     bool is_negative = false;
     std::uint64_t number_literal = 0;
     std::string string_literal = "";
@@ -65,7 +66,7 @@ class Expression {
     Expression(Token::TokenType _paren) : type(_paren == '(' ? LPAREN : RPAREN) {};
     Expression(Token::TokenType _op, ExprType _type) : type(_type), op(_op) {};
     Expression(const NodeList &rpn) : type(RPN), rpn_stack(rpn) {};
-    Expression(const NodeList &rpn, bool is_index) : type(INDEX), rpn_stack(rpn), op(Token::LEFT_BRACKET) {}
+    Expression(const NodeList &rpn, bool is_index) : type(INDEX), index(rpn), op(Token::LEFT_BRACKET) {}
     Expression(const bool boolean, const double lol) : type(BOOL_EXPR), bool_literal(boolean) {};
     Expression(ExprType _type) : type(_type) {};
     Expression(const FuncExpression &fn) : type(FUNC_EXPR), func_expr(fn) {}

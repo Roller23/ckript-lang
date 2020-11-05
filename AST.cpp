@@ -98,7 +98,7 @@ void Expression::print(int nest) {
   }
   if (this->type == INDEX) {
     std::cout << "[";
-    for (auto &r : rpn_stack) {
+    for (auto &r : index) {
       r.print();
     }
     std::cout << "]";
