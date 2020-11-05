@@ -241,6 +241,10 @@ RpnElement Evaluator::perform_assignment(RpnElement &x, RpnElement &y) {
     std::string msg = x.value.reference_name + " is not defined";
     ErrorHandler::throw_runtime_error(msg);
   }
+  if (var->constant) {
+    std::string msg = "Cannot reassign a constant variable (" + x.value.reference_name + ")";
+    ErrorHandler::throw_runtime_error(msg);
+  }
   Value &x_value = get_value(x);
   Value y_value = get_value(y);
   if (x_value.type != y_value.type) {
