@@ -44,7 +44,12 @@ class Evaluator {
     CkriptVM &VM;
     Node &AST;
     Utils &utils;
-    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils) : VM(_VM), AST(_AST), utils(_utils) {};
+    CallStack &stack;
+    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils, CallStack &_stack) : 
+      VM(_VM),
+      AST(_AST), 
+      utils(_utils),
+      stack (_stack) {};
     void start();
   private:
     int execute_statement(Node &statement);
@@ -99,6 +104,8 @@ class Evaluator {
     RpnElement compare_lt(RpnElement &x, RpnElement &y);
     RpnElement compare_gt_eq(RpnElement &x, RpnElement &y);
     RpnElement compare_lt_eq(RpnElement &x, RpnElement &y);
+    // functions and threads
+    RpnElement execute_function(RpnElement &call, RpnElement &fn);
 };
 
 #endif // __EVALUATOR_

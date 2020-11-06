@@ -35,6 +35,10 @@ void Evaluator::start() {
   for (auto &statement : AST.children) {
     execute_statement(statement);
   }
+  // empty the callstack
+  while (stack.size()) {
+    stack.pop_back();
+  }
 }
 
 int Evaluator::execute_statement(Node &statement) {
@@ -199,7 +203,10 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           res_stack.push_back(result);
         }
       } else if (token.op.op_type == Operator::FUNC) {
-        // to do
+        RpnElement fn = res_stack.back();
+        res_stack.pop_back();
+        RpnElement result = execute_function(token, fn);
+        res_stack.push_back(result);
       } else if (token.op.op_type == Operator::INDEX) {
         // to do
       }
@@ -651,7 +658,7 @@ void Evaluator::declare_variable(Node &declaration) {
     var->type = decl.var_type;
     var->constant = decl.constant;
     *chunk.data = var_val;
-    VM.stack.push_back(var);
+    stack.push_back(var);
     return;
   }
   Variable *var = new Variable;
@@ -659,7 +666,41 @@ void Evaluator::declare_variable(Node &declaration) {
   var->type = decl.var_type;
   var->val = var_val;
   var->constant = decl.constant;
-  VM.stack.push_back(var);
+  stack.push_back(var);
+}
+
+RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
+  assert(call.op.op_type == Operator::FUNC);
+  Value &fn_value = get_value(fn);
+  if (fn_value.func.instructions.size() == 0) return {}; // might break something
+  if (fn_value.type != VarType::FUNC) {
+    std::string msg = stringify(fn_value) + " is not a function";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  if (call.op.func_call.arguments.size() != fn_value.func.params.size()) {
+    std::string params_expected = std::to_string(fn_value.func.params.size());
+    std::string params_given = std::to_string(call.op.func_call.arguments.size());
+    std::string msg = stringify(fn_value) + " expects " + params_expected + ", " + params_given + " given";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  std::vector<Value> args;
+  CallStack &call_stack = VM.new_callstack();
+  int i = 0;
+  for (auto &node_list : call.op.func_call.arguments) {
+    RpnStack rpn_stack;
+    args.push_back(evaluate_expression(node_list));
+    if (args.back().type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
+      std::string num = std::to_string(i + 1);
+      std::string msg = "Argument " + num + " expected to be -, but " + fn_value.func.params.at(i).type_name + " given";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    i++;
+  }
+  Evaluator func_evaluator(fn_value.func.instructions.at(0), VM, utils, call_stack);
+  std::cout << "executing a function\n";
+  func_evaluator.start();
+  std::cout << "function returned\n";
+  return {};
 }
 
 RpnElement Evaluator::node_to_element(Node &node) {
@@ -709,7 +750,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
 }
 
 Variable *Evaluator::get_reference_by_name(const std::string &name) {
-  for (auto &var : VM.stack) {
+  for (auto &var : stack) {
     if (var->id == name) {
       return var;
     }

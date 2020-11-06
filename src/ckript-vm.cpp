@@ -15,6 +15,12 @@ bool Variable::is_reference() const {
   return val.reference != -1;
 }
 
+CallStack &CkriptVM::new_callstack() {
+  CallStack stack;
+  stacks.push_back(stack);
+  return stacks.back();
+}
+
 Chunk &Heap::allocate() {
   std::int64_t index = 0;
   // try to find a free chunk

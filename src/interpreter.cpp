@@ -20,6 +20,6 @@ void Interpreter::process_file(const std::string &filename) {
   std::cout << "AST:\n";
   AST.print();
   CkriptVM VM;
-  Evaluator evaluator(AST, VM, utils);
+  Evaluator evaluator(AST, VM, utils, VM.new_callstack());
   evaluator.start();
 }
