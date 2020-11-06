@@ -665,6 +665,10 @@ RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
 
 void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
+  if (get_reference_by_name(decl.id) != nullptr) {
+    std::string msg = decl.id + " is already defined";
+    ErrorHandler::throw_runtime_error(msg);
+  }
   std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
   Value var_val = evaluate_expression(decl.var_expr);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
