@@ -63,6 +63,12 @@ class Evaluator {
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
     RpnElement perform_division(RpnElement &x, RpnElement &y);
     RpnElement perform_assignment(RpnElement &x, RpnElement &y);
+    RpnElement compare_eq(RpnElement &x, RpnElement &y);
+    RpnElement compare_neq(RpnElement &x, RpnElement &y);
+    RpnElement compare_gt(RpnElement &x, RpnElement &y);
+    RpnElement compare_lt(RpnElement &x, RpnElement &y);
+    RpnElement compare_gt_eq(RpnElement &x, RpnElement &y);
+    RpnElement compare_lt_eq(RpnElement &x, RpnElement &y);
 };
 
 #endif // __EVALUATOR_

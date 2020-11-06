@@ -66,6 +66,18 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
             result = perform_division(x, y);
           } else if (token.op.type == Token::OP_ASSIGN) {
             result = perform_assignment(x, y);
+          } else if (token.op.type == Token::OP_EQ) {
+            result = compare_eq(x, y);
+          } else if (token.op.type == Token::OP_NOT_EQ) {
+            result = compare_neq(x, y);
+          } else if (token.op.type == Token::OP_GT) {
+            result = compare_gt(x, y);
+          } else if (token.op.type == Token::OP_LT) {
+            result = compare_lt(x, y);
+          } else if (token.op.type == Token::OP_GT_EQ) {
+            result = compare_gt_eq(x, y);
+          } else if (token.op.type == Token::OP_LT_EQ) {
+            result = compare_lt_eq(x, y);
           }
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
@@ -254,6 +266,88 @@ RpnElement Evaluator::perform_assignment(RpnElement &x, RpnElement &y) {
   x_value = y_value;
   std::cout << "Assigned " + stringify(y_value) + " to " + x.value.reference_name + "\n";
   return {x_value};
+}
+
+RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  Value val;
+  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+    double f1 = to_double(x_val);
+    double f2 = to_double(y_val);
+    std::cout << "is " << f1 << " == " << f2 << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = f1 == f2;
+    std::cout << "result = " << stringify(val) << "\n";
+    return {val};
+  }
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    std::cout << "is " << x_val.number_value << " == " << y_val.number_value << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.number_value == y_val.number_value;
+    std::cout << "result = " << stringify(val) << "\n";
+    return {val};
+  }
+  if (x_val.type == VarType::STR && y_val.type == VarType::STR) {
+    std::cout << "is " << x_val.string_value << " == " << y_val.string_value << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.string_value == y_val.string_value;
+    std::cout << "result = " << stringify(val) << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::compare_neq(RpnElement &x, RpnElement &y) {
+  RpnElement eq = compare_eq(x, y);
+  Value val;
+  val.type = VarType::BOOL;
+  val.boolean_value = !eq.value.boolean_value;
+  return {val};
+}
+
+RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  Value val;
+  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+    double f1 = to_double(x_val);
+    double f2 = to_double(y_val);
+    std::cout << "is " << f1 << " > " << f2 << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = f1 > f2;
+    std::cout << "result = " << stringify(val) << "\n";
+    return {val};
+  }
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    std::cout << "is " << x_val.number_value << " > " << y_val.number_value << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.number_value > y_val.number_value;
+    std::cout << "result = " << stringify(val) << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::compare_lt(RpnElement &x, RpnElement &y) {
+  return compare_gt(y, x);
+}
+
+RpnElement Evaluator::compare_gt_eq(RpnElement &x, RpnElement &y) {
+  RpnElement gt = compare_gt(x, y);
+  RpnElement eq = compare_eq(x, y);
+  Value val;
+  val.type = VarType::BOOL;
+  val.boolean_value = gt.value.boolean_value || eq.value.boolean_value;
+  return {val};
+}
+
+RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
+  return compare_gt_eq(y, x);
 }
 
 void Evaluator::declare_variable(Node &declaration) {

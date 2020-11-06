@@ -269,6 +269,8 @@ TokenList Lexer::tokenize(const std::string &code) {
           REG(&=, AND_ASSIGN)
           REG(^=, XOR_ASSIGN)
           REG(%=, MOD_ASSIGN)
+          REG(>=, OP_GT_EQ)
+          REG(<=, OP_LT_EQ)
           add_unknown_token(op);
         } else {
           add_unknown_token(op);
