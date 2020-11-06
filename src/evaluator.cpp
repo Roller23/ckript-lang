@@ -31,14 +31,18 @@ typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
 
 void Evaluator::start() {
-  std::cout << "\n------ START -------\n";
   for (auto &statement : AST.children) {
-    execute_statement(statement);
+    int flag = execute_statement(statement);
+    if (flag == FLAG_RETURN) {
+      break;
+    }
   }
+  std::cout << "popping stack, size: " << stack.size() << "\n";
   // empty the callstack
   while (stack.size()) {
     stack.pop_back();
   }
+  std::cout << "stack popped\n";
 }
 
 int Evaluator::execute_statement(Node &statement) {
@@ -76,6 +80,14 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::CONTINUE) {
     std::cout << "continue loop\n";
     return FLAG_CONTINUE;
+  }
+  if (statement.stmt.type == StmtType::RETURN) {
+    if (statement.stmt.expressions.size() != 0) {
+      NodeList return_expr = statement.stmt.expressions.at(0);
+      return_value = evaluate_expression(return_expr);
+    }
+    std::cout << "return " + stringify(return_value) << "\n";
+    return FLAG_RETURN;
   }
   if (statement.stmt.type == StmtType::WHILE) {
     if (statement.stmt.expressions.size() == 0) return FLAG_OK;
@@ -236,6 +248,9 @@ std::string Evaluator::stringify(Value &val) {
   }
   if (val.type == VarType::VOID) {
     return "void";
+  }
+  if (val.type == VarType::UNKNOWN) {
+    return "kinda null";
   }
   if (val.type == VarType::ID) {
     return val.reference_name;
@@ -687,7 +702,6 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   CallStack &call_stack = VM.new_callstack();
   int i = 0;
   for (auto &node_list : call.op.func_call.arguments) {
-    RpnStack rpn_stack;
     args.push_back(evaluate_expression(node_list));
     if (args.back().type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
       std::string num = std::to_string(i + 1);
@@ -696,11 +710,16 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     }
     i++;
   }
-  Evaluator func_evaluator(fn_value.func.instructions.at(0), VM, utils, call_stack);
+  Node fn_AST = fn_value.func.instructions.at(0); // make a copy
+  Evaluator func_evaluator(fn_AST, VM, utils, call_stack);
   std::cout << "executing a function\n";
   func_evaluator.start();
   std::cout << "function returned\n";
-  return {};
+  if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
+    std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  return {func_evaluator.return_value};
 }
 
 RpnElement Evaluator::node_to_element(Node &node) {

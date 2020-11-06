@@ -106,6 +106,8 @@ class Evaluator {
     RpnElement compare_lt_eq(RpnElement &x, RpnElement &y);
     // functions and threads
     RpnElement execute_function(RpnElement &call, RpnElement &fn);
+
+    Value return_value;
 };
 
 #endif // __EVALUATOR_

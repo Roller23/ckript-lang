@@ -13,7 +13,7 @@ class Value {
     Utils::VarType type;
     bool boolean_value = 0;
     double float_value = 0;
-    std::string string_value;
+    std::string string_value = "";
     std::int64_t number_value = 0;
     std::string reference_name = "";
     std::int64_t heap_reference = -1;

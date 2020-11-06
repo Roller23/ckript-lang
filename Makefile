@@ -25,7 +25,7 @@ debug:
 	gdb ./$(out)
 
 mem:
-	valgrind ./$(out) $(intput)
+	valgrind --track-origins=yes ./$(out) $(intput)
 
 clean:
 	rm $(build)*.o
