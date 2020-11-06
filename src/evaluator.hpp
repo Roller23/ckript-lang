@@ -69,12 +69,28 @@ class Evaluator {
     RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
     RpnElement perform_division(RpnElement &x, RpnElement &y);
+    RpnElement perform_modulo(RpnElement &x, RpnElement &y);
+    // bitwise operations
+    RpnElement bitwise_and(RpnElement &x, RpnElement &y);
+    RpnElement bitwise_or(RpnElement &x, RpnElement &y);
+    RpnElement bitwise_xor(RpnElement &x, RpnElement &y);
+    RpnElement shift_left(RpnElement &x, RpnElement &y);
+    RpnElement shift_right(RpnElement &x, RpnElement &y);
+    // logical operations
+    RpnElement logical_and(RpnElement &x, RpnElement &y);
+    RpnElement logical_or(RpnElement &x, RpnElement &y);
     // assignments
     RpnElement assign(RpnElement &x, RpnElement &y);
     RpnElement plus_assign(RpnElement &x, RpnElement &y);
     RpnElement minus_assign(RpnElement &x, RpnElement &y);
     RpnElement mul_assign(RpnElement &x, RpnElement &y);
     RpnElement div_assign(RpnElement &x, RpnElement &y);
+    RpnElement lshift_assign(RpnElement &x, RpnElement &y);
+    RpnElement rshift_assign(RpnElement &x, RpnElement &y);
+    RpnElement and_assign(RpnElement &x, RpnElement &y);
+    RpnElement or_assign(RpnElement &x, RpnElement &y);
+    RpnElement xor_assign(RpnElement &x, RpnElement &y);
+    RpnElement mod_assign(RpnElement &x, RpnElement &y);
     // comparators
     RpnElement compare_eq(RpnElement &x, RpnElement &y);
     RpnElement compare_neq(RpnElement &x, RpnElement &y);

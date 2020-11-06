@@ -8,6 +8,20 @@
 
 #define REG(OP, FN) if (token.op.type == Token::OP) {result=FN(x, y);} else
 
+#define BITWISE(OP, NAME)\
+  Value val;\
+  Value &x_val = get_value(x);\
+  Value &y_val = get_value(y);\
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {\
+    std::cout << stringify(x_val) << " " << #OP << " " << stringify(y_val) << "\n";\
+    val.type = VarType::INT;\
+    val.number_value = x_val.number_value OP y_val.number_value;\
+    return {val};\
+  }\
+  std::string msg = "Cannot perform bitwise " NAME " on " + stringify(x_val) + " and " + stringify(y_val);\
+  ErrorHandler::throw_runtime_error(msg);\
+  return {};
+
 typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
 
@@ -62,6 +76,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           REG(OP_MINUS, perform_subtraction)
           REG(OP_MUL, perform_multiplication)
           REG(OP_DIV, perform_division)
+          REG(OP_MOD, perform_modulo)
           REG(OP_ASSIGN, assign)
           REG(OP_EQ, compare_eq)
           REG(OP_NOT_EQ, compare_neq)
@@ -73,6 +88,15 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           REG(MINUS_ASSIGN, minus_assign)
           REG(MUL_ASSIGN, mul_assign)
           REG(DIV_ASSIGN, div_assign)
+          REG(OP_OR, logical_or)
+          REG(OP_AND, logical_and)
+          REG(LSHIFT, shift_left)
+          REG(RSHIFT, shift_right)
+          REG(RSHIFT_ASSIGN, rshift_assign)
+          REG(LSHIFT_ASSIGN, lshift_assign)
+          REG(AND_ASSIGN, and_assign)
+          REG(OR_ASSIGN, or_assign)
+          REG(XOR_ASSIGN, xor_assign)
           {
             std::string msg = "Unknown binary operator " + Token::get_name(token.op.type);
             ErrorHandler::throw_runtime_error(msg);
@@ -85,7 +109,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           if (token.op.type == Token::OP_NOT) {
             result = logical_not(x);
           } else if (token.op.type == Token::OP_NEG) {
-            result = bitwise_not(x);
+            result = Evaluator::bitwise_not(x);
           } else if (token.op.type == Token::DEL) {
             result = delete_value(x);
           } else {
@@ -156,7 +180,7 @@ RpnElement Evaluator::logical_not(RpnElement &x) {
   return {};
 }
 
-RpnElement Evaluator::bitwise_not(RpnElement &x) {
+RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
   Value &x_val = get_value(x);
   Value val;
   if (x_val.type == VarType::INT) {
@@ -301,6 +325,72 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
   return {};
 }
 
+RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
+  Value val;
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    std::cout << y_val.number_value << " % " << x_val.number_value << "\n";
+    val.type = VarType::INT;
+    val.number_value = x_val.number_value % y_val.number_value;
+    std::cout << "result = " << val.number_value << "\n";
+    return {val};
+  }
+  std::string msg = "Cannot perform modulo on " + stringify(x_val) + " and " + stringify(y_val);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::bitwise_and(RpnElement &x, RpnElement &y) {
+  BITWISE(&, "and")
+}
+
+RpnElement Evaluator::bitwise_or(RpnElement &x, RpnElement &y) {
+  BITWISE(|, "or")
+}
+
+RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
+  BITWISE(^, "xor")
+}
+
+RpnElement Evaluator::shift_left(RpnElement &x, RpnElement &y) {
+  BITWISE(<<, "left shift")
+}
+
+RpnElement Evaluator::shift_right(RpnElement &x, RpnElement &y) {
+  BITWISE(>>, "right shift")
+}
+
+RpnElement Evaluator::logical_and(RpnElement &x, RpnElement &y) {
+  Value val;
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
+    std::cout << stringify(x_val) << " && " << stringify(y_val) << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.boolean_value && y_val.boolean_value;
+    return {val};
+  }
+  std::string msg = "Cannot perform logical and on " + stringify(x_val) + " and " + stringify(y_val);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
+RpnElement Evaluator::logical_or(RpnElement &x, RpnElement &y) {
+  Value val;
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
+    std::cout << stringify(x_val) << " || " << stringify(y_val) << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.boolean_value || y_val.boolean_value;
+    return {val};
+  }
+  std::string msg = "Cannot perform logical or on " + stringify(x_val) + " and " + stringify(y_val);
+  ErrorHandler::throw_runtime_error(msg);
+  return {};
+}
+
 RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
   if (!x.value.is_lvalue()) {
     std::string msg = "Cannot assign to an rvalue";
@@ -347,6 +437,36 @@ RpnElement Evaluator::mul_assign(RpnElement &x, RpnElement &y) {
 
 RpnElement Evaluator::div_assign(RpnElement &x, RpnElement &y) {
   RpnElement rvalue = perform_division(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::mod_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = perform_modulo(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::lshift_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = shift_left(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::rshift_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = shift_right(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::and_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = bitwise_and(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::or_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = bitwise_or(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::xor_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = bitwise_xor(x, y);
   return assign(x, rvalue);
 }
 
