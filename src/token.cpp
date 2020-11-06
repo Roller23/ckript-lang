@@ -5,12 +5,11 @@
 
 std::string Token::get_name(TokenType type) {
   // trust me there's no better way
-  REG(FUNCTION, "function declaration");
-  REG(THREAD, "thread declaration");
+  REG(FUNCTION, "function");
+  REG(THREAD, "thread");
   REG(RETURN, "return");
   REG(IF, "if");
   REG(ELSE, "else");
-  REG(ELSEIF, "elseif");
   REG(FOR, "for");
   REG(WHILE, "while");
   REG(ALLOC, "alloc");

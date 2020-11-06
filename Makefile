@@ -6,6 +6,7 @@ flags := -O0 -g
 src := src/
 build := build/
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
+intput := doc/hello.ck
 
 all: $(out)
 
@@ -18,13 +19,13 @@ $(out): $(objs) main.cpp
 	$(CC) $(flags) -o $@ $^
 
 run:
-	./$(out) doc/hello.ck
+	./$(out) $(intput)
 
 debug:
 	gdb ./$(out)
 
 mem:
-	valgrind -s --track-origins=yes --leak-check=full ./$(out)
+	valgrind ./$(out) $(intput)
 
 clean:
 	rm $(build)*.o

@@ -6,6 +6,11 @@
 #include <iostream>
 #include <cassert>
 
+#define FLAG_OK 0
+#define FLAG_BREAK 1
+#define FLAG_CONTINUE 2
+#define FLAG_RETURN 3
+
 #define REG(OP, FN) if (token.op.type == Token::OP) {result=FN(x, y);} else
 
 #define BITWISE(OP, NAME)\
@@ -32,8 +37,8 @@ void Evaluator::start() {
   }
 }
 
-void Evaluator::execute_statement(Node &statement) {
-  if (statement.stmt.type == StmtType::NONE) return;
+int Evaluator::execute_statement(Node &statement) {
+  if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
   std::cout << "Executing a statement\n";
   std::cout << "Type " << statement.stmt.type << "\n";
   // // statement.stmt.print();
@@ -45,14 +50,85 @@ void Evaluator::execute_statement(Node &statement) {
   //   }
   // }
   if (statement.stmt.type == StmtType::EXPR) {
-    if (statement.stmt.expressions.size() != 1) return;
+    if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
-    return;
+    return FLAG_OK;
   }
   if (statement.stmt.type == StmtType::DECL) {
-    if (statement.stmt.declaration.size() != 1) return;
+    if (statement.stmt.declaration.size() != 1) return FLAG_OK;
     declare_variable(statement.stmt.declaration.at(0));
   }
+  if (statement.stmt.type == StmtType::COMPOUND) {
+    if (statement.stmt.statements.size() == 0) return FLAG_OK;
+    for (auto &stmt : statement.stmt.statements.at(0).children) {
+      int flag = execute_statement(stmt);
+      if (flag) return flag;
+    }
+  }
+  if (statement.stmt.type == StmtType::BREAK) {
+    std::cout << "break loop\n";
+    return FLAG_BREAK;
+  }
+  if (statement.stmt.type == StmtType::WHILE) {
+    if (statement.stmt.expressions.size() == 0) return FLAG_OK;
+    if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
+    while (true) {
+      NodeList cond = statement.stmt.expressions.at(0); // make a copy
+      Value result = evaluate_expression(cond);
+      if (result.type != VarType::BOOL) {
+        std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
+        ErrorHandler::throw_runtime_error(msg);
+      }
+      if (!result.boolean_value) {
+        break;
+      }
+      Node stmt = statement.stmt.statements.at(0); // make a copy
+      int flag = execute_statement(stmt);
+      if (flag == FLAG_BREAK) break;
+      if (flag == FLAG_RETURN) return flag;
+    }
+  }
+  if (statement.stmt.type == StmtType::FOR) {
+    if (statement.stmt.expressions.size() != 3) return FLAG_OK; // TO DO
+    if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
+    evaluate_expression(statement.stmt.expressions.at(0));
+    while (true) {
+      NodeList cond = statement.stmt.expressions.at(1); // make a copy
+      Value result = evaluate_expression(cond);
+      if (result.type != VarType::BOOL) {
+        std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
+        ErrorHandler::throw_runtime_error(msg);
+      }
+      if (!result.boolean_value) {
+        break;
+      }
+      Node stmt = statement.stmt.statements.at(0); // make a copy
+      int flag = execute_statement(stmt);
+      if (flag == FLAG_BREAK) break;
+      if (flag == FLAG_RETURN) return flag;
+      NodeList post_expr = statement.stmt.expressions.at(2);
+      evaluate_expression(post_expr);
+    }
+  }
+  if (statement.stmt.type == StmtType::IF) {
+    if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
+    if (statement.stmt.expressions.size() == 0) return FLAG_OK;
+    Value result = evaluate_expression(statement.stmt.expressions.at(0));
+    if (result.type != VarType::BOOL) {
+      std::string msg = "Expected a boolean value in if statement, found " + stringify(result);
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    if (result.boolean_value) {
+      int flag = execute_statement(statement.stmt.statements.at(0));
+      if (flag) return flag;
+    } else {
+      if (statement.stmt.statements.size() == 2) {
+        int flag = execute_statement(statement.stmt.statements.at(1));
+        if (flag) return flag;
+      }
+    }
+  }
+  return FLAG_OK;
 }
 
 Value Evaluator::evaluate_expression(NodeList &expression_tree) {

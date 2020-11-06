@@ -419,7 +419,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     NodeList rpn = get_expression(Token::RIGHT_PAREN);
     if_stmt.stmt.expressions.push_back(rpn);
     advance(); // skip the )
-    if_stmt.stmt.statements.push_back(get_statement(prev, stop)); // get the statement block
+    if_stmt.stmt.statements.push_back(get_statement(prev, stop));
+    if (curr_token.type == Token::ELSE) {
+      advance(); // skip the else
+      if_stmt.stmt.statements.push_back(get_statement(prev, stop));
+    }
     return if_stmt;
   } else if (curr_token.type == Token::WHILE) {
     std::cout << "Found while\n";

@@ -125,9 +125,6 @@ TokenList Lexer::tokenize(const std::string &code) {
         } else if (token_str == "else") {
           log("token [ELSE], ");
           add_token(Token::ELSE);
-        } else if (token_str == "elseif") {
-          log("token [ELSEIF], ");
-          add_token(Token::ELSEIF);
         } else if (token_str == "for") {
           log("token [FOR], ");
           add_token(Token::FOR);

@@ -47,7 +47,7 @@ class Evaluator {
     Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils) : VM(_VM), AST(_AST), utils(_utils) {};
     void start();
   private:
-    void execute_statement(Node &statement);
+    int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree);
     void declare_variable(Node &declaration);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
@@ -63,6 +63,7 @@ class Evaluator {
     RpnElement logical_not(RpnElement &x);
     RpnElement bitwise_not(RpnElement &x);
     RpnElement delete_value(RpnElement &x);
+
     // Binary
     // math operations
     RpnElement perform_addition(RpnElement &x, RpnElement &y);
