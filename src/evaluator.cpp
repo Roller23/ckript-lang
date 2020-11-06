@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <thread>
 
 #define FLAG_OK 0
 #define FLAG_BREAK 1
@@ -51,15 +52,6 @@ void Evaluator::start() {
 int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
   std::cout << "Executing a statement\n";
-  std::cout << "Type " << statement.stmt.type << "\n";
-  // // statement.stmt.print();
-  // std::cout << "TYPE " << statement.stmt.type << "\n";
-  // for (auto &nested_stmt : statement.stmt.statements) {
-  //   execute_statement(nested_stmt);
-  //   for (auto &child : nested_stmt.children) {
-  //     execute_statement(child);
-  //   }
-  // }
   if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
@@ -241,7 +233,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
 
 std::string Evaluator::stringify(Value &val) {
   if (val.type == VarType::STR) {
-    return val.string_value;
+    return "\"" + val.string_value + "\"";
   }
   if (val.type == VarType::BOOL) {
     return val.boolean_value ? "true" : "false";
@@ -255,11 +247,14 @@ std::string Evaluator::stringify(Value &val) {
   if (val.type == VarType::FUNC) {
     return "function";
   }
+  if (val.type == VarType::THR) {
+    return "thread";
+  }
   if (val.type == VarType::VOID) {
     return "void";
   }
   if (val.type == VarType::UNKNOWN) {
-    return "kinda null";
+    return "null";
   }
   if (val.type == VarType::ID) {
     return val.reference_name;
@@ -705,30 +700,41 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     std::string msg = stringify(fn_value) + " is not a function";
     ErrorHandler::throw_runtime_error(msg);
   }
-  if (call.op.func_call.arguments.size() != fn_value.func.params.size()) {
+  int args_counter = 0;
+  for (auto &arg : call.op.func_call.arguments) {
+    if (arg.size() != 0) {
+      args_counter++;
+    } else if (args_counter != 0) {
+      std::string msg = "Illegal function invocation, missing arguments";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+  }
+  if (args_counter != fn_value.func.params.size()) {
     std::string params_expected = std::to_string(fn_value.func.params.size());
-    std::string params_given = std::to_string(call.op.func_call.arguments.size());
-    std::string msg = stringify(fn_value) + " expects " + params_expected + ", " + params_given + " given";
+    std::string params_given = std::to_string(args_counter);
+    std::string msg = stringify(fn_value) + " expects " + params_expected + " argument(s), " + params_given + " given";
     ErrorHandler::throw_runtime_error(msg);
   }
 
   Node fn_AST = fn_value.func.instructions.at(0);
   Evaluator func_evaluator(fn_AST, VM, utils);
 
-  int i = 0;
-  for (auto &node_list : call.op.func_call.arguments) {
-    Value arg_val = evaluate_expression(node_list);
-    if (arg_val.type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
-      std::string num = std::to_string(i + 1);
-      std::string msg = "Argument " + num + " expected to be -, but " + fn_value.func.params.at(i).type_name + " given";
-      ErrorHandler::throw_runtime_error(msg);
-    }
-    Variable *var = new Variable;
-    var->id = fn_value.func.params.at(i).param_name;
-    var->type = fn_value.func.params.at(i).type_name;
-    var->val = arg_val;
-    func_evaluator.stack.push_back(var);
-    i++;
+  if (fn_value.func.params.size() != 0) {
+    int i = 0;
+    for (auto &node_list : call.op.func_call.arguments) {
+      Value arg_val = evaluate_expression(node_list);
+      if (arg_val.type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
+        std::string num = std::to_string(i + 1);
+        std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(arg_val) + " given";
+        ErrorHandler::throw_runtime_error(msg);
+      }
+      Variable *var = new Variable;
+      var->id = fn_value.func.params.at(i).param_name;
+      var->type = fn_value.func.params.at(i).type_name;
+      var->val = arg_val;
+      func_evaluator.stack.push_back(var);
+      i++;
+    } 
   }
   if (fn.value.is_lvalue()) {
     // push itself onto the callstack
@@ -742,6 +748,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
     std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
     ErrorHandler::throw_runtime_error(msg);
+    return {func_evaluator.return_value};
   }
   return {func_evaluator.return_value};
 }
@@ -784,7 +791,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
     return {val};
   }
   if (node.expr.type == Expression::FUNC_EXPR) {
-    val.type = VarType::FUNC;
+    val.type = node.expr.func_expr.type == FuncExpression::FUNC ? VarType::FUNC : VarType::THR;
     val.func = node.expr.func_expr;
     return {val};
   }
