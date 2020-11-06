@@ -134,6 +134,9 @@ TokenList Lexer::tokenize(const std::string &code) {
         } else if (token_str == "break") {
           log("token [WHILE], ");
           add_token(Token::BREAK);
+        } else if (token_str == "continue") {
+          log("token [CONTINUE], ");
+          add_token(Token::CONTINUE);
         } else if (token_str == "alloc") {
           log("token [ALLOC], ");
           add_token(Token::ALLOC);

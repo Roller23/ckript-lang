@@ -69,6 +69,10 @@ int Evaluator::execute_statement(Node &statement) {
     std::cout << "break loop\n";
     return FLAG_BREAK;
   }
+  if (statement.stmt.type == StmtType::CONTINUE) {
+    std::cout << "continue loop\n";
+    return FLAG_CONTINUE;
+  }
   if (statement.stmt.type == StmtType::WHILE) {
     if (statement.stmt.expressions.size() == 0) return FLAG_OK;
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
