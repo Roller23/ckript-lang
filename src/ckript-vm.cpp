@@ -1,6 +1,7 @@
 #include "ckript-vm.hpp"
 
 #include <cassert>
+#include <iostream>
 
 bool Value::is_lvalue() {
   return reference_name.size() != 0;
@@ -42,7 +43,7 @@ void Heap::free(Variable *var) {
   Chunk &chunk = chunks.at(var->val.heap_reference);
   assert(chunk.used == true);
   assert(chunk.data != nullptr);
-
+  
   delete chunk.data;
   chunk.data = nullptr;
   chunk.used = false;

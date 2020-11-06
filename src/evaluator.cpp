@@ -81,7 +81,17 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           }
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
-
+          RpnElement x = res_stack.back();
+          res_stack.pop_back();
+          RpnElement result;
+          if (token.op.type == Token::OP_NOT) {
+            result = logical_not(x);
+          } else if (token.op.type == Token::OP_NEG) {
+            result = bitwise_not(x);
+          } else if (token.op.type == Token::DEL) {
+            result = delete_value(x);
+          }
+          res_stack.push_back(result);
         }
       } else if (token.op.op_type == Operator::FUNC) {
         // to do
@@ -112,6 +122,9 @@ std::string Evaluator::stringify(Value &val) {
   if (val.type == VarType::FUNC) {
     return "function";
   }
+  if (val.type == VarType::VOID) {
+    return "void";
+  }
   if (val.type == VarType::ID) {
     return val.reference_name;
   }
@@ -127,6 +140,50 @@ double Evaluator::to_double(Value &val) {
   }
   ErrorHandler::throw_runtime_error("Cannot convert " + stringify(val) + " to double");
   return 0;
+}
+
+RpnElement Evaluator::logical_not(RpnElement &x) {
+  Value &x_val = get_value(x);
+  Value val;
+  if (x_val.type == VarType::BOOL) {
+    std::cout << "!" << stringify(x_val) << "\n";
+    val.type = VarType::BOOL;
+    val.boolean_value = !x_val.boolean_value;
+    return {val};
+  }
+  ErrorHandler::throw_runtime_error("Cannot perform logical not on " + stringify(val) + "\n");
+  return {};
+}
+
+RpnElement Evaluator::bitwise_not(RpnElement &x) {
+  Value &x_val = get_value(x);
+  Value val;
+  if (x_val.type == VarType::INT) {
+    std::cout << "~" << stringify(x_val) << "\n";
+    val.type = VarType::INT;
+    val.number_value = ~x_val.number_value;
+    return {val};
+  }
+  ErrorHandler::throw_runtime_error("Cannot perform bitwise not on " + stringify(val) + "\n");
+  return {};
+}
+
+RpnElement Evaluator::delete_value(RpnElement &x) {
+  if (!x.value.is_lvalue()) {
+    ErrorHandler::throw_runtime_error("Cannot delete an rvalue " + stringify(x.value) + "\n");
+  }
+  Variable *var = get_reference_by_name(x.value.reference_name);
+  if (var == nullptr) {
+    ErrorHandler::throw_runtime_error(x.value.reference_name + " is not defined");
+  }
+  if (var->val.heap_reference == -1) {
+    ErrorHandler::throw_runtime_error(x.value.reference_name + " is not allocated on heap");
+  }
+  std::cout << "deleting " << x.value.reference_name << "\n";
+  VM.heap.free(var);
+  Value val;
+  val.type = VarType::VOID;
+  return {val};
 }
 
 RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
@@ -259,6 +316,10 @@ RpnElement Evaluator::perform_assignment(RpnElement &x, RpnElement &y) {
   }
   Value &x_value = get_value(x);
   Value y_value = get_value(y);
+  if (x_value.type == VarType::UNKNOWN) {
+    std::string msg = x.value.reference_name + " doesn't point to anything on the heap";
+    ErrorHandler::throw_runtime_error(msg);
+  }
   if (x_value.type != y_value.type) {
     std::string msg = "Cannot assign " + stringify(y_value) + " to " + x.value.reference_name;
     ErrorHandler::throw_runtime_error(msg);

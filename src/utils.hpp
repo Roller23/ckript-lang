@@ -9,7 +9,7 @@
 class Utils {
   public:
     typedef enum var_type {
-      INT, FLOAT, STR, ARR, OBJ, BOOL, FUNC, THR, REF, ID, UNKNOWN
+      INT, FLOAT, STR, ARR, OBJ, BOOL, FUNC, THR, REF, ID, VOID, UNKNOWN
     } VarType;
     bool op_binary(Token::TokenType token);
     bool op_unary(Token::TokenType token);

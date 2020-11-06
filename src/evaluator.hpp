@@ -58,6 +58,9 @@ class Evaluator {
     std::string stringify(Value &val);
     double to_double(Value &val);
     Value &get_value(RpnElement &el);
+    RpnElement logical_not(RpnElement &x);
+    RpnElement bitwise_not(RpnElement &x);
+    RpnElement delete_value(RpnElement &x);
     RpnElement perform_addition(RpnElement &x, RpnElement &y);
     RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
