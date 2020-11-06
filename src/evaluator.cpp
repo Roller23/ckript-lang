@@ -6,6 +6,8 @@
 #include <iostream>
 #include <cassert>
 
+#define REG(OP, FN) if (token.op.type == Token::OP) {result=FN(x, y);} else
+
 typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
 
@@ -56,28 +58,24 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           RpnElement x = res_stack.back();
           res_stack.pop_back();
           RpnElement result;
-          if (token.op.type == Token::OP_PLUS) {
-            result = perform_addition(x, y);
-          } else if (token.op.type == Token::OP_MINUS) {
-            result = perform_subtraction(x, y);
-          } else if (token.op.type == Token::OP_MUL) {
-            result = perform_multiplication(x, y);
-          } else if (token.op.type == Token::OP_DIV) {
-            result = perform_division(x, y);
-          } else if (token.op.type == Token::OP_ASSIGN) {
-            result = perform_assignment(x, y);
-          } else if (token.op.type == Token::OP_EQ) {
-            result = compare_eq(x, y);
-          } else if (token.op.type == Token::OP_NOT_EQ) {
-            result = compare_neq(x, y);
-          } else if (token.op.type == Token::OP_GT) {
-            result = compare_gt(x, y);
-          } else if (token.op.type == Token::OP_LT) {
-            result = compare_lt(x, y);
-          } else if (token.op.type == Token::OP_GT_EQ) {
-            result = compare_gt_eq(x, y);
-          } else if (token.op.type == Token::OP_LT_EQ) {
-            result = compare_lt_eq(x, y);
+          REG(OP_PLUS, perform_addition)
+          REG(OP_MINUS, perform_subtraction)
+          REG(OP_MUL, perform_multiplication)
+          REG(OP_DIV, perform_division)
+          REG(OP_ASSIGN, assign)
+          REG(OP_EQ, compare_eq)
+          REG(OP_NOT_EQ, compare_neq)
+          REG(OP_GT, compare_gt)
+          REG(OP_LT, compare_lt)
+          REG(OP_GT_EQ, compare_gt_eq)
+          REG(OP_LT_EQ, compare_lt_eq)
+          REG(PLUS_ASSIGN, plus_assign)
+          REG(MINUS_ASSIGN, minus_assign)
+          REG(MUL_ASSIGN, mul_assign)
+          REG(DIV_ASSIGN, div_assign)
+          {
+            std::string msg = "Unknown binary operator " + Token::get_name(token.op.type);
+            ErrorHandler::throw_runtime_error(msg);
           }
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
@@ -90,6 +88,9 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
             result = bitwise_not(x);
           } else if (token.op.type == Token::DEL) {
             result = delete_value(x);
+          } else {
+            std::string msg = "Unknown unary operator " + Token::get_name(token.op.type);
+            ErrorHandler::throw_runtime_error(msg);
           }
           res_stack.push_back(result);
         }
@@ -300,7 +301,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::perform_assignment(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
   if (!x.value.is_lvalue()) {
     std::string msg = "Cannot assign to an rvalue";
     ErrorHandler::throw_runtime_error(msg);
@@ -327,6 +328,26 @@ RpnElement Evaluator::perform_assignment(RpnElement &x, RpnElement &y) {
   x_value = y_value;
   std::cout << "Assigned " + stringify(y_value) + " to " + x.value.reference_name + "\n";
   return {x_value};
+}
+
+RpnElement Evaluator::plus_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = perform_addition(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::minus_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = perform_subtraction(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::mul_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = perform_multiplication(x, y);
+  return assign(x, rvalue);
+}
+
+RpnElement Evaluator::div_assign(RpnElement &x, RpnElement &y) {
+  RpnElement rvalue = perform_division(x, y);
+  return assign(x, rvalue);
 }
 
 RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {

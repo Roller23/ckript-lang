@@ -58,14 +58,24 @@ class Evaluator {
     std::string stringify(Value &val);
     double to_double(Value &val);
     Value &get_value(RpnElement &el);
+
+    // Unary
     RpnElement logical_not(RpnElement &x);
     RpnElement bitwise_not(RpnElement &x);
     RpnElement delete_value(RpnElement &x);
+    // Binary
+    // math operations
     RpnElement perform_addition(RpnElement &x, RpnElement &y);
     RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
     RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
     RpnElement perform_division(RpnElement &x, RpnElement &y);
-    RpnElement perform_assignment(RpnElement &x, RpnElement &y);
+    // assignments
+    RpnElement assign(RpnElement &x, RpnElement &y);
+    RpnElement plus_assign(RpnElement &x, RpnElement &y);
+    RpnElement minus_assign(RpnElement &x, RpnElement &y);
+    RpnElement mul_assign(RpnElement &x, RpnElement &y);
+    RpnElement div_assign(RpnElement &x, RpnElement &y);
+    // comparators
     RpnElement compare_eq(RpnElement &x, RpnElement &y);
     RpnElement compare_neq(RpnElement &x, RpnElement &y);
     RpnElement compare_gt(RpnElement &x, RpnElement &y);
