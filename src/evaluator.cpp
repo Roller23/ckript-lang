@@ -37,12 +37,15 @@ void Evaluator::start() {
       break;
     }
   }
-  std::cout << "popping stack, size: " << stack.size() << "\n";
   // empty the callstack
   while (stack.size()) {
+    Variable *var = stack.back();
+    delete var;
     stack.pop_back();
   }
-  std::cout << "stack popped\n";
+  if (return_value.type == VarType::UNKNOWN) {
+    return_value.type = VarType::VOID;
+  }
 }
 
 int Evaluator::execute_statement(Node &statement) {
@@ -156,6 +159,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
   RpnStack rpn_stack;
   flatten_tree(rpn_stack, expression_tree);
   RpnStack res_stack;
+  assert(rpn_stack.size() != 0);
   for (auto &token : rpn_stack) {
     if (token.type == RpnElement::OPERATOR) {
       if (token.op.op_type == Operator::BASIC) {
@@ -226,8 +230,13 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
       res_stack.push_back(token);
     }
   }
-  std::cout << "Expression result = " << stringify(res_stack.at(0).value) << "\n";
-  return res_stack.at(0).value;
+  Value &res_val = res_stack.at(0).value;
+  if (res_val.is_lvalue() || res_val.heap_reference > -1) {
+    RpnElement wrapper = res_val;
+    res_val = get_value(wrapper);
+  }
+  std::cout << "Expression result = " << stringify(res_val) << "\n";
+  return res_val;
 }
 
 std::string Evaluator::stringify(Value &val) {
@@ -698,23 +707,34 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     std::string msg = stringify(fn_value) + " expects " + params_expected + ", " + params_given + " given";
     ErrorHandler::throw_runtime_error(msg);
   }
-  std::vector<Value> args;
-  CallStack &call_stack = VM.new_callstack();
+
+  Node fn_AST = fn_value.func.instructions.at(0);
+  Evaluator func_evaluator(fn_AST, VM, utils);
+
   int i = 0;
   for (auto &node_list : call.op.func_call.arguments) {
-    args.push_back(evaluate_expression(node_list));
-    if (args.back().type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
+    Value arg_val = evaluate_expression(node_list);
+    if (arg_val.type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
       std::string num = std::to_string(i + 1);
       std::string msg = "Argument " + num + " expected to be -, but " + fn_value.func.params.at(i).type_name + " given";
       ErrorHandler::throw_runtime_error(msg);
     }
+    Variable *var = new Variable;
+    var->id = fn_value.func.params.at(i).param_name;
+    var->type = fn_value.func.params.at(i).type_name;
+    var->val = arg_val;
+    func_evaluator.stack.push_back(var);
     i++;
   }
-  Node fn_AST = fn_value.func.instructions.at(0); // make a copy
-  Evaluator func_evaluator(fn_AST, VM, utils, call_stack);
-  std::cout << "executing a function\n";
+  if (fn.value.is_lvalue()) {
+    // push itself onto the callstack
+    Variable *var = new Variable;
+    var->id = fn.value.reference_name;
+    var->type = VarType::FUNC;
+    var->val = fn_value;
+    func_evaluator.stack.push_back(var);
+  }
   func_evaluator.start();
-  std::cout << "function returned\n";
   if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
     std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
     ErrorHandler::throw_runtime_error(msg);

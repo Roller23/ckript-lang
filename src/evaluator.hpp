@@ -44,14 +44,13 @@ class Evaluator {
     CkriptVM &VM;
     Node &AST;
     Utils &utils;
-    CallStack &stack;
-    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils, CallStack &_stack) : 
+    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils) : 
       VM(_VM),
       AST(_AST), 
-      utils(_utils),
-      stack (_stack) {};
+      utils(_utils) {};
     void start();
   private:
+    CallStack stack;
     int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree);
     void declare_variable(Node &declaration);

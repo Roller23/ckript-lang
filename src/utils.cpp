@@ -49,6 +49,7 @@ Utils::Utils(void) {
   var_lut.insert(std::make_pair("bool", BOOL));
   var_lut.insert(std::make_pair("func", FUNC));
   var_lut.insert(std::make_pair("thr", THR));
+  var_lut.insert(std::make_pair("void", VOID));
 }
 
 bool Utils::has_key(Token::TokenType key) {

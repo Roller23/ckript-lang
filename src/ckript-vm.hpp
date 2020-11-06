@@ -54,8 +54,6 @@ class CkriptVM {
   public:
     std::map<std::string, Variable *> globals;
     Heap heap;
-    std::vector<CallStack> stacks;
-    CallStack &new_callstack();
 };
 
 #endif // __CKRIPT_VM_
