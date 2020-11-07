@@ -52,6 +52,7 @@ class Evaluator {
   private:
     CallStack stack;
     bool inside_func = false;
+    bool returns_ref = false;
     int nested_loops = 0;
     int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree, bool get_ref = false);
@@ -64,6 +65,7 @@ class Evaluator {
     std::string stringify(Value &val);
     double to_double(Value &val);
     Value &get_value(RpnElement &el);
+    Value &get_heap_value(std::int64_t ref);
 
     // Unary
     RpnElement logical_not(RpnElement &x);

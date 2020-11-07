@@ -91,7 +91,7 @@ int Evaluator::execute_statement(Node &statement) {
     }
     if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions.at(0).size() != 0) {
       NodeList return_expr = statement.stmt.expressions.at(0);
-      return_value = evaluate_expression(return_expr);
+      return_value = evaluate_expression(return_expr, returns_ref);
     }
     std::cout << "return " + stringify(return_value) << "\n";
     return FLAG_RETURN;
@@ -263,6 +263,9 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
 }
 
 std::string Evaluator::stringify(Value &val) {
+  if (val.heap_reference != -1) {
+    return stringify(get_heap_value(val.heap_reference));
+  }
   if (val.type == VarType::STR) {
     return val.string_value;
   }
@@ -340,6 +343,12 @@ RpnElement Evaluator::delete_value(RpnElement &x) {
   }
   if (var->val.heap_reference == -1) {
     ErrorHandler::throw_runtime_error(x.value.reference_name + " is not allocated on heap");
+  }
+  if (var->val.heap_reference >= VM.heap.chunks.size()) {
+    ErrorHandler::throw_runtime_error("deleting a value that is not on the heap");
+  }
+  if (VM.heap.chunks.at(var->val.heap_reference).used == false) {
+    ErrorHandler::throw_runtime_error("double delete");
   }
   std::cout << "deleting " << x.value.reference_name << "\n";
   VM.heap.free(var);
@@ -750,22 +759,25 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   Node fn_AST = fn_value.func.instructions.at(0);
   Evaluator func_evaluator(fn_AST, VM, utils);
   func_evaluator.inside_func = true;
+  func_evaluator.returns_ref = fn_value.func.ret_ref;
 
   if (fn_value.func.params.size() != 0) {
     int i = 0;
     for (auto &node_list : call.op.func_call.arguments) {
       std::string num = std::to_string(i + 1);
       Value arg_val = evaluate_expression(node_list, fn_value.func.params.at(i).is_ref);
+      Value real_val = arg_val;
       VarType arg_type = arg_val.type;
       if (arg_val.heap_reference != -1) {
-        arg_type = VM.heap.chunks.at(arg_val.heap_reference).data->type;
+        real_val = get_heap_value(arg_val.heap_reference);
+        arg_type = real_val.type;
       }
       if (fn_value.func.params.at(i).is_ref && arg_val.heap_reference == -1) {
         std::string msg = "Argument " + num + " expected to be a reference, but value given";
         ErrorHandler::throw_runtime_error(msg);
       }
       if (arg_type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
-        std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(arg_val) + " given";
+        std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(real_val) + " given";
         ErrorHandler::throw_runtime_error(msg);
       }
       Variable *var = new Variable;
@@ -785,12 +797,22 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     func_evaluator.stack.push_back(var);
   }
   func_evaluator.start();
-  if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
-    std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
-    ErrorHandler::throw_runtime_error(msg);
-    return {};
+  if (fn_value.func.ret_ref) {
+    if (func_evaluator.return_value.heap_reference == -1) {
+      std::string msg = "function returns a reference, but " + stringify(func_evaluator.return_value) + " was returned";
+      ErrorHandler::throw_runtime_error(msg);
+      return {};
+    }
+    return {func_evaluator.return_value};
+  } else {
+    if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
+      std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
+      ErrorHandler::throw_runtime_error(msg);
+      return {};
+    }
+    return {func_evaluator.return_value};
   }
-  return {func_evaluator.return_value};
+  return {};
 }
 
 RpnElement Evaluator::node_to_element(Node &node) {
@@ -849,21 +871,35 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
 }
 
 Value &Evaluator::get_value(RpnElement &el) {
-  if (!el.value.is_lvalue() && el.value.heap_reference < 0) {
+  if (el.value.is_lvalue()) {
+    Variable *var = get_reference_by_name(el.value.reference_name);
+    if (var == nullptr) {
+      std::string msg = el.value.reference_name + " is not defined";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    std::cout << "var heap reference " << var->val.heap_reference << "\n";
+    if (var->val.heap_reference > -1) {
+      return get_heap_value(var->val.heap_reference);
+    }
+    return var->val;
+  } else if (el.value.heap_reference != -1) {
+    return get_heap_value(el.value.heap_reference);
+  } else {
     return el.value;
   }
-  Variable *var = get_reference_by_name(el.value.reference_name);
-  if (var == nullptr) {
-    std::string msg = el.value.reference_name + " is not defined";
+}
+
+Value &Evaluator::get_heap_value(std::int64_t ref) {
+  if (ref >= VM.heap.chunks.size()) {
+    std::string msg = "dereferencing a value that is not on the heap";
     ErrorHandler::throw_runtime_error(msg);
   }
-  std::cout << "var heap reference " << var->val.heap_reference << "\n";
-  if (var->val.heap_reference > -1) {
-    Value *ptr = VM.heap.chunks.at(var->val.heap_reference).data;
-    assert(ptr != nullptr);
-    return *ptr;
+  Value *ptr = VM.heap.chunks.at(ref).data;
+  if (ptr == nullptr) {
+    std::string msg = "dereferencing a null pointer";
+    ErrorHandler::throw_runtime_error(msg);
   }
-  return var->val;
+  return *ptr;
 }
 
 void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {
