@@ -19,6 +19,9 @@ class Value {
     std::int64_t heap_reference = -1;
     std::int64_t reference = -1;
     FuncExpression func;
+    ParamList members;
+    std::map<std::string, Value> member_values;
+    std::string class_name;
     bool is_lvalue();
     Value(void) : type(Utils::UNKNOWN) {};
     Value(Utils::VarType _type) : type(_type) {};

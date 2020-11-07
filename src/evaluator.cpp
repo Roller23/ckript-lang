@@ -56,6 +56,10 @@ int Evaluator::execute_statement(Node &statement) {
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
     return FLAG_OK;
   }
+  if (statement.stmt.type == StmtType::CLASS) {
+    register_class(statement.stmt.class_stmt);
+    return FLAG_OK;
+  }
   if (statement.stmt.type == StmtType::DECL) {
     if (statement.stmt.declaration.size() != 1) return FLAG_OK;
     declare_variable(statement.stmt.declaration.at(0));
@@ -279,6 +283,15 @@ std::string Evaluator::stringify(Value &val) {
   }
   if (val.type == VarType::FUNC) {
     return "function";
+  }
+  if (val.type == VarType::CLASS) {
+    return "class";
+  }
+  if (val.type == VarType::OBJ) {
+    return "object";
+  }
+  if (val.type == VarType::ARR) {
+    return "array";
   }
   if (val.type == VarType::VOID) {
     return "void";
@@ -694,6 +707,20 @@ RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
   return compare_gt_eq(y, x);
 }
 
+void Evaluator::register_class(ClassStatement &_class) {
+  if (get_reference_by_name(_class.class_name) != nullptr) {
+    std::string msg = _class.class_name + " is already defined";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  std::cout << "Declaring a class " << _class.class_name << "\n";
+  Variable *var = new Variable;
+  var->id = _class.class_name;
+  var->type = "class";
+  var->val.type = VarType::CLASS;
+  var->val.members = _class.members;
+  stack.push_back(var);
+}
+
 void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
   if (get_reference_by_name(decl.id) != nullptr) {
@@ -733,9 +760,56 @@ void Evaluator::declare_variable(Node &declaration) {
   stack.push_back(var);
 }
 
+RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
+  std::cout << "Constructing an object\n";
+  Value val;
+  Value &class_val = get_value(_class);
+  int args_counter = 0;
+  for (auto &arg : call.op.func_call.arguments) {
+    if (arg.size() != 0) {
+      args_counter++;
+    } else {
+      std::string msg = "Illegal object invocation, missing members";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+  }
+  if (args_counter != class_val.members.size()) {
+    std::string msg = _class.value.reference_name + " has " + std::to_string(class_val.members.size());
+    msg += " members, " + std::to_string(args_counter) + " given";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  val.class_name = _class.value.reference_name;
+  val.type = VarType::OBJ;
+  int i = 0;
+  for (auto &node_list : call.op.func_call.arguments) {
+    std::string num = std::to_string(i + 1);
+    Value arg_val = evaluate_expression(node_list, class_val.members.at(i).is_ref);
+    Value real_val = arg_val;
+    VarType arg_type = arg_val.type;
+    if (arg_val.heap_reference != -1) {
+      real_val = get_heap_value(arg_val.heap_reference);
+      arg_type = real_val.type;
+    }
+    if (class_val.members.at(i).is_ref && arg_val.heap_reference == -1) {
+      std::string msg = "Object argument " + num + " expected to be a reference, but value given";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    if (arg_type != utils.var_lut.at(class_val.members.at(i).type_name)) {
+      std::string msg = "Argument " + num + " expected to be " + class_val.members.at(i).type_name + ", but " + stringify(real_val) + " given";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    val.member_values.insert(std::make_pair(class_val.members.at(i).param_name, arg_val));
+    i++;
+  }
+  return {val};
+}
+
 RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   assert(call.op.op_type == Operator::FUNC);
   Value &fn_value = get_value(fn);
+  if (fn_value.type == VarType::CLASS) {
+    return construct_object(call, fn);
+  }
   if (fn_value.func.instructions.size() == 0) return {}; // might break something
   if (fn_value.type != VarType::FUNC) {
     std::string msg = stringify(fn_value) + " is not a function";

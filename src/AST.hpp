@@ -101,7 +101,7 @@ class Statement {
     ClassStatement class_stmt;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
-    Statement(const ClassStatement &_class) : class_stmt(_class) {};
+    Statement(const ClassStatement &_class) : type(CLASS), class_stmt(_class) {};
     void print(int nest = 0);
 };
 

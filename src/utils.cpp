@@ -48,6 +48,7 @@ Utils::Utils(void) {
   var_lut.insert(std::make_pair("obj", OBJ));
   var_lut.insert(std::make_pair("bool", BOOL));
   var_lut.insert(std::make_pair("func", FUNC));
+  var_lut.insert(std::make_pair("class", CLASS));
   var_lut.insert(std::make_pair("void", VOID));
 }
 

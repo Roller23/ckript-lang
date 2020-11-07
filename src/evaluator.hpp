@@ -57,6 +57,7 @@ class Evaluator {
     int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree, bool get_ref = false);
     void declare_variable(Node &declaration);
+    void register_class(ClassStatement &_class);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
     RpnElement node_to_element(Node &node);
     RpnElement var_to_element(Variable *var);
@@ -107,8 +108,10 @@ class Evaluator {
     RpnElement compare_lt(RpnElement &x, RpnElement &y);
     RpnElement compare_gt_eq(RpnElement &x, RpnElement &y);
     RpnElement compare_lt_eq(RpnElement &x, RpnElement &y);
-    // functions and threads
+    // functions
     RpnElement execute_function(RpnElement &call, RpnElement &fn);
+    // misc
+    RpnElement construct_object(RpnElement &call, RpnElement &_class);
 
     Value return_value;
 };
