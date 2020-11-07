@@ -106,6 +106,7 @@ class Declaration {
     std::string id = "";
     bool constant = false;
     bool allocated = false;
+    bool reference = false;
     NodeList var_expr;
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};

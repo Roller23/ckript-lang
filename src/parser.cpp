@@ -502,6 +502,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // type identifier = expression;
     bool allocated = this->prev.type == Token::ALLOC;
     bool constant = this->prev.type == Token::CONST;
+    bool reference = this->prev.type == Token::REF;
     if (allocated && lookahead(-2).type == Token::CONST) {
       constant = true;
     }
@@ -522,6 +523,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     var_decl.decl.var_expr = get_expression(Token::SEMI_COLON);
     var_decl.decl.allocated = allocated;
     var_decl.decl.constant = constant;
+    var_decl.decl.reference = reference;
     Node decl_stmt(Statement(StmtType::DECL));
     decl_stmt.stmt.declaration.push_back(var_decl);
     advance(); // skip the semicolon
@@ -535,12 +537,21 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       throw_error(msg, curr_token.line);
     }
     return get_statement(prev, stop);
+  } else if (curr_token.type == Token::REF) {
+    // ref declaration
+    std::cout << "found ref\n";
+    advance();
+    if (curr_token.type != Token::TYPE) {
+      std::string msg = "invalid variable reference. Expected a type, but " + curr_token.get_name() + " found";
+      throw_error(msg, curr_token.line);
+    }
+    return get_statement(prev, stop);
   } else if (curr_token.type == Token::CONST) {
     // const declaration
     std::cout << "found const\n";
     advance(); // skip the const
-    if (curr_token.type != Token::TYPE && curr_token.type != Token::ALLOC) {
-      std::string msg = "invalid constant variable declaration. Expected a type or alloc, but " + curr_token.get_name() + " found";
+    if (curr_token.type != Token::TYPE && curr_token.type != Token::ALLOC && curr_token.type != Token::REF) {
+      std::string msg = "invalid constant variable declaration. Expected a type, alloc or ref, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     return get_statement(prev, stop);

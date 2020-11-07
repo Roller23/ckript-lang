@@ -264,7 +264,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
 
 std::string Evaluator::stringify(Value &val) {
   if (val.heap_reference != -1) {
-    return stringify(get_heap_value(val.heap_reference));
+    return "reference to " + stringify(get_heap_value(val.heap_reference));
   }
   if (val.type == VarType::STR) {
     return val.string_value;
@@ -705,14 +705,19 @@ void Evaluator::declare_variable(Node &declaration) {
     ErrorHandler::throw_runtime_error(msg);
   }
   std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
-  Value var_val = evaluate_expression(decl.var_expr);
+  Value var_val = evaluate_expression(decl.var_expr, decl.reference);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
-  if (var_type != var_val.type) {
+  Utils::VarType expr_type = var_val.type;
+  if (decl.reference) {
+    expr_type = get_heap_value(var_val.heap_reference).type;
+  }
+  if (var_type != expr_type) {
     std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
     ErrorHandler::throw_runtime_error(msg);
   }
   std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
   if (decl.allocated) {
+    assert(decl.reference == false);
     std::cout << "allocating " + decl.id + " on the heap\n";
     Chunk &chunk = VM.heap.allocate();
     Variable *var = new Variable;
