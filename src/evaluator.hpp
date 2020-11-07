@@ -54,7 +54,7 @@ class Evaluator {
     bool inside_func = false;
     int nested_loops = 0;
     int execute_statement(Node &statement);
-    Value evaluate_expression(NodeList &expression_tree);
+    Value evaluate_expression(NodeList &expression_tree, bool get_ref = false);
     void declare_variable(Node &declaration);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
     RpnElement node_to_element(Node &node);

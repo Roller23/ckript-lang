@@ -17,6 +17,7 @@ std::string Token::get_name(TokenType type) {
   REG(ALLOC, "alloc");
   REG(DEL, "del");
   REG(TYPE, "type");
+  REG(REF, "ref");
   REG(CONST, "const");
   REG(STRING_LITERAL, "string");
   REG(DECIMAL, "decimal number");

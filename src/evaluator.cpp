@@ -158,7 +158,7 @@ int Evaluator::execute_statement(Node &statement) {
   return FLAG_OK;
 }
 
-Value Evaluator::evaluate_expression(NodeList &expression_tree) {
+Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
   std::cout << "Evaluating an expression\n";
   RpnStack rpn_stack;
   flatten_tree(rpn_stack, expression_tree);
@@ -169,7 +169,8 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
       if (token.op.op_type == Operator::BASIC) {
         if (utils.op_binary(token.op.type)) {
           if (res_stack.size() < 2) {
-            ErrorHandler::throw_syntax_error("Cannot perform this operation\n");
+            std::string msg = "Operator " + Token::get_name(token.op.type) + " expects two operands"; 
+            ErrorHandler::throw_syntax_error(msg);
           }
           RpnElement y = res_stack.back();
           res_stack.pop_back();
@@ -207,13 +208,17 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
           }
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
+          if (res_stack.size() < 1) {
+            std::string msg = "Operator " + Token::get_name(token.op.type) + " an operand"; 
+            ErrorHandler::throw_syntax_error(msg);
+          }
           RpnElement x = res_stack.back();
           res_stack.pop_back();
           RpnElement result;
           if (token.op.type == Token::OP_NOT) {
             result = logical_not(x);
           } else if (token.op.type == Token::OP_NEG) {
-            result = Evaluator::bitwise_not(x);
+            result = bitwise_not(x);
           } else if (token.op.type == Token::DEL) {
             result = delete_value(x);
           } else {
@@ -235,6 +240,20 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
     }
   }
   Value &res_val = res_stack.at(0).value;
+  if (get_ref) {
+    if (res_val.is_lvalue()) {
+      Variable *var = get_reference_by_name(res_val.reference_name);
+      if (var == nullptr) {
+        std::string msg = res_val.reference_name + " is not defined";
+        ErrorHandler::throw_runtime_error(msg);
+      }
+      if (var->val.heap_reference != -1) {
+        return var->val;
+      }
+    } else if (res_val.heap_reference != -1) {
+      return res_val;
+    }
+  }
   if (res_val.is_lvalue() || res_val.heap_reference > -1) {
     RpnElement wrapper = res_val;
     res_val = get_value(wrapper);
@@ -245,7 +264,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree) {
 
 std::string Evaluator::stringify(Value &val) {
   if (val.type == VarType::STR) {
-    return "\"" + val.string_value + "\"";
+    return val.string_value;
   }
   if (val.type == VarType::BOOL) {
     return val.boolean_value ? "true" : "false";
@@ -735,9 +754,17 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.func.params.size() != 0) {
     int i = 0;
     for (auto &node_list : call.op.func_call.arguments) {
-      Value arg_val = evaluate_expression(node_list);
-      if (arg_val.type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
-        std::string num = std::to_string(i + 1);
+      std::string num = std::to_string(i + 1);
+      Value arg_val = evaluate_expression(node_list, fn_value.func.params.at(i).is_ref);
+      VarType arg_type = arg_val.type;
+      if (arg_val.heap_reference != -1) {
+        arg_type = VM.heap.chunks.at(arg_val.heap_reference).data->type;
+      }
+      if (fn_value.func.params.at(i).is_ref && arg_val.heap_reference == -1) {
+        std::string msg = "Argument " + num + " expected to be a reference, but value given";
+        ErrorHandler::throw_runtime_error(msg);
+      }
+      if (arg_type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
         std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(arg_val) + " given";
         ErrorHandler::throw_runtime_error(msg);
       }

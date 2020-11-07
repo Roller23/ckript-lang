@@ -121,6 +121,12 @@ ParamList Parser::parse_func_params() {
   TokenType stop = Token::RIGHT_PAREN;
   while (true) {
     fail_if_EOF(Token::TYPE);
+    bool is_ref = false;
+    if (curr_token.type == Token::REF) {
+      is_ref = true;
+      advance(); // skip the ref
+      fail_if_EOF(Token::TYPE);
+    }
     if (curr_token.type != Token::TYPE) {
       std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
@@ -143,7 +149,9 @@ ParamList Parser::parse_func_params() {
       std::string msg = "Invalid function declaration, expected an identifier, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
-    res.push_back({type, curr_token.value});
+    FuncParam param{type, curr_token.value};
+    param.is_ref = is_ref;
+    res.push_back(param);
     advance();
     fail_if_EOF(stop);
     if (curr_token.type == stop) {
@@ -179,11 +187,17 @@ Node Parser::parse_func_expr() {
   advance(); // skip the (
   func.expr.func_expr.params = parse_func_params();
   advance(); // skip the )
+  bool returns_ref = false;
+  if (curr_token.type == Token::REF) {
+    returns_ref = true;
+    advance(); // skip the ref
+  }
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
   }
   func.expr.func_expr.ret_type = curr_token.value;
+  func.expr.func_expr.ret_ref = returns_ref;
   advance(); // skip the type
   bool starts_with_brace = curr_token.type == Token::LEFT_BRACE;
   int func_end = find_block_end();

@@ -19,6 +19,7 @@ class FuncParam {
   public:
     std::string type_name;
     std::string param_name;
+    bool is_ref = false;
     FuncParam(const std::string &_type, const std::string &_name) 
       : type_name(_type), param_name(_name) {};
 };
@@ -36,6 +37,7 @@ class FuncExpression {
     FuncType type;
     ParamList params;
     std::string ret_type;
+    bool ret_ref = false;
     NodeList instructions;
     FuncExpression(void) : type(FuncType::NONE) {};
     FuncExpression(FuncType _type) : type(_type) {};
