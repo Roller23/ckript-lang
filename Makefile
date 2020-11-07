@@ -2,11 +2,11 @@ m :=Automated Makefile push message
 CC := g++
 bin := bin/
 out := $(bin)ckript
-flags := -pthread -O0 -g
+flags := -O0 -g
 src := src/
 build := build/
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
-intput := doc/hello.ck
+intput := doc/obj.ck
 
 all: $(out)
 

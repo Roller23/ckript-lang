@@ -178,7 +178,7 @@ NodeListList Parser::get_many_expressions(TokenType sep, TokenType stop) {
 Node Parser::parse_func_expr() {
   // function(arg1, arg2, ...) type statement(s);
   Node func = Node(Expression(ExprType::FUNC_EXPR));
-  func.expr.func_expr.type = curr_token.type == Token::THREAD ? FuncType::THREAD : FuncType::FUNC;
+  func.expr.func_expr.type = FuncType::FUNC;
   advance(); // skip the function/thread
   if (curr_token.type != Token::LEFT_PAREN) {
     std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + " found";
@@ -199,7 +199,6 @@ Node Parser::parse_func_expr() {
   func.expr.func_expr.ret_type = curr_token.value;
   func.expr.func_expr.ret_ref = returns_ref;
   advance(); // skip the type
-  bool starts_with_brace = curr_token.type == Token::LEFT_BRACE;
   int func_end = find_block_end();
   TokenList func_start(tokens.begin() + pos, tokens.begin() + pos + func_end + 1); // create a subvector of tokens
   Parser func_parser(func_start, Token::NONE, "FUNC", utils);
@@ -210,13 +209,45 @@ Node Parser::parse_func_expr() {
   return func;
 }
 
+Node Parser::parse_class_stmt() {
+  Node class_expr = Node(Statement(ClassStatement()));
+  advance(); // skip the object
+  if (curr_token.type != Token::IDENTIFIER) {
+    std::string msg = "invalid class declaration, expected an identifier, but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  class_expr.stmt.class_stmt.class_name = curr_token.value;
+  advance(); // skip the identifier
+  if (curr_token.type != Token::LEFT_PAREN) {
+    std::string msg = "invalid class declaration, expected '(', but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  advance(); // skip the (
+  class_expr.stmt.class_stmt.members = parse_func_params();
+  advance(); // skip the )
+  if (curr_token.type != Token::SEMI_COLON) {
+    std::string msg = "invalid class declaration, expected ';', but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  advance(); // skip the ;
+  return class_expr;
+}
+
+Node Parser::parse_array_expr() {
+  return {};
+}
+
 Node Parser::get_expr_node() {
   std::cout << "(" + parser_name + ") - ";
   fail_if_EOF(Token::GENERAL_EXPRESSION);
   std::cout << "consuming expression\n";
-  if (curr_token.type == Token::FUNCTION || curr_token.type == Token::THREAD) {
+  if (curr_token.type == Token::FUNCTION) {
     std::cout << "found function expression\n";
     return parse_func_expr();
+  }
+  if (curr_token.type == Token::ARRAY) {
+    std::cout << "found array expression\n";
+    return parse_array_expr();
   }
   if (curr_token.type == Token::IDENTIFIER) {
     std::cout << "found an identifier expression\n";
@@ -405,6 +436,9 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == stop) {
     std::cout << "Encountered stop - " << Token::get_name(stop) << "\n";
     return prev;
+  }
+  if (curr_token.type == Token::CLASS) {
+    return parse_class_stmt();
   }
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";

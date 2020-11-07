@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <cassert>
-#include <thread>
 
 #define FLAG_OK 0
 #define FLAG_BREAK 1
@@ -280,9 +279,6 @@ std::string Evaluator::stringify(Value &val) {
   }
   if (val.type == VarType::FUNC) {
     return "function";
-  }
-  if (val.type == VarType::THR) {
-    return "thread";
   }
   if (val.type == VarType::VOID) {
     return "void";
@@ -858,7 +854,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
     return {val};
   }
   if (node.expr.type == Expression::FUNC_EXPR) {
-    val.type = node.expr.func_expr.type == FuncExpression::FUNC ? VarType::FUNC : VarType::THR;
+    val.type = VarType::FUNC;
     val.func = node.expr.func_expr;
     return {val};
   }

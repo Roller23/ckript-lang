@@ -32,7 +32,7 @@ class FuncCall {
 class FuncExpression {
   public:
     typedef enum func_type {
-      THREAD, FUNC, NONE
+      FUNC, NONE
     } FuncType;
     FuncType type;
     ParamList params;
@@ -43,11 +43,17 @@ class FuncExpression {
     FuncExpression(FuncType _type) : type(_type) {};
 };
 
+class ClassStatement {
+  public:
+    ParamList members;
+    std::string class_name;
+};
+
 class Expression {
   public:
     typedef enum expr_type {
       BINARY_OP, UNARY_OP, FUNC_CALL, FUNC_EXPR, NUM_EXPR, FLOAT_EXPR, STR_EXPR,
-      IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, LPAREN, RPAREN, INDEX, NONE
+      IDENTIFIER_EXPR, BOOL_EXPR, NOP, RPN, LPAREN, RPAREN, INDEX, ARRAY, NONE
     } ExprType;
     ExprType type;
     NodeList rpn_stack;
@@ -79,21 +85,23 @@ class Expression {
       type(NUM_EXPR),
       number_literal(literal),
       is_negative(neg) {}
-    Expression(const double literal, bool is_double) : type(FLOAT_EXPR), float_literal(literal) {}
+    Expression(const double literal, bool is_double) : type(FLOAT_EXPR), float_literal(literal) {};
     void print(int nest = 0);
 };
 
 class Statement {
   public:
     typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, BREAK, CONTINUE, NONE
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, CLASS, BREAK, CONTINUE, NONE
     } StmtType;
     StmtType type;
     NodeListList expressions;
     NodeList declaration;
     NodeList statements;
+    ClassStatement class_stmt;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
+    Statement(const ClassStatement &_class) : class_stmt(_class) {};
     void print(int nest = 0);
 };
 

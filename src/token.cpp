@@ -6,7 +6,6 @@
 std::string Token::get_name(TokenType type) {
   // trust me there's no better way
   REG(FUNCTION, "function");
-  REG(THREAD, "thread");
   REG(RETURN, "return");
   REG(IF, "if");
   REG(ELSE, "else");
@@ -25,6 +24,8 @@ std::string Token::get_name(TokenType type) {
   REG(HEX, "hex number");
   REG(OCTAL, "octal number");
   REG(BINARY, "binary number");
+  REG(ARRAY, "array");
+  REG(CLASS, "class");
   REG(OP_EQ, "==");
   REG(OP_NOT_EQ, "!=");
   REG(OP_GT_EQ, ">=");

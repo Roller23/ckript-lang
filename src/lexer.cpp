@@ -13,7 +13,7 @@
 
 static const char *_builtin_types[] = {
   "int", "double",
-  "func", "thr", "str", "void",
+  "func", "str", "void",
   "obj", "arr"
 };
 
@@ -113,9 +113,9 @@ TokenList Lexer::tokenize(const std::string &code) {
         if (token_str == "function") {
           log("token [FUNCTION], ");
           add_token(Token::FUNCTION);
-        } else if (token_str == "thread") {
-          log("token [THREAD], ");
-          add_token(Token::THREAD);
+        } else if (token_str == "class") {
+          log("token [class], ");
+          add_token(Token::CLASS);
         } else if (token_str == "return") {
           log("token [RETURN], ");
           add_token(Token::RETURN);
