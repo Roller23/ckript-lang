@@ -22,6 +22,8 @@ class Value {
     ParamList members;
     std::map<std::string, Value> member_values;
     std::string class_name;
+    std::string member_name;
+    bool is_member = false;
     bool is_lvalue();
     Value(void) : type(Utils::UNKNOWN) {};
     Value(Utils::VarType _type) : type(_type) {};

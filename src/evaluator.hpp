@@ -34,7 +34,7 @@ class RpnElement {
     Value value;
     RpnElement(void) : type(UNKNOWN) {};
     RpnElement(Operator _op) : type(OPERATOR), op(_op) {};
-    RpnElement(Value val) : type(VALUE), value(val) {};
+    RpnElement(Value &val) : type(VALUE), value(val) {};
 };
 
 typedef std::vector<RpnElement> RpnStack;
@@ -67,6 +67,7 @@ class Evaluator {
     double to_double(Value &val);
     Value &get_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
+    std::string get_reference_name(Value &val);
 
     // Unary
     RpnElement logical_not(RpnElement &x);
@@ -111,6 +112,7 @@ class Evaluator {
     // functions
     RpnElement execute_function(RpnElement &call, RpnElement &fn);
     // misc
+    RpnElement access_member(RpnElement &x, RpnElement &y);
     RpnElement construct_object(RpnElement &call, RpnElement &_class);
 
     Value return_value;
