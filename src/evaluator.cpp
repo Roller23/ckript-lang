@@ -69,15 +69,27 @@ int Evaluator::execute_statement(Node &statement) {
     }
   }
   if (statement.stmt.type == StmtType::BREAK) {
+    if (!nested_loops) {
+      std::string msg = "break statement outside of loops is illegal";
+      ErrorHandler::throw_runtime_error(msg);
+    }
     std::cout << "break loop\n";
     return FLAG_BREAK;
   }
   if (statement.stmt.type == StmtType::CONTINUE) {
+    if (!nested_loops) {
+      std::string msg = "continue statement outside of loops is illegal";
+      ErrorHandler::throw_runtime_error(msg);
+    }
     std::cout << "continue loop\n";
     return FLAG_CONTINUE;
   }
   if (statement.stmt.type == StmtType::RETURN) {
-    if (statement.stmt.expressions.size() != 0) {
+    if (!inside_func) {
+      std::string msg = "return statement outside of functions is illegal";
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions.at(0).size() != 0) {
       NodeList return_expr = statement.stmt.expressions.at(0);
       return_value = evaluate_expression(return_expr);
     }
@@ -87,6 +99,7 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::WHILE) {
     if (statement.stmt.expressions.size() == 0) return FLAG_OK;
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
+    nested_loops++;
     while (true) {
       NodeList cond = statement.stmt.expressions.at(0); // make a copy
       Value result = evaluate_expression(cond);
@@ -94,19 +107,19 @@ int Evaluator::execute_statement(Node &statement) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         ErrorHandler::throw_runtime_error(msg);
       }
-      if (!result.boolean_value) {
-        break;
-      }
+      if (!result.boolean_value) break;
       Node stmt = statement.stmt.statements.at(0); // make a copy
       int flag = execute_statement(stmt);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
     }
+    nested_loops--;
   }
   if (statement.stmt.type == StmtType::FOR) {
     if (statement.stmt.expressions.size() != 3) return FLAG_OK; // TO DO
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
     evaluate_expression(statement.stmt.expressions.at(0));
+    nested_loops++;
     while (true) {
       NodeList cond = statement.stmt.expressions.at(1); // make a copy
       Value result = evaluate_expression(cond);
@@ -114,9 +127,7 @@ int Evaluator::execute_statement(Node &statement) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         ErrorHandler::throw_runtime_error(msg);
       }
-      if (!result.boolean_value) {
-        break;
-      }
+      if (!result.boolean_value) break;
       Node stmt = statement.stmt.statements.at(0); // make a copy
       int flag = execute_statement(stmt);
       if (flag == FLAG_BREAK) break;
@@ -124,6 +135,7 @@ int Evaluator::execute_statement(Node &statement) {
       NodeList post_expr = statement.stmt.expressions.at(2);
       evaluate_expression(post_expr);
     }
+    nested_loops--;
   }
   if (statement.stmt.type == StmtType::IF) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
@@ -718,6 +730,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
 
   Node fn_AST = fn_value.func.instructions.at(0);
   Evaluator func_evaluator(fn_AST, VM, utils);
+  func_evaluator.inside_func = true;
 
   if (fn_value.func.params.size() != 0) {
     int i = 0;
@@ -748,7 +761,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
     std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
     ErrorHandler::throw_runtime_error(msg);
-    return {func_evaluator.return_value};
+    return {};
   }
   return {func_evaluator.return_value};
 }

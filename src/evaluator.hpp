@@ -51,6 +51,8 @@ class Evaluator {
     void start();
   private:
     CallStack stack;
+    bool inside_func = false;
+    int nested_loops = 0;
     int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree);
     void declare_variable(Node &declaration);
