@@ -79,7 +79,7 @@ str pi_str = "this is pi " + 3.14; // will stringify the number
 
 ## Memory allocation
 
-Used ``alloc`` to allocate something on the heap, ``del`` to delete from the heap, ``ref`` to get the pointer of that value
+Use ``alloc`` to allocate something on the heap, ``del`` to delete from the heap, ``ref`` to get the pointer of that value
 
 ```
 alloc int a = 5;
