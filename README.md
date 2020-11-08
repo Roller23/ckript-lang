@@ -35,7 +35,7 @@ func square = function(int x) int {
 All functions are lambdas (values of type func)
 
 ```
-int four = (function(int x) {
+int four = (function(int x) int {
   return x * x;
 })(2); // immediate invocation
 ```
