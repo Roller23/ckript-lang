@@ -12,16 +12,16 @@ Built in types
 * obj
 * func
 
-Declaring variables
+##Declaring variables
 
 ```
 int number = 5;
 ```
 
-Declaring functions
+##Declaring functions
 
 ```
-func name = function(args...) return_type { function_body };
+func name = function(type args...) return_type { function_body };
 ```
 
 Example:
@@ -54,7 +54,15 @@ square(5, function(int result) void {
 
 ```
 
-Memory allocation
+##Strings
+
+```
+str string = "something";
+str string2 = string + " new"; // concatenation
+str pi_str = "this is pi " + 3.14; // will stringify the number
+```
+
+##Memory allocation
 
 Used ``alloc`` to allocate something on the heap, ``del`` to delete from the heap, ``ref`` to get the pointer of that value
 
@@ -79,7 +87,7 @@ del pi_copy; // will fail
 
 Function arguments can also take references
 
-Arrays
+##Arrays
 
 ```
 arr my_array1 = array() int; // empty array that holds ints
@@ -95,7 +103,7 @@ int element = array[1]; // getting the value
 
 ```
 
-Objects
+##Objects and classes
 
 Define a class like so
 
