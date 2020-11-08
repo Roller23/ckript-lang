@@ -214,12 +214,14 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           REG(OP_AND, logical_and)
           REG(LSHIFT, shift_left)
           REG(RSHIFT, shift_right)
+          REG(OP_XOR, bitwise_xor)
+          REG(OP_AND_BIT, bitwise_and)
+          REG(OP_OR_BIT, bitwise_or)
           REG(RSHIFT_ASSIGN, rshift_assign)
           REG(LSHIFT_ASSIGN, lshift_assign)
           REG(AND_ASSIGN, and_assign)
           REG(OR_ASSIGN, or_assign)
-          REG(XOR_ASSIGN, xor_assign)
-          {
+          REG(XOR_ASSIGN, xor_assign) {
             std::string msg = "Unknown binary operator " + Token::get_name(token.op.type);
             throw_error(msg);
           }
@@ -384,6 +386,24 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   Value val;
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
+  if (x_val.type == VarType::ARR) {
+    if (y_val.type == utils.var_lut.at(x_val.array_type)) {
+      // append to array
+      x_val.array_values.push_back(y_val);
+      return {x_val};
+    } else {
+      throw_error("Cannot append " + stringify(y_val) + " an array of " + x_val.array_type + "s");
+    }
+  }
+  if (y_val.type == VarType::ARR) {
+    if (x_val.type == utils.var_lut.at(y_val.array_type)) {
+      // prepend to array
+      y_val.array_values.insert(y_val.array_values.begin(), x_val);
+      return {x_val};
+    } else {
+      throw_error("Cannot prepend " + stringify(x_val) + " an array of " + y_val.array_type + "s");
+    }
+  }
   if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
     std::string str1 = stringify(x_val);
     std::string str2 = stringify(y_val);
@@ -519,7 +539,29 @@ RpnElement Evaluator::bitwise_or(RpnElement &x, RpnElement &y) {
 }
 
 RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
-  BITWISE(^, "xor")
+  Value &x_val = get_value(x);
+  Value &y_val = get_value(y);
+  if (x_val.type == VarType::ARR && y_val.type == VarType::ARR) {
+    // concat arrays
+    if (x_val.array_type == y_val.array_type) {
+      // vector1.insert( vector1.end(), vector2.begin(), vect
+      x_val.array_values.insert(x_val.array_values.end(), y_val.array_values.begin(), y_val.array_values.end());
+      return {x_val};
+    } else {
+      std::string msg = "Cannot concatenate arrays of type " + x_val.array_type + " and " + y_val.array_type;
+      throw_error(msg);
+    }
+  }
+  Value val;
+  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    std::cout << stringify(x_val) << " ^ " << stringify(y_val) << "\n";
+    val.type = VarType::INT;
+    val.number_value = x_val.number_value ^ y_val.number_value;
+    return {val};
+  }
+  std::string msg = "Cannot perform bitwise xor on " + stringify(x_val) + " and " + stringify(y_val);
+  throw_error(msg);
+  return {};
 }
 
 RpnElement Evaluator::shift_left(RpnElement &x, RpnElement &y) {
@@ -980,6 +1022,20 @@ RpnElement Evaluator::node_to_element(Node &node) {
   if (node.expr.type == Expression::FUNC_EXPR) {
     val.type = VarType::FUNC;
     val.func = node.expr.func_expr;
+    return {val};
+  }
+  if (node.expr.type == Expression::ARRAY) {
+    val.type = VarType::ARR;
+    val.array_type = node.expr.array_type;
+    val.array_values.reserve(node.expr.array_expressions.size());
+    for (auto &node_list : node.expr.array_expressions) {
+      Value array_element = evaluate_expression(node_list);
+      if (array_element.type != utils.var_lut.at(node.expr.array_type)) {
+        std::string msg = "Cannot add " + stringify(array_element) + " to an array of " + node.expr.array_type + "s";
+        throw_error(msg);
+      }
+      val.array_values.push_back(array_element);
+    }
     return {val};
   }
   throw_error("Unidentified expression type!\n");

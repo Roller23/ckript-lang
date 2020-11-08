@@ -21,6 +21,8 @@ class Value {
     std::vector<Value> func_this;
     ParamList members;
     std::map<std::string, Value> member_values;
+    std::vector<Value> array_values;
+    std::string array_type;
     std::string class_name;
     std::string member_name;
     bool is_member = false;
