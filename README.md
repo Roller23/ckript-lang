@@ -64,8 +64,8 @@ ref int a_ptr = a;
 
 del a_ptr;
 
-// both a and a_ptr point to nothing now
-
+// 'a_ptr' is no longer a pointer
+// 'a' points still points to a location on the heap and using it may cause undefined behavior
 ```
 
 Assigning an allocated variable to a variable that is not a reference will copy the actual value
