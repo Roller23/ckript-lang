@@ -24,11 +24,15 @@
     return {val};\
   }\
   std::string msg = "Cannot perform bitwise " NAME " on " + stringify(x_val) + " and " + stringify(y_val);\
-  ErrorHandler::throw_runtime_error(msg);\
+  throw_error(msg);\
   return {};
 
 typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
+
+void Evaluator::throw_error(const std::string &cause) {
+  ErrorHandler::throw_runtime_error(cause, current_line);
+}
 
 void Evaluator::start() {
   stack.reserve(1000);
@@ -51,6 +55,7 @@ void Evaluator::start() {
 }
 
 int Evaluator::execute_statement(Node &statement) {
+  current_line = statement.stmt.line;
   if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
   std::cout << "Executing a statement\n";
   if (statement.stmt.type == StmtType::EXPR) {
@@ -84,7 +89,7 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::BREAK) {
     if (!nested_loops) {
       std::string msg = "break statement outside of loops is illegal";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     std::cout << "break loop\n";
     return FLAG_BREAK;
@@ -92,7 +97,7 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::CONTINUE) {
     if (!nested_loops) {
       std::string msg = "continue statement outside of loops is illegal";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     std::cout << "continue loop\n";
     return FLAG_CONTINUE;
@@ -100,7 +105,7 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::RETURN) {
     if (!inside_func) {
       std::string msg = "return statement outside of functions is illegal";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions.at(0).size() != 0) {
       NodeList return_expr = statement.stmt.expressions.at(0);
@@ -118,7 +123,7 @@ int Evaluator::execute_statement(Node &statement) {
       Value result = evaluate_expression(cond);
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
-        ErrorHandler::throw_runtime_error(msg);
+        throw_error(msg);
       }
       if (!result.boolean_value) break;
       Node stmt = statement.stmt.statements.at(0); // make a copy
@@ -138,7 +143,7 @@ int Evaluator::execute_statement(Node &statement) {
       Value result = evaluate_expression(cond);
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
-        ErrorHandler::throw_runtime_error(msg);
+        throw_error(msg);
       }
       if (!result.boolean_value) break;
       Node stmt = statement.stmt.statements.at(0); // make a copy
@@ -156,7 +161,7 @@ int Evaluator::execute_statement(Node &statement) {
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
     if (result.type != VarType::BOOL) {
       std::string msg = "Expected a boolean value in if statement, found " + stringify(result);
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     if (result.boolean_value) {
       int flag = execute_statement(statement.stmt.statements.at(0));
@@ -219,7 +224,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           REG(XOR_ASSIGN, xor_assign)
           {
             std::string msg = "Unknown binary operator " + Token::get_name(token.op.type);
-            ErrorHandler::throw_runtime_error(msg);
+            throw_error(msg);
           }
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
@@ -238,7 +243,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
             result = delete_value(x);
           } else {
             std::string msg = "Unknown unary operator " + Token::get_name(token.op.type);
-            ErrorHandler::throw_runtime_error(msg);
+            throw_error(msg);
           }
           res_stack.push_back(result);
         }
@@ -260,7 +265,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
       Variable *var = get_reference_by_name(res_val.reference_name);
       if (var == nullptr) {
         std::string msg = res_val.reference_name + " is not defined";
-        ErrorHandler::throw_runtime_error(msg);
+        throw_error(msg);
       }
       if (var->val.heap_reference != -1) {
         return var->val;
@@ -324,7 +329,7 @@ double Evaluator::to_double(Value &val) {
   if (val.type == VarType::INT) {
     return (double)val.number_value;
   }
-  ErrorHandler::throw_runtime_error("Cannot convert " + stringify(val) + " to double");
+  throw_error("Cannot convert " + stringify(val) + " to double");
   return 0;
 }
 
@@ -337,7 +342,7 @@ RpnElement Evaluator::logical_not(RpnElement &x) {
     val.boolean_value = !x_val.boolean_value;
     return {val};
   }
-  ErrorHandler::throw_runtime_error("Cannot perform logical not on " + stringify(val) + "\n");
+  throw_error("Cannot perform logical not on " + stringify(val) + "\n");
   return {};
 }
 
@@ -350,26 +355,26 @@ RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
     val.number_value = ~x_val.number_value;
     return {val};
   }
-  ErrorHandler::throw_runtime_error("Cannot perform bitwise not on " + stringify(val) + "\n");
+  throw_error("Cannot perform bitwise not on " + stringify(val) + "\n");
   return {};
 }
 
 RpnElement Evaluator::delete_value(RpnElement &x) {
   if (!x.value.is_lvalue()) {
-    ErrorHandler::throw_runtime_error("Cannot delete an rvalue " + stringify(x.value) + "\n");
+    throw_error("Cannot delete an rvalue " + stringify(x.value) + "\n");
   }
   Variable *var = get_reference_by_name(x.value.reference_name);
   if (var == nullptr) {
-    ErrorHandler::throw_runtime_error(x.value.reference_name + " is not defined");
+    throw_error(x.value.reference_name + " is not defined");
   }
   if (var->val.heap_reference == -1) {
-    ErrorHandler::throw_runtime_error(x.value.reference_name + " is not allocated on heap");
+    throw_error(x.value.reference_name + " is not allocated on heap");
   }
   if (var->val.heap_reference >= VM.heap.chunks.size()) {
-    ErrorHandler::throw_runtime_error("deleting a value that is not on the heap");
+    throw_error("deleting a value that is not on the heap");
   }
   if (VM.heap.chunks.at(var->val.heap_reference).used == false) {
-    ErrorHandler::throw_runtime_error("double delete");
+    throw_error("double delete");
   }
   std::cout << "deleting " << x.value.reference_name << "\n";
   VM.heap.free(var);
@@ -407,7 +412,7 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform addition on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -432,7 +437,7 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -457,7 +462,7 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform multiplication on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -467,7 +472,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
   Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     if (y_val.number_value == 0) {
-      ErrorHandler::throw_runtime_error("Cannot divide by zero");
+      throw_error("Cannot divide by zero");
     }
     std::cout << "dividing " << x_val.number_value << " by " << y_val.number_value << "\n";
     val.type = VarType::INT;
@@ -479,7 +484,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
     if (f2 == 0.0f) {
-      ErrorHandler::throw_runtime_error("Cannot divide by zero");
+      throw_error("Cannot divide by zero");
     }
     std::cout << "dividing " << f1 << " by " << f2 << "\n";
     val.type = VarType::FLOAT;
@@ -488,7 +493,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -504,7 +509,7 @@ RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform modulo on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -539,7 +544,7 @@ RpnElement Evaluator::logical_and(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform logical and on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -554,33 +559,33 @@ RpnElement Evaluator::logical_or(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot perform logical or on " + stringify(x_val) + " and " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
 RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
   if (!x.value.is_lvalue()) {
     std::string msg = "Cannot assign to an rvalue";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   Variable *var = get_reference_by_name(x.value.reference_name);
   if (var == nullptr) {
     std::string msg = x.value.reference_name + " is not defined";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   if (var->constant) {
     std::string msg = "Cannot reassign a constant variable (" + x.value.reference_name + ")";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   Value &x_value = get_value(x);
   Value y_value = get_value(y);
   if (x_value.type == VarType::UNKNOWN) {
     std::string msg = x_value.reference_name + " doesn't point to anything on the heap";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   if (x_value.type != y_value.type) {
     std::string msg = "Cannot assign " + stringify(y_value) + " to " + x_value.reference_name;
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   std::string ref_name = x_value.reference_name;
   x_value = y_value;
@@ -640,16 +645,16 @@ RpnElement Evaluator::xor_assign(RpnElement &x, RpnElement &y) {
 
 RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
   if (!y.value.is_lvalue()) {
-    ErrorHandler::throw_runtime_error("Object members can only be accessed with lvalues");
+    throw_error("Object members can only be accessed with lvalues");
   }
   Value &obj = get_value(x);
   if (obj.type != VarType::OBJ) {
     std::string msg = stringify(obj) + " is not an object";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   if (obj.member_values.find(y.value.reference_name) == obj.member_values.end()) {
     std::string msg = "Object has no member named " + y.value.reference_name;
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   Value &val = obj.member_values.at(y.value.reference_name);
   return {val};
@@ -683,7 +688,7 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -716,7 +721,7 @@ RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
     return {val};
   }
   std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
-  ErrorHandler::throw_runtime_error(msg);
+  throw_error(msg);
   return {};
 }
 
@@ -740,7 +745,7 @@ RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
 void Evaluator::register_class(ClassStatement &_class) {
   if (get_reference_by_name(_class.class_name) != nullptr) {
     std::string msg = _class.class_name + " is already defined";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   std::cout << "Declaring a class " << _class.class_name << "\n";
   Variable *var = new Variable;
@@ -755,7 +760,7 @@ void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
   if (get_reference_by_name(decl.id) != nullptr) {
     std::string msg = decl.id + " is already defined";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
   Value var_val = evaluate_expression(decl.var_expr, decl.reference);
@@ -766,7 +771,7 @@ void Evaluator::declare_variable(Node &declaration) {
   }
   if (var_type != expr_type) {
     std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
   if (decl.allocated) {
@@ -800,13 +805,13 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
       args_counter++;
     } else {
       std::string msg = "Illegal object invocation, missing members";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
   }
   if (args_counter != class_val.members.size()) {
     std::string msg = _class.value.reference_name + " has " + std::to_string(class_val.members.size());
     msg += " members, " + std::to_string(args_counter) + " given";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   val.class_name = _class.value.reference_name;
   val.type = VarType::OBJ;
@@ -823,11 +828,11 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
     }
     if (class_val.members.at(i).is_ref && arg_val.heap_reference == -1) {
       std::string msg = "Object argument " + num + " expected to be a reference, but value given";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     if (arg_type != utils.var_lut.at(class_val.members.at(i).type_name)) {
       std::string msg = "Argument " + num + " expected to be " + class_val.members.at(i).type_name + ", but " + stringify(real_val) + " given";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     arg_val.is_member = true;
     arg_val.member_name = class_val.members.at(i).param_name;
@@ -853,7 +858,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.func.instructions.size() == 0) return {}; // might break something
   if (fn_value.type != VarType::FUNC) {
     std::string msg = stringify(fn_value) + " is not a function";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   int args_counter = 0;
   for (auto &arg : call.op.func_call.arguments) {
@@ -861,14 +866,14 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       args_counter++;
     } else if (args_counter != 0) {
       std::string msg = "Illegal function invocation, missing arguments";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
   }
   if (args_counter != fn_value.func.params.size()) {
     std::string params_expected = std::to_string(fn_value.func.params.size());
     std::string params_given = std::to_string(args_counter);
     std::string msg = stringify(fn_value) + " expects " + params_expected + " argument(s), " + params_given + " given";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
 
   Node fn_AST = fn_value.func.instructions.at(0);
@@ -889,11 +894,11 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       }
       if (fn_value.func.params.at(i).is_ref && arg_val.heap_reference == -1) {
         std::string msg = "Argument " + num + " expected to be a reference, but value given";
-        ErrorHandler::throw_runtime_error(msg);
+        throw_error(msg);
       }
       if (arg_type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
         std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(real_val) + " given";
-        ErrorHandler::throw_runtime_error(msg);
+        throw_error(msg);
       }
       Variable *var = new Variable;
       var->id = fn_value.func.params.at(i).param_name;
@@ -923,14 +928,14 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.func.ret_ref) {
     if (func_evaluator.return_value.heap_reference == -1) {
       std::string msg = "function returns a reference, but " + stringify(func_evaluator.return_value) + " was returned";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
       return {};
     }
     return {func_evaluator.return_value};
   } else {
     if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
       std::string msg = "function return type is " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
       return {};
     }
     return {func_evaluator.return_value};
@@ -980,7 +985,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
     val.func = node.expr.func_expr;
     return {val};
   }
-  ErrorHandler::throw_runtime_error("Unidentified expression type!\n");
+  throw_error("Unidentified expression type!\n");
   return {};
 }
 
@@ -999,7 +1004,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   Variable *var = get_reference_by_name(base);
   if (var == nullptr) {
     std::string msg = base + " is not defined";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   Value *val = var->val.heap_reference != -1 ? &get_heap_value(var->val.heap_reference) : &var->val;
   std::vector<Value *> references;
@@ -1013,7 +1018,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
     if (temp->member_values.find(member) == temp->member_values.end()) {
       std::string msg = prev + " has no member " + member;
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     references.push_back(&temp->member_values.at(member));
     prev = member;
@@ -1029,7 +1034,7 @@ Value &Evaluator::get_value(RpnElement &el) {
     Variable *var = get_reference_by_name(el.value.reference_name);
     if (var == nullptr) {
       std::string msg = el.value.reference_name + " is not defined";
-      ErrorHandler::throw_runtime_error(msg);
+      throw_error(msg);
     }
     std::cout << "var heap reference " << var->val.heap_reference << "\n";
     if (var->val.heap_reference > -1) {
@@ -1046,12 +1051,12 @@ Value &Evaluator::get_value(RpnElement &el) {
 Value &Evaluator::get_heap_value(std::int64_t ref) {
   if (ref >= VM.heap.chunks.size()) {
     std::string msg = "dereferencing a value that is not on the heap";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   Value *ptr = VM.heap.chunks.at(ref).data;
   if (ptr == nullptr) {
     std::string msg = "dereferencing a null pointer";
-    ErrorHandler::throw_runtime_error(msg);
+    throw_error(msg);
   }
   return *ptr;
 }

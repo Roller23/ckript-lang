@@ -216,6 +216,7 @@ Node Parser::parse_func_expr() {
 
 Node Parser::parse_class_stmt() {
   Node class_expr = Node(Statement(ClassStatement()));
+  class_expr.stmt.line = curr_token.line;
   advance(); // skip the object
   if (curr_token.type != Token::IDENTIFIER) {
     std::string msg = "invalid class declaration, expected an identifier, but " + curr_token.get_name() + " found";
@@ -449,6 +450,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "found $\n";
     advance(); // skip the $
     Node set(Statement(StmtType::SET));
+    set.stmt.line = curr_token.line;
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "invalid set statement. Expected an identifier, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
@@ -482,6 +484,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // { statement(s) }
     advance(); // skip the {
     Node comp(Statement(StmtType::COMPOUND));
+    comp.stmt.line = curr_token.line;
     int block_end = find_enclosing_brace(pos, 1);
     TokenList block_start(tokens.begin() + pos, tokens.begin() + pos + block_end + 1); // create a subvector of tokens
     Parser block_parser(block_start, Token::RIGHT_BRACE, "BLOCK", utils);
@@ -493,6 +496,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::IF) {
     std::cout << "Found if\n";
     // if (expression) statement
+    std::uint64_t line = curr_token.line;
     advance(); // skip the if keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid if statement
@@ -500,6 +504,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       throw_error(msg, curr_token.line);
     }
     Node if_stmt = Node(Statement(StmtType::IF));
+    if_stmt.stmt.line = line;
     advance(); // skip the (
     NodeList rpn = get_expression(Token::RIGHT_PAREN);
     if_stmt.stmt.expressions.push_back(rpn);
@@ -513,6 +518,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::WHILE) {
     std::cout << "Found while\n";
     // while (expression) statement
+    std::uint64_t line = curr_token.line;
     advance(); // skip the while keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid while statement
@@ -520,6 +526,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       throw_error(msg, curr_token.line);
     }
     Node while_stmt = Node(Statement(StmtType::WHILE));
+    while_stmt.stmt.line = line;
     advance(); // skip the (
     NodeList rpn = get_expression(Token::RIGHT_PAREN);
     while_stmt.stmt.expressions.push_back(rpn);
@@ -529,6 +536,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::FOR) {
     std::cout << "Found for\n";
     // for (expression; expression; expression) statement
+    std::uint64_t line = curr_token.line;
     advance(); // skip the for keyword
     if (curr_token.type != Token::LEFT_PAREN) {
       // invalid for statement
@@ -536,6 +544,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       throw_error(msg, curr_token.line);
     }
     Node for_stmt = Node(Statement(StmtType::FOR));
+    for_stmt.stmt.line = line;
     advance(); // skip the (
     for_stmt.stmt.expressions = get_many_expressions(Token::SEMI_COLON, Token::RIGHT_PAREN);
     advance(); // skip the )
@@ -544,30 +553,38 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else if (curr_token.type == Token::RETURN) {
     std::cout << "Found return\n";
     // return expression;
+    std::uint64_t line = curr_token.line;
     advance(); // skip the return
     Node return_stmt(Statement(StmtType::RETURN));
+    return_stmt.stmt.line = line;
     NodeList rpn = get_expression(Token::SEMI_COLON);
     return_stmt.stmt.expressions.push_back(rpn);
     advance(); // skip the semicolon
     return return_stmt;
   } else if (curr_token.type == Token::BREAK) {
     std::cout << "found break\n";
+    std::uint64_t line = curr_token.line;
     advance(); // skip the break
     if (curr_token.type != Token::SEMI_COLON) {
       std::string msg = "expected ';', but " + curr_token.get_name() + " found";
       ErrorHandler::throw_syntax_error(msg);
     }
     advance(); // skip the ;
-    return Statement(StmtType::BREAK);
+    Node break_stmt = Statement(StmtType::BREAK);
+    break_stmt.stmt.line = line;
+    return break_stmt;
   } else if (curr_token.type == Token::CONTINUE) {
     std::cout << "found continue\n";
+    std::uint64_t line = curr_token.line;
     advance(); // skip the continue
     if (curr_token.type != Token::SEMI_COLON) {
       std::string msg = "expected ';', but " + curr_token.get_name() + " found";
       ErrorHandler::throw_syntax_error(msg);
     }
     advance(); // skip the ;
-    return Statement(StmtType::CONTINUE);
+    Node continue_stmt = Statement(StmtType::CONTINUE);
+    continue_stmt.stmt.line = line;
+    return continue_stmt;
   } else if (curr_token.type == Token::TYPE) {
     std::cout << "Found type\n";
     // type identifier = expression;
@@ -578,6 +595,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       constant = true;
     }
     Node var_decl = Node(Declaration(DeclType::VAR_DECL));
+    var_decl.decl.line = curr_token.line;
     var_decl.decl.var_type = curr_token.value;
     advance(); // skip the variable type
     if (curr_token.type != Token::IDENTIFIER) {
@@ -630,6 +648,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     std::cout << "no operation\n";
     // nop;
     Node nop_stmt(Statement(StmtType::NOP));
+    nop_stmt.stmt.line = curr_token.line;
     advance(); // skip the semicolon
     return nop_stmt;
   } else if (curr_token.type == this->terminal) {
@@ -639,9 +658,11 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   } else {
     std::cout << "found an expression\n";
     // expression;
+    std::uint64_t line = curr_token.line;
     NodeList expr = get_expression(Token::SEMI_COLON);
     Node expr_stmt(Statement(StmtType::EXPR));
     expr_stmt.stmt.expressions.push_back(expr);
+    expr_stmt.stmt.line = line;
     advance(); // skip the semicolon
     return expr_stmt;
   }

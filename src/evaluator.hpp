@@ -56,6 +56,8 @@ class Evaluator {
     bool inside_func = false;
     bool returns_ref = false;
     int nested_loops = 0;
+    std::uint64_t current_line = 0;
+    void throw_error(const std::string &cause);
     int execute_statement(Node &statement);
     Value evaluate_expression(NodeList &expression_tree, bool get_ref = false);
     void declare_variable(Node &declaration);

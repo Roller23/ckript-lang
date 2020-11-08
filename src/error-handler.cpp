@@ -8,7 +8,7 @@
 void ErrorHandler::throw_generic_error(const std::string &cause, std::uint32_t line) {
   std::cout << cause;
   if (line != 0) {
-    std::cout << " on line " << line;
+    std::cout << " (line " << line << ")";
   }
   std::cout << std::endl;
   std::exit(EXIT_FAILURE);

@@ -100,6 +100,7 @@ class Statement {
     NodeList statements;
     ClassStatement class_stmt;
     std::vector<std::string> obj_members;
+    std::uint64_t line = 0;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
     Statement(const ClassStatement &_class) : type(CLASS), class_stmt(_class) {};
@@ -116,6 +117,7 @@ class Declaration {
     bool constant = false;
     bool allocated = false;
     bool reference = false;
+    std::uint64_t line = 0;
     NodeList var_expr;
     DeclType type;
     Declaration(void) : type(DeclType::NONE) {};
