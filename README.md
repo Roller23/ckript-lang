@@ -1,4 +1,13 @@
 # Ckript language
 An interpreter for my own programming language (Ckript)
 
-WIP
+Cheatsheet:
+
+Built in types
+
+* int
+* str
+* double
+* arr
+* obj
+* func
