@@ -11,7 +11,7 @@ Usage:
 ```
 or
 ```
-./skript
+./ckript
 ```
 (will launch the Ckript shell)
 
@@ -167,5 +167,28 @@ alloc str type = "monkey";
 obj monkey = Animal(type, Food("banana"));
 
 monkey.food.name; // banana
+```
 
+## if statement
+
+```
+if (condition) {
+  // statements
+} else {
+  // else branch
+}
+```
+
+## while and for statements
+
+```
+while (condition) {
+  // do stuff
+  break; // break out of the loop
+  continue; skip one iteration
+}
+
+for (expression; condition; increment) {
+  // do stuff
+}
 ```
