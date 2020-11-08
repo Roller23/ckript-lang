@@ -717,7 +717,7 @@ RpnElement Evaluator::access_index(RpnElement &arr, RpnElement &idx) {
     throw_error(msg);
   }
   if (index.number_value < 0 || index.number_value >= array.array_values.size()) {
-    std::string msg = "index [" + std::to_string(index.number_value) + "] out of range  found";
+    std::string msg = "index [" + std::to_string(index.number_value) + "] out of range";
     throw_error(msg);
   }
   Value &res = array.array_values.at(index.number_value);
@@ -1112,7 +1112,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   }
   Value rvalue = evaluate_expression(expression);
   if (references.back()->type != rvalue.type) {
-    std::string msg = "Cannot assign " + stringify(rvalue) + " to this member";
+    std::string msg = "Cannot assign " + stringify(rvalue) + ", incorrect type";
     throw_error(msg);
   }
   *references.back() = rvalue;
@@ -1147,7 +1147,7 @@ void Evaluator::set_index(Statement &stmt) {
   }
   Value rvalue = evaluate_expression(stmt.expressions.at(0));
   if (references.back()->type != rvalue.type) {
-    std::string msg = "Cannot assign " + stringify(rvalue) + " to this member";
+    std::string msg = "Cannot assign " + stringify(rvalue) + ", incorrect type";
     throw_error(msg);
   }
   *references.back() = rvalue;
@@ -1176,7 +1176,7 @@ Value &Evaluator::get_value(RpnElement &el) {
 }
 
 Value &Evaluator::get_heap_value(std::int64_t ref) {
-  if (ref >= VM.heap.chunks.size()) {
+  if (ref < 0 || ref >= VM.heap.chunks.size()) {
     std::string msg = "dereferencing a value that is not on the heap";
     throw_error(msg);
   }
