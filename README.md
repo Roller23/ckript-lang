@@ -1,6 +1,20 @@
 # Ckript language
 An interpreter for my own programming language (Ckript)
 
+Compile with g++ (clang++ won't compile it). MingGW and MSVC have not been tested yet.
+If you have g++ and make installed simply running ``make`` should compile the whole project.
+
+Usage:
+
+```
+./ckript <input file>
+```
+or
+```
+./skript
+```
+(will launch the Ckript shell)
+
 Cheatsheet:
 
 Built in types
