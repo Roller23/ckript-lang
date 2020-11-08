@@ -35,14 +35,14 @@ void Evaluator::throw_error(const std::string &cause) {
 }
 
 void Evaluator::start() {
-  stack.reserve(1000);
+  stack.reserve(100);
   for (auto &statement : AST.children) {
     int flag = execute_statement(statement);
     if (flag == FLAG_RETURN) {
       break;
     }
   }
-  if (stream) return;
+  if (stream) return; // retain callstack
   // empty the callstack
   while (stack.size()) {
     Variable *var = stack.back();
@@ -88,24 +88,21 @@ int Evaluator::execute_statement(Node &statement) {
   }
   if (statement.stmt.type == StmtType::BREAK) {
     if (!nested_loops) {
-      std::string msg = "break statement outside of loops is illegal";
-      throw_error(msg);
+      throw_error("break statement outside of loops is illegal");
     }
     std::cout << "break loop\n";
     return FLAG_BREAK;
   }
   if (statement.stmt.type == StmtType::CONTINUE) {
     if (!nested_loops) {
-      std::string msg = "continue statement outside of loops is illegal";
-      throw_error(msg);
+      throw_error("continue statement outside of loops is illegal");
     }
     std::cout << "continue loop\n";
     return FLAG_CONTINUE;
   }
   if (statement.stmt.type == StmtType::RETURN) {
     if (!inside_func) {
-      std::string msg = "return statement outside of functions is illegal";
-      throw_error(msg);
+      throw_error("return statement outside of functions is illegal");
     }
     if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions.at(0).size() != 0) {
       NodeList return_expr = statement.stmt.expressions.at(0);

@@ -46,7 +46,6 @@ std::string Token::get_name(TokenType type) {
   REG(IDENTIFIER, "identifier");
   REG(FALSE, "false");
   REG(TRUE, "true");
-  REG(UNDEF, "undef");
   REG(UNKNOWN, "unknown token");
   REG(NONE, "empty token");
   REG(GENERAL_EXPRESSION, "expression");

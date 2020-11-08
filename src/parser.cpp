@@ -240,7 +240,23 @@ Node Parser::parse_class_stmt() {
 }
 
 Node Parser::parse_array_expr() {
-  return {};
+  std::cout << "found array expression\n";
+  advance(); // skip the array
+  Node array(Expression(ExprType::ARRAY));
+  if (curr_token.type != Token::LEFT_PAREN) {
+    std::string msg = "invalid array expression, expected '(', but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  advance(); // skip the (
+  array.expr.array_expressions = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN);
+  advance(); // skip the )
+  if (curr_token.type != Token::TYPE) {
+    std::string msg = "invalid array expression, expected a type, but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  array.expr.array_type = curr_token.value;
+  advance(); // skip the type
+  return array;
 }
 
 Node Parser::get_expr_node() {
@@ -293,13 +309,6 @@ Node Parser::get_expr_node() {
     Node str_literal(Expression(curr_token.value));
     advance();
     return str_literal;
-  }
-  if (curr_token.type == Token::UNDEF) {
-    // undef literal
-    std::cout << "found undef\n";
-    Node undef(Expression(curr_token.value));
-    advance();
-    return undef;
   }
   if (utils.op_unary(curr_token.type)) {
     std::cout << "Found an unary operator " << curr_token << "\n";

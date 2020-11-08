@@ -60,6 +60,8 @@ class Expression {
     FuncExpression func_expr;
     FuncCall func_call;
     NodeList index;
+    NodeListList array_expressions;
+    std::string array_type;
     bool is_negative = false;
     std::int64_t number_literal = 0;
     std::string string_literal = "";

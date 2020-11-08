@@ -34,11 +34,11 @@ class Token {
 
       IDENTIFIER,
 
-      FALSE, TRUE, UNDEF,
+      FALSE, TRUE,
 
       UNKNOWN,
 
-      NONE, GENERAL_EXPRESSION, GENERAL_STATEMENT, // special tokens
+      NONE, GENERAL_EXPRESSION, GENERAL_STATEMENT // special tokens
     } TokenType;
     TokenType type = NONE;
     std::string value = "";

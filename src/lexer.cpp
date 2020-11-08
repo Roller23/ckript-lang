@@ -94,8 +94,11 @@ TokenList Lexer::tokenize(const std::string &code) {
           log("token [FUNCTION], ");
           add_token(Token::FUNCTION);
         } else if (token_str == "class") {
-          log("token [class], ");
+          log("token [CLASS], ");
           add_token(Token::CLASS);
+        } else if (token_str == "array") {
+          log("token [ARRAY], ");
+          add_token(Token::ARRAY);
         } else if (token_str == "return") {
           log("token [RETURN], ");
           add_token(Token::RETURN);
@@ -132,9 +135,6 @@ TokenList Lexer::tokenize(const std::string &code) {
         } else if (token_str == "false") {
           log("token [FALSE], ");
           add_token(Token::FALSE);
-        } else if (token_str == "undef") {
-          log("token [UNDEF], ");
-          add_token(Token::UNDEF);
         } else if (token_str == "const") {
           log("token [CONST], ");
           add_token(Token::CONST);
