@@ -16,6 +16,7 @@ Built in types
 
 ```
 int number = 5;
+const double number2 = 5.2132; // cannot reassign
 ```
 
 ## Declaring functions
@@ -129,4 +130,4 @@ Assign a new value to a member
 $Mark.age = 31; // the $ is required
 ```
 
-Objects can have member objects, member objects can be references
+Objects can have member objects, object members can be references
