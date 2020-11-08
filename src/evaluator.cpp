@@ -811,6 +811,7 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
   val.class_name = _class.value.reference_name;
   val.type = VarType::OBJ;
   int i = 0;
+  std::vector<std::string> this_mapper;
   for (auto &node_list : call.op.func_call.arguments) {
     std::string num = std::to_string(i + 1);
     Value arg_val = evaluate_expression(node_list, class_val.members.at(i).is_ref);
@@ -831,7 +832,14 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
     arg_val.is_member = true;
     arg_val.member_name = class_val.members.at(i).param_name;
     val.member_values.insert(std::make_pair(class_val.members.at(i).param_name, arg_val));
+    if (arg_val.type == VarType::FUNC) {
+      this_mapper.push_back(class_val.members.at(i).param_name);
+    }
     i++;
+  }
+  for (auto &str : this_mapper) {
+    // pass the object copy as "this" to object's methods
+    val.member_values.at(str).func_this.push_back(val);
   }
   return {val};
 }
@@ -901,6 +909,14 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     var->id = fn.value.reference_name;
     var->type = VarType::FUNC;
     var->val = fn_value;
+    func_evaluator.stack.push_back(var);
+  }
+  if (fn.value.func_this.size() != 0) {
+    // push "this" onto the stack
+    Variable *var = new Variable;
+    var->id = "this";
+    var->type = VarType::OBJ;
+    var->val = fn.value.func_this.at(0);
     func_evaluator.stack.push_back(var);
   }
   func_evaluator.start();

@@ -11,10 +11,6 @@ bool Variable::is_allocated() const {
   return val.heap_reference != -1;
 }
 
-bool Variable::is_reference() const {
-  return val.reference != -1;
-}
-
 Chunk &Heap::allocate() {
   std::int64_t index = 0;
   // try to find a free chunk
