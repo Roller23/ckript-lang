@@ -73,7 +73,7 @@ void Lexer::add_char_token(const char c) {
 TokenList Lexer::tokenize(const std::string &code) {
   this->ptr = code.begin();
   this->end = code.end();
-  std::string chars = ".,:;{}[]()~$";
+  std::string chars = ".,:;{}[]()~$#";
   std::string chars2 = "=+-*&|/<>!%^";
   while (ptr != end) {
     deleted_spaces = 0;

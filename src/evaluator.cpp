@@ -75,6 +75,10 @@ int Evaluator::execute_statement(Node &statement) {
     set_member(statement.stmt.obj_members, statement.stmt.expressions.at(0));
     return FLAG_OK;
   }
+  if (statement.stmt.type == StmtType::SET_IDX) {
+    set_index(statement.stmt);
+    return FLAG_OK;
+  }
   if (statement.stmt.type == StmtType::DECL) {
     if (statement.stmt.declaration.size() != 1) return FLAG_OK;
     declare_variable(statement.stmt.declaration.at(0));
@@ -1049,13 +1053,22 @@ RpnElement Evaluator::node_to_element(Node &node) {
     val.type = VarType::ARR;
     val.array_type = node.expr.array_type;
     val.array_values.reserve(node.expr.array_expressions.size());
+    int i = 0;
     for (auto &node_list : node.expr.array_expressions) {
+      if (node_list.size() == 0) {
+        if (i == 0) {
+          break;
+        } else {
+          throw_error("Empty array element");
+        }
+      }
       Value array_element = evaluate_expression(node_list);
       if (array_element.type != utils.var_lut.at(node.expr.array_type)) {
         std::string msg = "Cannot add " + stringify(array_element) + " to an array of " + node.expr.array_type + "s";
         throw_error(msg);
       }
       val.array_values.push_back(array_element);
+      i++;
     }
     return {val};
   }
@@ -1097,7 +1110,47 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     references.push_back(&temp->member_values.at(member));
     prev = member;
   }
-  *references.back() = evaluate_expression(expression);
+  Value rvalue = evaluate_expression(expression);
+  if (references.back()->type != rvalue.type) {
+    std::string msg = "Cannot assign " + stringify(rvalue) + " to this member";
+    throw_error(msg);
+  }
+  *references.back() = rvalue;
+}
+
+void Evaluator::set_index(Statement &stmt) {
+  assert(stmt.indexes.size() > 0);
+  assert(stmt.obj_members.size() == 1);
+  assert(stmt.expressions.size() == 1);
+  Variable *arr = get_reference_by_name(stmt.obj_members.at(0));
+  if (arr == nullptr) {
+    std::string msg = stmt.obj_members.at(0) + " is not defined";
+    throw_error(msg);
+  }
+  Value *val = arr->val.heap_reference != -1 ? &get_heap_value(arr->val.heap_reference) : &arr->val;
+  std::vector<Value *> references;
+  references.reserve(stmt.indexes.size() + 1);
+  references.push_back(val);
+  for (auto &index : stmt.indexes) {
+    Value *temp = references.back();
+    temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
+    Value index_val = evaluate_expression(index.expr.index);
+    if (index_val.type != VarType::INT) {
+      std::string msg = "Cannot access array with " + stringify(index_val);
+      throw_error(msg);
+    }
+    if (index_val.number_value < 0 || index_val.number_value >= temp->array_values.size()) {
+      std::string msg = "Index [" + std::to_string(index_val.number_value) + "] out of range";
+      throw_error(msg);
+    }
+    references.push_back(&temp->array_values.at(index_val.number_value));
+  }
+  Value rvalue = evaluate_expression(stmt.expressions.at(0));
+  if (references.back()->type != rvalue.type) {
+    std::string msg = "Cannot assign " + stringify(rvalue) + " to this member";
+    throw_error(msg);
+  }
+  *references.back() = rvalue;
 }
 
 Value &Evaluator::get_value(RpnElement &el) {

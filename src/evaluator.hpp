@@ -72,6 +72,7 @@ class Evaluator {
     Value &get_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
     void set_member(const std::vector<std::string> &members, NodeList &expression);
+    void set_index(Statement &stmt);
 
     // Unary
     RpnElement logical_not(RpnElement &x);

@@ -18,7 +18,7 @@ class Token {
 
       DOT = '.', COMMA = ',', COLON = ':', SEMI_COLON = ';',
       LEFT_BRACE = '{', LEFT_BRACKET = '[', LEFT_PAREN = '(',
-      RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')', SET = '$',
+      RIGHT_BRACE = '}', RIGHT_BRACKET = ']', RIGHT_PAREN = ')', SET = '$', SET_IDX = '#',
 
       FUNCTION = 130, RETURN, IF, ELSE, BREAK, CONTINUE,
       FOR, WHILE, ALLOC, DEL, TYPE, REF, CONST,

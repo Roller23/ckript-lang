@@ -457,9 +457,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   }
   if (curr_token.type == Token::SET) {
     std::cout << "found $\n";
+    std::uint64_t line = curr_token.line;
     advance(); // skip the $
     Node set(Statement(StmtType::SET));
-    set.stmt.line = curr_token.line;
+    set.stmt.line = line;
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "invalid set statement. Expected an identifier, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
@@ -487,6 +488,35 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     set.stmt.expressions.push_back(rpn);
     advance(); // skip the ;
     return set;
+  }
+  if (curr_token.type == Token::SET_IDX) {
+    std::cout << "found #\n";
+    std::uint64_t line = curr_token.line;
+    advance(); // skip the #
+    Node set_idx(Statement(StmtType::SET_IDX));
+    set_idx.stmt.line = line;
+    if (curr_token.type != Token::IDENTIFIER) {
+      std::string msg = "invalid set index statement. Expected an identifier, but " + curr_token.get_name() + " found";
+      throw_error(msg, curr_token.line);
+    }
+    set_idx.stmt.obj_members.push_back(curr_token.value);
+    advance(); // skip the id
+    while (true) {
+      Node idx_expr = get_expr_node();
+      if (idx_expr.expr.type != ExprType::INDEX) {
+        std::string msg = "invalid set index statement, expected an index expression";
+        throw_error(msg, curr_token.line);
+      }
+      set_idx.stmt.indexes.push_back(idx_expr);
+      if (curr_token.type == Token::OP_ASSIGN) {
+        break;
+      }
+    }
+    advance(); // skip the =
+    NodeList rpn = get_expression(Token::SEMI_COLON);
+    set_idx.stmt.expressions.push_back(rpn);
+    advance(); // skip the ;
+    return set_idx;
   }
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";
