@@ -185,7 +185,7 @@ if (condition) {
 while (condition) {
   // do stuff
   break; // break out of the loop
-  continue; skip one iteration
+  continue; // skip one iteration
 }
 
 for (expression; condition; increment) {
