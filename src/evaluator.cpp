@@ -38,6 +38,7 @@ void Evaluator::start() {
       break;
     }
   }
+  if (stream) return;
   // empty the callstack
   while (stack.size()) {
     Variable *var = stack.back();
@@ -55,6 +56,9 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
+    if (stream) {
+      std::cout << "< " + stringify(result) << "\n";
+    }
     return FLAG_OK;
   }
   if (statement.stmt.type == StmtType::CLASS) {

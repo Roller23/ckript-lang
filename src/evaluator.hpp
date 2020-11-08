@@ -44,10 +44,12 @@ class Evaluator {
     CkriptVM &VM;
     Node &AST;
     Utils &utils;
-    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils) : 
+    bool stream = false;
+    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils, bool is_stream = false) : 
       VM(_VM),
       AST(_AST), 
-      utils(_utils) {};
+      utils(_utils),
+      stream(is_stream) {};
     void start();
   private:
     CallStack stack;

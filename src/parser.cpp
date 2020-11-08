@@ -116,7 +116,7 @@ int Parser::find_block_end(void) {
   return find_enclosing_semi(pos);
 }
 
-ParamList Parser::parse_func_params() {
+ParamList Parser::parse_func_params(bool is_class) {
   ParamList res;
   TokenType stop = Token::RIGHT_PAREN;
   while (true) {
@@ -128,12 +128,17 @@ ParamList Parser::parse_func_params() {
       fail_if_EOF(Token::TYPE);
     }
     if (curr_token.type != Token::TYPE) {
-      std::string msg = "Invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
+      std::string param_type = is_class ? "class" : "function";
+      std::string msg = "Invalid " + param_type + " declaration, expected a type, but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
     std::string type = curr_token.value;
     advance(); // skip the type
     if (type == "void") {
+      if (is_class) {
+        std::string msg = "Invalid class declaration, cannot have void members";
+        throw_error(msg, curr_token.line);
+      }
       if (res.size() != 0) {
         std::string msg = "invalid function expression, illegal void placement";
         ErrorHandler::throw_syntax_error(msg);
@@ -223,7 +228,7 @@ Node Parser::parse_class_stmt() {
     throw_error(msg, curr_token.line);
   }
   advance(); // skip the (
-  class_expr.stmt.class_stmt.members = parse_func_params();
+  class_expr.stmt.class_stmt.members = parse_func_params(true);
   advance(); // skip the )
   if (curr_token.type != Token::SEMI_COLON) {
     std::string msg = "invalid class declaration, expected ';', but " + curr_token.get_name() + " found";

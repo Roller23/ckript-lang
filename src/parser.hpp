@@ -34,7 +34,7 @@ class Parser {
     Node parse_func_expr();
     Node parse_class_stmt();
     Node parse_array_expr();
-    ParamList parse_func_params();
+    ParamList parse_func_params(bool is_class = false);
     NodeListList get_many_expressions(Token::TokenType sep, Token::TokenType stop);
     Node get_declaration(Node &prev);
     NodeList get_many_statements(Node &prev, Token::TokenType stop);

@@ -25,20 +25,31 @@ void Interpreter::process_file(const std::string &filename) {
 }
 
 void Interpreter::process_stream() {
-  Lexer lexer;
-  lexer.verbose = false;
   Utils utils;
   CkriptVM VM;
   std::string line = "";
-  while (true) {
+  bool running = true;
+  while (running) {
     std::cout << "> ";
     std::getline(std::cin, line);
     if (line.size() == 0) continue;
     if (line == "exit") break;
-    TokenList tokens = lexer.tokenize(line);
-    Parser parser(tokens, Token::TokenType::NONE, "", utils);
-    Node AST = parser.parse(NULL);
-    Evaluator evaluator(AST, VM, utils);
+    TokenList tokens = Lexer().tokenize(line);
+    Node AST = Parser(tokens, Token::TokenType::NONE, "", utils).parse(NULL);
+    Evaluator evaluator = Evaluator(AST, VM, utils, true);
     evaluator.start();
+    while (true) {
+      std::cout << "> ";
+      std::getline(std::cin, line);
+      if (line.size() == 0) continue;
+      if (line == "exit") {
+        running = false;
+        break;
+      }
+      TokenList tokens = Lexer().tokenize(line);
+      Node AST = Parser(tokens, Token::TokenType::NONE, "", utils).parse(NULL);
+      evaluator.AST = AST;
+      evaluator.start();
+    }
   }
 }
