@@ -1,8 +1,8 @@
 # Ckript language
 An interpreter for my own programming language (Ckript)
 
-Compile with g++ (clang++ won't compile it). MingGW and MSVC have not been tested yet.
-If you have g++ and make installed simply running ``make`` should compile the whole project.
+Compile with `g++` (`clang++` won't compile it). `MingGW` and `MSVC` have not been tested yet.
+If you have `g++` and `Make` installed simply running ``make`` should compile the whole project.
 
 Usage:
 
