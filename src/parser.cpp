@@ -440,6 +440,38 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::CLASS) {
     return parse_class_stmt();
   }
+  if (curr_token.type == Token::SET) {
+    std::cout << "found $\n";
+    advance(); // skip the $
+    Node set(Statement(StmtType::SET));
+    if (curr_token.type != Token::IDENTIFIER) {
+      std::string msg = "invalid set statement. Expected an identifier, but " + curr_token.get_name() + " found";
+      throw_error(msg, curr_token.line);
+    }
+    set.stmt.obj_members.push_back(curr_token.value);
+    advance(); // skip the id
+    while (true) {
+      if (curr_token.type != Token::DOT) {
+        std::string msg = "invalid set statement. Expected '.', but " + curr_token.get_name() + " found";
+        throw_error(msg, curr_token.line);
+      }
+      advance(); // skip the dot
+      if (curr_token.type != Token::IDENTIFIER) {
+        std::string msg = "invalid set statement. Expected an identifier, but " + curr_token.get_name() + " found";
+        throw_error(msg, curr_token.line);
+      }
+      set.stmt.obj_members.push_back(curr_token.value);
+      advance(); // skip the id
+      if (curr_token.type == Token::OP_ASSIGN) {
+        break;
+      }
+    }
+    advance(); // skip the =
+    NodeList rpn = get_expression(Token::SEMI_COLON);
+    set.stmt.expressions.push_back(rpn);
+    advance(); // skip the ;
+    return set;
+  }
   if (curr_token.type == Token::LEFT_BRACE) {
     std::cout << "Found {\n";
     // { statement(s) }

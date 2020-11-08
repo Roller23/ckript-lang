@@ -21,6 +21,9 @@ $(out): $(objs) main.cpp
 run:
 	./$(out) $(intput)
 
+shell:
+	./$(out)
+
 debug:
 	gdb ./$(out)
 

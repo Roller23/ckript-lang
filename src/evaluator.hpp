@@ -67,7 +67,7 @@ class Evaluator {
     double to_double(Value &val);
     Value &get_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
-    std::string get_reference_name(Value &val);
+    void set_member(const std::vector<std::string> &members, NodeList &expression);
 
     // Unary
     RpnElement logical_not(RpnElement &x);

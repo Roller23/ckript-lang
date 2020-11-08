@@ -61,6 +61,11 @@ int Evaluator::execute_statement(Node &statement) {
     register_class(statement.stmt.class_stmt);
     return FLAG_OK;
   }
+  if (statement.stmt.type == StmtType::SET) {
+    if (statement.stmt.expressions.size() == 0) return FLAG_OK; // might break something
+    set_member(statement.stmt.obj_members, statement.stmt.expressions.at(0));
+    return FLAG_OK;
+  }
   if (statement.stmt.type == StmtType::DECL) {
     if (statement.stmt.declaration.size() != 1) return FLAG_OK;
     declare_variable(statement.stmt.declaration.at(0));
@@ -554,29 +559,26 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
     std::string msg = "Cannot assign to an rvalue";
     ErrorHandler::throw_runtime_error(msg);
   }
-  Variable *var = nullptr;
-  if (!x.value.is_member) {
-    var = get_reference_by_name(x.value.reference_name);
-    if (var == nullptr) {
-      std::string msg = x.value.reference_name + " is not defined";
-      ErrorHandler::throw_runtime_error(msg);
-    }
+  Variable *var = get_reference_by_name(x.value.reference_name);
+  if (var == nullptr) {
+    std::string msg = x.value.reference_name + " is not defined";
+    ErrorHandler::throw_runtime_error(msg);
   }
-  if (var && var->constant) {
+  if (var->constant) {
     std::string msg = "Cannot reassign a constant variable (" + x.value.reference_name + ")";
     ErrorHandler::throw_runtime_error(msg);
   }
   Value &x_value = get_value(x);
   Value y_value = get_value(y);
   if (x_value.type == VarType::UNKNOWN) {
-    std::string msg = get_reference_name(x_value) + " doesn't point to anything on the heap";
+    std::string msg = x_value.reference_name + " doesn't point to anything on the heap";
     ErrorHandler::throw_runtime_error(msg);
   }
   if (x_value.type != y_value.type) {
-    std::string msg = "Cannot assign " + stringify(y_value) + " to " + get_reference_name(x_value);
+    std::string msg = "Cannot assign " + stringify(y_value) + " to " + x_value.reference_name;
     ErrorHandler::throw_runtime_error(msg);
   }
-  std::string ref_name = get_reference_name(x_value);
+  std::string ref_name = x_value.reference_name;
   x_value = y_value;
   std::cout << "Assigned " + stringify(y_value) + " to " + ref_name + "\n";
   return {x_value};
@@ -642,7 +644,7 @@ RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
     ErrorHandler::throw_runtime_error(msg);
   }
   if (obj.member_values.find(y.value.reference_name) == obj.member_values.end()) {
-    std::string msg = "Object has no member named " + x.value.reference_name;
+    std::string msg = "Object has no member named " + y.value.reference_name;
     ErrorHandler::throw_runtime_error(msg);
   }
   Value &val = obj.member_values.at(y.value.reference_name);
@@ -971,6 +973,34 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
   return nullptr;
 }
 
+void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
+  assert(members.size() > 1);
+  std::string base = members.at(0);
+  Variable *var = get_reference_by_name(base);
+  if (var == nullptr) {
+    std::string msg = base + " is not defined";
+    ErrorHandler::throw_runtime_error(msg);
+  }
+  Value *val = var->val.heap_reference != -1 ? &get_heap_value(var->val.heap_reference) : &var->val;
+  std::vector<Value *> references;
+  references.reserve(members.size() + 1);
+  references.push_back(val);
+  int i = 0;
+  std::string prev = members.at(0);
+  for (auto &member : members) {
+    if (i++ == 0) continue;
+    Value *temp = references.back();
+    temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
+    if (temp->member_values.find(member) == temp->member_values.end()) {
+      std::string msg = prev + " has no member " + member;
+      ErrorHandler::throw_runtime_error(msg);
+    }
+    references.push_back(&temp->member_values.at(member));
+    prev = member;
+  }
+  *references.back() = evaluate_expression(expression);
+}
+
 Value &Evaluator::get_value(RpnElement &el) {
   if (el.value.is_lvalue()) {
     if (el.value.is_member) {
@@ -1004,13 +1034,6 @@ Value &Evaluator::get_heap_value(std::int64_t ref) {
     ErrorHandler::throw_runtime_error(msg);
   }
   return *ptr;
-}
-
-std::string Evaluator::get_reference_name(Value &val) {
-  if (val.is_member) {
-    return val.member_name;
-  }
-  return val.reference_name;
 }
 
 void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {

@@ -4,7 +4,7 @@
 #include <iostream>
 
 bool Value::is_lvalue() {
-  return reference_name.size() != 0 || is_member;
+  return reference_name.size() != 0;
 }
 
 bool Variable::is_allocated() const {

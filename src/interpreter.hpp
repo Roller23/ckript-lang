@@ -6,6 +6,7 @@
 class Interpreter {
   public:
     void process_file(const std::string &filename);
+    void process_stream();
     void run_thread();
 };
 

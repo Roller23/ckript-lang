@@ -92,13 +92,14 @@ class Expression {
 class Statement {
   public:
     typedef enum stmt_type {
-      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, CLASS, BREAK, CONTINUE, NONE
+      IF, RETURN, WHILE, FOR, COMPOUND, EXPR, UNKNOWN, NOP, DECL, CLASS, BREAK, CONTINUE, SET, NONE
     } StmtType;
     StmtType type;
     NodeListList expressions;
     NodeList declaration;
     NodeList statements;
     ClassStatement class_stmt;
+    std::vector<std::string> obj_members;
     Statement(void) : type(NONE) {}
     Statement(StmtType _type) : type(_type) {}
     Statement(const ClassStatement &_class) : type(CLASS), class_stmt(_class) {};
