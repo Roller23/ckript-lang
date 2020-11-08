@@ -405,7 +405,7 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     if (x_val.type == utils.var_lut.at(y_val.array_type)) {
       // prepend to array
       y_val.array_values.insert(y_val.array_values.begin(), x_val);
-      return {x_val};
+      return {y_val};
     } else {
       throw_error("Cannot prepend " + stringify(x_val) + " an array of " + y_val.array_type + "s");
     }
