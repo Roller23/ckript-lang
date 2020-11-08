@@ -48,18 +48,6 @@ void Lexer::consume_whitespace(void) {
   }
 }
 
-void Lexer::consume_comment(void) {
-  if (*ptr != '#') return;
-  while (ptr != end) {
-    const char c = *++ptr;
-    if (c == '\n') {
-      current_line++;
-      break;
-    }
-  }
-  if (ptr != end) ptr++; // skip the closing \n
-}
-
 void Lexer::add_token(Token::TokenType type) {
   add_token(type, "");
 }
@@ -91,14 +79,6 @@ TokenList Lexer::tokenize(const std::string &code) {
     deleted_spaces = 0;
     consume_whitespace();
     if (ptr == end) break;
-    if (*ptr == '#') {
-      // start of a comment
-      consume_comment();
-      if (ptr == end) break;
-      // take care of all the whilespace after the comment
-      consume_whitespace();
-      if (ptr == end) break;
-    }
     char c = *ptr;
     if (contains(chars, c)) {
       add_char_token(c);
