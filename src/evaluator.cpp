@@ -174,7 +174,6 @@ int Evaluator::execute_statement(Node &statement) {
 }
 
 Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
-  std::cout << "Evaluating an expression\n";
   RpnStack rpn_stack;
   flatten_tree(rpn_stack, expression_tree);
   RpnStack res_stack;
@@ -252,7 +251,10 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
         RpnElement result = execute_function(token, fn);
         res_stack.push_back(result);
       } else if (token.op.op_type == Operator::INDEX) {
-        // to do
+        RpnElement arr = res_stack.back();
+        res_stack.pop_back();
+        RpnElement result = access_index(arr, token);
+        res_stack.push_back(result);
       }
     } else {
       res_stack.push_back(token);
@@ -626,7 +628,7 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
     std::string msg = "Cannot assign " + stringify(y_value) + " to " + x_value.reference_name;
     throw_error(msg);
   }
-  std::string ref_name = x_value.reference_name;
+  std::string ref_name = x.value.reference_name;
   x_value = y_value;
   std::cout << "Assigned " + stringify(y_value) + " to " + ref_name + "\n";
   return {x_value};
@@ -697,6 +699,25 @@ RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
   }
   Value &val = obj.member_values.at(y.value.reference_name);
   return {val};
+}
+
+RpnElement Evaluator::access_index(RpnElement &arr, RpnElement &idx) {
+  Value &array = get_value(arr);
+  if (array.type != VarType::ARR) {
+    std::string msg = stringify(array) + " is not an array";
+    throw_error(msg);
+  }
+  Value index = evaluate_expression(idx.op.index_rpn);
+  if (index.type != VarType::INT) {
+    std::string msg = "index expected to be an int, but " + stringify(index) + " found";
+    throw_error(msg);
+  }
+  if (index.number_value < 0 || index.number_value >= array.array_values.size()) {
+    std::string msg = "index [" + std::to_string(index.number_value) + "] out of range  found";
+    throw_error(msg);
+  }
+  Value &res = array.array_values.at(index.number_value);
+  return {res};
 }
 
 RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {

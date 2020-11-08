@@ -117,6 +117,7 @@ class Evaluator {
     RpnElement execute_function(RpnElement &call, RpnElement &fn);
     // misc
     RpnElement access_member(RpnElement &x, RpnElement &y);
+    RpnElement access_index(RpnElement &arr, RpnElement &idx);
     RpnElement construct_object(RpnElement &call, RpnElement &_class);
 
     Value return_value;
