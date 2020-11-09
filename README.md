@@ -241,7 +241,7 @@ func fib = function(int n) int {
 
 Warning: class declarations are also local to functions. Treat class declarations like variable declarations.
 
-## if statement
+## If statement
 
 ```
 if (condition) {
@@ -251,7 +251,7 @@ if (condition) {
 }
 ```
 
-## while and for statements
+## While and for statements
 
 ```
 while (condition) {
@@ -263,4 +263,13 @@ while (condition) {
 for (expression; condition; increment) {
   // do stuff
 }
+```
+## Standard library
+
+Ckript includes a small, simple standard library for most common tasks.
+
+All functions are available globally.
+
+```
+* print(str) void - prints the string to stdout, no return value
 ```
