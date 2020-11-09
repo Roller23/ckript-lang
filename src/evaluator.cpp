@@ -18,7 +18,6 @@
   Value &x_val = get_value(x);\
   Value &y_val = get_value(y);\
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {\
-    std::cout << stringify(x_val) << " " << #OP << " " << stringify(y_val) << "\n";\
     val.type = VarType::INT;\
     val.number_value = x_val.number_value OP y_val.number_value;\
     return {val};\
@@ -56,7 +55,6 @@ void Evaluator::start() {
 int Evaluator::execute_statement(Node &statement) {
   current_line = statement.stmt.line;
   if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
-  std::cout << "Executing a statement\n";
   if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
@@ -93,14 +91,12 @@ int Evaluator::execute_statement(Node &statement) {
     if (!nested_loops) {
       throw_error("break statement outside of loops is illegal");
     }
-    std::cout << "break loop\n";
     return FLAG_BREAK;
   }
   if (statement.stmt.type == StmtType::CONTINUE) {
     if (!nested_loops) {
       throw_error("continue statement outside of loops is illegal");
     }
-    std::cout << "continue loop\n";
     return FLAG_CONTINUE;
   }
   if (statement.stmt.type == StmtType::RETURN) {
@@ -111,7 +107,6 @@ int Evaluator::execute_statement(Node &statement) {
       NodeList return_expr = statement.stmt.expressions.at(0);
       return_value = evaluate_expression(return_expr, returns_ref);
     }
-    std::cout << "return " + stringify(return_value) << "\n";
     return FLAG_RETURN;
   }
   if (statement.stmt.type == StmtType::WHILE) {
@@ -282,7 +277,6 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
     RpnElement wrapper = res_val;
     res_val = get_value(wrapper);
   }
-  std::cout << "Expression result = " << stringify(res_val) << "\n";
   return res_val;
 }
 
@@ -341,7 +335,6 @@ RpnElement Evaluator::logical_not(RpnElement &x) {
   Value &x_val = get_value(x);
   Value val;
   if (x_val.type == VarType::BOOL) {
-    std::cout << "!" << stringify(x_val) << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = !x_val.boolean_value;
     return {val};
@@ -354,7 +347,6 @@ RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
   Value &x_val = get_value(x);
   Value val;
   if (x_val.type == VarType::INT) {
-    std::cout << "~" << stringify(x_val) << "\n";
     val.type = VarType::INT;
     val.number_value = ~x_val.number_value;
     return {val};
@@ -380,7 +372,6 @@ RpnElement Evaluator::delete_value(RpnElement &x) {
   if (VM.heap.chunks.at(var->val.heap_reference).used == false) {
     throw_error("double delete");
   }
-  std::cout << "deleting " << x.value.reference_name << "\n";
   VM.heap.free(var);
   Value val;
   val.type = VarType::VOID;
@@ -412,17 +403,13 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
     std::string str1 = stringify(x_val);
     std::string str2 = stringify(y_val);
-    std::cout << "concating " << str1 << " to " << str2 << "\n";
     val.type = VarType::STR;
     val.string_value = str1 + str2;
-    std::cout << "result = " + val.string_value << "\n";
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << "adding " << x_val.number_value << " to " << y_val.number_value << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value + y_val.number_value;
-    std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
@@ -430,7 +417,6 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     double f2 = to_double(y_val);
     val.type = VarType::FLOAT;
     val.float_value = f1 + f2;
-    std::cout << "result = " << val.float_value << "\n";
     return {val};
   }
   std::string msg = "Cannot perform addition on " + stringify(x_val) + " and " + stringify(y_val);
@@ -443,19 +429,15 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << "subtracting " << y_val.number_value << " from " << x_val.number_value << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value - y_val.number_value;
-    std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
-    std::cout << "subtracting " << f2 << " from " << f1 << "\n";
     val.type = VarType::FLOAT;
     val.float_value = f1 - f2;
-    std::cout << "result = " << val.float_value << "\n";
     return {val};
   }
   std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
@@ -468,19 +450,15 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << "multiplying " << x_val.number_value << " by " << y_val.number_value << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value * y_val.number_value;
-    std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
-    std::cout << "multiplying " << f1 << " by " << f2 << "\n";
     val.type = VarType::FLOAT;
     val.float_value = f1 * f2;
-    std::cout << "result = " << val.float_value << "\n";
     return {val};
   }
   std::string msg = "Cannot perform multiplication on " + stringify(x_val) + " and " + stringify(y_val);
@@ -496,10 +474,8 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     if (y_val.number_value == 0) {
       throw_error("Cannot divide by zero");
     }
-    std::cout << "dividing " << x_val.number_value << " by " << y_val.number_value << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value / y_val.number_value;
-    std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
@@ -508,10 +484,8 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     if (f2 == 0.0f) {
       throw_error("Cannot divide by zero");
     }
-    std::cout << "dividing " << f1 << " by " << f2 << "\n";
     val.type = VarType::FLOAT;
     val.float_value = f1 / f2;
-    std::cout << "result = " << val.float_value << "\n";
     return {val};
   }
   std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
@@ -524,10 +498,8 @@ RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << y_val.number_value << " % " << x_val.number_value << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value % y_val.number_value;
-    std::cout << "result = " << val.number_value << "\n";
     return {val};
   }
   std::string msg = "Cannot perform modulo on " + stringify(x_val) + " and " + stringify(y_val);
@@ -559,7 +531,6 @@ RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
   }
   Value val;
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << stringify(x_val) << " ^ " << stringify(y_val) << "\n";
     val.type = VarType::INT;
     val.number_value = x_val.number_value ^ y_val.number_value;
     return {val};
@@ -582,7 +553,6 @@ RpnElement Evaluator::logical_and(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
-    std::cout << stringify(x_val) << " && " << stringify(y_val) << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = x_val.boolean_value && y_val.boolean_value;
     return {val};
@@ -597,7 +567,6 @@ RpnElement Evaluator::logical_or(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
-    std::cout << stringify(x_val) << " || " << stringify(y_val) << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = x_val.boolean_value || y_val.boolean_value;
     return {val};
@@ -633,7 +602,6 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
   }
   std::string ref_name = x.value.reference_name;
   x_value = y_value;
-  std::cout << "Assigned " + stringify(y_value) + " to " + ref_name + "\n";
   return {x_value};
 }
 
@@ -730,24 +698,18 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
-    std::cout << "is " << f1 << " == " << f2 << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = f1 == f2;
-    std::cout << "result = " << stringify(val) << "\n";
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << "is " << x_val.number_value << " == " << y_val.number_value << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = x_val.number_value == y_val.number_value;
-    std::cout << "result = " << stringify(val) << "\n";
     return {val};
   }
   if (x_val.type == VarType::STR && y_val.type == VarType::STR) {
-    std::cout << "is " << x_val.string_value << " == " << y_val.string_value << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = x_val.string_value == y_val.string_value;
-    std::cout << "result = " << stringify(val) << "\n";
     return {val};
   }
   std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
@@ -770,17 +732,13 @@ RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
-    std::cout << "is " << f1 << " > " << f2 << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = f1 > f2;
-    std::cout << "result = " << stringify(val) << "\n";
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
-    std::cout << "is " << x_val.number_value << " > " << y_val.number_value << "\n";
     val.type = VarType::BOOL;
     val.boolean_value = x_val.number_value > y_val.number_value;
-    std::cout << "result = " << stringify(val) << "\n";
     return {val};
   }
   std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
@@ -810,7 +768,6 @@ void Evaluator::register_class(ClassStatement &_class) {
     std::string msg = _class.class_name + " is already defined";
     throw_error(msg);
   }
-  std::cout << "Declaring a class " << _class.class_name << "\n";
   Variable *var = new Variable;
   var->id = _class.class_name;
   var->type = "class";
@@ -825,7 +782,6 @@ void Evaluator::declare_variable(Node &declaration) {
     std::string msg = decl.id + " is already defined";
     throw_error(msg);
   }
-  std::cout << "Declaring " + decl.var_type + " " + decl.id + "\n";
   Value var_val = evaluate_expression(decl.var_expr, decl.reference);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
   Utils::VarType expr_type = var_val.type;
@@ -836,10 +792,8 @@ void Evaluator::declare_variable(Node &declaration) {
     std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
     throw_error(msg);
   }
-  std::cout << "Assigning " + stringify(var_val) + " to " + decl.id + "\n";
   if (decl.allocated) {
     assert(decl.reference == false);
-    std::cout << "allocating " + decl.id + " on the heap\n";
     Chunk &chunk = VM.heap.allocate();
     Variable *var = new Variable;
     var->val.heap_reference = chunk.heap_reference;
@@ -1176,7 +1130,6 @@ Value &Evaluator::get_value(RpnElement &el) {
       std::string msg = el.value.reference_name + " is not defined";
       throw_error(msg);
     }
-    std::cout << "var heap reference " << var->val.heap_reference << "\n";
     if (var->val.heap_reference > -1) {
       return get_heap_value(var->val.heap_reference);
     }

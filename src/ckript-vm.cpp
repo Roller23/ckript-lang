@@ -68,7 +68,6 @@ void Heap::free(Variable *var) {
   Chunk &chunk = chunks.at(var->val.heap_reference);
   assert(chunk.used == true);
   assert(chunk.data != nullptr);
-  std::cout << "(heap) deleting " << var->val.heap_reference << "\n";
   delete chunk.data;
   chunk.data = nullptr;
   chunk.used = false;

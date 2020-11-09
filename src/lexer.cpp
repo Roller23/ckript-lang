@@ -18,9 +18,6 @@ static const char *_builtin_types[] = {
   "obj", "arr"
 };
 
-// std::string raw = R"(\\n)";
-// args.at(0).string_value = std::regex_replace(args.at(0).string_value, std::regex(raw), "\n");
-
 const char **Lexer::builtin_types = _builtin_types;
 int Lexer::types_count = sizeof(_builtin_types) / sizeof(char *);
 

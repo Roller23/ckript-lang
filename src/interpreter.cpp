@@ -12,13 +12,10 @@
 
 void Interpreter::process_file(const std::string &filename, int argc, char *argv[]) {
   Lexer lexer;
-  lexer.verbose = true;
   Utils utils;
   TokenList tokens = lexer.process_file(filename);
   Parser parser(tokens, Token::TokenType::NONE, "", utils);
   Node AST = parser.parse(NULL);
-  std::cout << "AST:\n";
-  AST.print();
   CkriptVM VM;
   VM.load_stdlib();
   Evaluator evaluator(AST, VM, utils);
