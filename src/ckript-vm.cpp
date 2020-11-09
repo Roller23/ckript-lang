@@ -390,6 +390,27 @@ class NativeContains : public NativeFunction {
     }
 };
 
+class NativeSubstr : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 3 || args.at(0).type != Utils::STR || args.at(1).type != Utils::INT || args.at(2).type != Utils::INT) {
+        ErrorHandler::throw_runtime_error("substr() expects three arguments (str, int, int)", line);
+      }
+      if (args.at(1).number_value < 0) {
+        ErrorHandler::throw_runtime_error("starting position cannot be negative", line);
+      }
+      if (args.at(2).number_value < 0) {
+        ErrorHandler::throw_runtime_error("length cannot be negative", line);
+      }
+      if (args.at(1).number_value + args.at(2).number_value >= args.at(0).string_value.size()) {
+        ErrorHandler::throw_runtime_error("out of string range", line);
+      }
+      Value val(Utils::STR);
+      val.string_value = args.at(0).string_value.substr(args.at(1).number_value, args.at(2).number_value);
+      return val;
+    }
+};
+
 REG(NativeSin, sin)
 REG(NativeSinh, sinh)
 REG(NativeCos, cos)
@@ -432,4 +453,6 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeAbs, abs)
   ADD(NativeRand, rand)
   ADD(NativeRandf, randf)
+  ADD(NativeContains, contains)
+  ADD(NativeSubstr, substr)
 }
