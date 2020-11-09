@@ -4,6 +4,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <fstream>
+#include <streambuf>
+#include <sstream>
 #include <chrono>
 #include <ctime>
 #include <cmath>
@@ -266,7 +269,7 @@ class NativeTimestamp : public NativeFunction {
     }
 };
 
-class NativePow : public NativeFunction {\
+class NativePow : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
       if (args.size() != 2 || args.at(0).type != Utils::FLOAT || args.at(1).type != Utils::FLOAT) {
@@ -274,6 +277,43 @@ class NativePow : public NativeFunction {\
       }
       Value val(Utils::FLOAT);
       val.float_value = std::pow(args.at(0).float_value, args.at(1).float_value);
+      return val;
+    }
+};
+
+class NativeFileread : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("file_read() expects one argument (str)", line);
+      }
+      Value val(Utils::STR);
+      std::ifstream f(args.at(0).string_value);
+      if (!f.good()) {
+        ErrorHandler::throw_runtime_error("couldn't read " + args.at(0).string_value, line);
+      }
+      std::stringstream buffer;
+      buffer << f.rdbuf();
+      val.string_value = buffer.str();
+      return val;
+    }
+};
+
+class NativeFilewrite : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("file_write() expects two arguments (str, str)", line);
+      }
+      Value val(Utils::BOOL);
+      std::ofstream f(args.at(0).string_value);
+      if (!f.good()) {
+        val.boolean_value = false;
+        return val;
+      }
+      f << args.at(1).string_value;
+      f.close();
+      val.boolean_value = true;
       return val;
     }
 };
@@ -314,4 +354,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeFloor, floor)
   ADD(NativeCeil, ceil)
   ADD(NativeRound, round)
+  ADD(NativePow, pow)
+  ADD(NativeFileread, file_read)
+  ADD(NativeFilewrite, file_write)
 }
