@@ -272,4 +272,18 @@ All functions are available globally.
 
 ```
 * print(str) void - prints the string to stdout, no return value
+* input(void) str - reads input from stdin and returns a string
+* size(arr|str) int - returns the size of the given string or array
+* to_str(any) str - returns the string representation of the given value
+* to_int(int|str|float|bool) int - returns the number value of the given argument
+* to_double(int|str|float|bool) double - returns the float value of the given argument
+* exit(int) void - exits program with given status code
+* timestamp(void) int - returns a UNIX timestamp
+* file_read(str) str - opens the given file path and returns the file contents
+* file_write(str, str) bool - opens the given file path (arg1), writes arg2, and returns true on success, false on failure
+* pow(double, double) double - returns the result of arg1 ^ arg2
+* rand(int, int) int - returns a random number from range arg1 to arg2
+* randf(double, double) double - returns a random float from range arg1 to arg2
+* contains(str, str) bool - returns whether arg1 contains the substring arg2
+* substr(str, int, int) - returns a substring of arg1, starting from arg2 that is arg3 characters long
 ```
