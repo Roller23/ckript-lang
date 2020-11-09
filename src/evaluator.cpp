@@ -958,6 +958,12 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       throw_error(msg);
       return {};
     }
+    Value heap_val = get_heap_value(func_evaluator.return_value.heap_reference);
+    if (heap_val.type != utils.var_lut.at(fn_value.func.ret_type)) {
+      std::string msg = "function return type is ref " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
+      throw_error(msg);
+      return {};
+    }
     return {func_evaluator.return_value};
   } else {
     if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
