@@ -6,6 +6,25 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <cmath>
+
+#define REG(name, fn)\
+  class name : public NativeFunction {\
+    public:\
+      Value execute(std::vector<Value> &args, std::int64_t line) {\
+        if (args.size() != 1 || args.at(0).type != Utils::VarType::FLOAT) {\
+          ErrorHandler::throw_runtime_error(#fn "() expects one argument (double)", line);\
+        }\
+        Value val(Utils::FLOAT);\
+        val.float_value = std::fn(args.at(0).float_value);\
+        return val;\
+      }\
+  };
+
+#define ADD(name, fn)\
+  name *fn = new name;\
+  NativeFunction *fn##_ptr = fn;\
+  globals.insert(std::make_pair(#fn, fn##_ptr));
 
 bool Value::is_lvalue() {
   return reference_name.size() != 0;
@@ -247,26 +266,52 @@ class NativeTimestamp : public NativeFunction {
     }
 };
 
+class NativePow : public NativeFunction {\
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::FLOAT || args.at(1).type != Utils::FLOAT) {
+        ErrorHandler::throw_runtime_error("pow() expects two arguments (double, double)", line);
+      }
+      Value val(Utils::FLOAT);
+      val.float_value = std::pow(args.at(0).float_value, args.at(1).float_value);
+      return val;
+    }
+};
+
+REG(NativeSin, sin)
+REG(NativeSinh, sinh)
+REG(NativeCos, cos)
+REG(NativeCosh, cosh)
+REG(NativeTan, tan)
+REG(NativeTanh, tanh)
+REG(NativeSqrt, sqrt)
+REG(NativeLog, log)
+REG(NativeLogten, log10)
+REG(NativeExp, exp)
+REG(NativeFloor, floor)
+REG(NativeCeil, ceil)
+REG(NativeRound, round)
+
 void CkriptVM::load_stdlib(void) {
-  NativeInput *input = new NativeInput;
-  NativeFunction *input_ptr = input;
-  globals.insert(std::make_pair("input", input_ptr));
-  NativePrint *print = new NativePrint;
-  NativeFunction *print_ptr = print;
-  globals.insert(std::make_pair("print", print_ptr));
-  NativeTostr *to_str = new NativeTostr;
-  NativeFunction *to_str_ptr = to_str;
-  globals.insert(std::make_pair("to_str", to_str_ptr));
-  NativeExit *exit = new NativeExit;
-  NativeFunction *exit_ptr = exit;
-  globals.insert(std::make_pair("exit", exit_ptr));
-  NativeToint *to_int = new NativeToint;
-  NativeFunction *to_int_ptr = to_int;
-  globals.insert(std::make_pair("to_int", to_int_ptr));
-  NativeTodouble *to_double = new NativeTodouble;
-  NativeFunction *to_double_ptr = to_double;
-  globals.insert(std::make_pair("to_double", to_double_ptr));
-  NativeSize *size = new NativeSize;
-  NativeFunction *size_ptr = size;
-  globals.insert(std::make_pair("size", size_ptr));
+  ADD(NativeTimestamp, timestamp)
+  ADD(NativeInput, input)
+  ADD(NativePrint, print)
+  ADD(NativeTostr, to_str)
+  ADD(NativeExit, exit)
+  ADD(NativeToint, to_int)
+  ADD(NativeTodouble, to_double)
+  ADD(NativeSize, size)
+  ADD(NativeSin, sin)
+  ADD(NativeSinh, sinh)
+  ADD(NativeCos, cos)
+  ADD(NativeCosh, cosh)
+  ADD(NativeTan, tan)
+  ADD(NativeTanh, tanh)
+  ADD(NativeSqrt, sqrt)
+  ADD(NativeLog, log)
+  ADD(NativeLogten, log10)
+  ADD(NativeExp, exp)
+  ADD(NativeFloor, floor)
+  ADD(NativeCeil, ceil)
+  ADD(NativeRound, round)
 }
