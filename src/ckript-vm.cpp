@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <random>
+#include <algorithm>
 
 #define REG(name, fn)\
   class name : public NativeFunction {\
@@ -369,10 +370,22 @@ class NativeRandf : public NativeFunction {
       Value val(Utils::FLOAT);
       std::random_device rd;
       std::default_random_engine generator(rd());
-      std::uniform_int_distribution<double> distribution(
+      std::uniform_real_distribution<double> distribution(
         args.at(0).float_value, args.at(1).float_value
       );
       val.float_value = distribution(generator);
+      return val;
+    }
+};
+
+class NativeContains : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("contains() expects two arguments (str, str)", line);
+      }
+      Value val(Utils::BOOL);
+      val.boolean_value = args.at(0).string_value.find(args.at(1).string_value) != std::string::npos;
       return val;
     }
 };
