@@ -169,6 +169,48 @@ obj monkey = Animal(type, Food("banana"));
 monkey.food.name; // banana
 ```
 
+## 'this' variable
+
+If one of the object's members is a function, a special variable called `this` will be automatically pushed onto its stack
+`this` is a copy of the object that is holding the function effectively making the function a method sort of
+Remember that `this` is only a copy, hence reassigning its members will not cause the original object to be modified
+Exception to this rule is a situation when `this` is a copy of a pointer
+
+Example:
+
+```
+class Null(int null);
+class PtrTest(ref obj ptr, obj object, func change);
+
+alloc obj null_ptr = Null(0);
+obj null = Null(0);
+
+obj test = PtrTest(null_ptr, null, function(void) void {
+  $this.ptr.null = 123;
+  $this.object.null = 123;
+});
+
+test.change();
+
+test.ptr.null; // is 123
+test.object.null; // is still 0
+
+```
+
+## Command line arguments
+
+Ckript supports command line arguments
+Each program has a default variable called `arguments` which is an array of strings representing passed arguments
+
+Invoking a program like so
+
+```
+./ckript your_code.ck one two three
+```
+
+Will produce a 4 element array of strings `array("your_code.ck", "one", "two", "three") str`
+These strings can be later accessed like any other array
+
 ## if statement
 
 ```
