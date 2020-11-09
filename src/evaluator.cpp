@@ -183,7 +183,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
         if (utils.op_binary(token.op.type)) {
           if (res_stack.size() < 2) {
             std::string msg = "Operator " + Token::get_name(token.op.type) + " expects two operands"; 
-            ErrorHandler::throw_syntax_error(msg);
+            throw_error(msg);
           }
           RpnElement y = res_stack.back();
           res_stack.pop_back();
@@ -226,7 +226,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
         } else if (utils.op_unary(token.op.type)) {
           if (res_stack.size() < 1) {
             std::string msg = "Operator " + Token::get_name(token.op.type) + " an operand"; 
-            ErrorHandler::throw_syntax_error(msg);
+            throw_error(msg);
           }
           RpnElement x = res_stack.back();
           res_stack.pop_back();
