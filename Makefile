@@ -6,7 +6,7 @@ flags := -O3 -lm
 src := src/
 build := build/
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
-intput := doc/obj.ck
+intput := doc/hello.ck
 
 all: $(out)
 

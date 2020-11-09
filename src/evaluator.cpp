@@ -813,7 +813,6 @@ void Evaluator::declare_variable(Node &declaration) {
 }
 
 RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
-  std::cout << "Constructing an object\n";
   Value val;
   Value &class_val = get_value(_class);
   int args_counter = 0;
