@@ -45,6 +45,7 @@ class Evaluator {
     Node &AST;
     Utils &utils;
     bool stream = false;
+    CallStack stack;
     Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils, bool is_stream = false) : 
       VM(_VM),
       AST(_AST), 
@@ -52,7 +53,6 @@ class Evaluator {
       stream(is_stream) {};
     void start();
   private:
-    CallStack stack;
     bool inside_func = false;
     bool returns_ref = false;
     int nested_loops = 0;

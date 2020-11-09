@@ -10,6 +10,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   std::string filename = argv[1];
-  interpreter.process_file(filename);
+  interpreter.process_file(filename, argc - 1, argv + 1);
   return 0;
 }

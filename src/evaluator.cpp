@@ -35,7 +35,6 @@ void Evaluator::throw_error(const std::string &cause) {
 }
 
 void Evaluator::start() {
-  stack.reserve(100);
   for (auto &statement : AST.children) {
     int flag = execute_statement(statement);
     if (flag == FLAG_RETURN) {
@@ -942,6 +941,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
 
   Node fn_AST = fn_value.func.instructions.at(0);
   Evaluator func_evaluator(fn_AST, VM, utils);
+  func_evaluator.stack.reserve(100);
   func_evaluator.inside_func = true;
   func_evaluator.returns_ref = fn_value.func.ret_ref;
 

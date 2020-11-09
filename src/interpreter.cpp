@@ -10,7 +10,7 @@
 #include <iostream>
 #include <cstdlib>
 
-void Interpreter::process_file(const std::string &filename) {
+void Interpreter::process_file(const std::string &filename, int argc, char *argv[]) {
   Lexer lexer;
   lexer.verbose = true;
   Utils utils;
@@ -21,6 +21,21 @@ void Interpreter::process_file(const std::string &filename) {
   AST.print();
   CkriptVM VM;
   Evaluator evaluator(AST, VM, utils);
+  evaluator.stack.reserve(100);
+  // pass the "arguments" array
+  Variable *var = new Variable;
+  var->id = "arguments";
+  var->type = Utils::VarType::ARR;
+  var->val.array_type = "str";
+  var->val.type = Utils::VarType::ARR;
+  var->val.array_values.reserve(argc);
+  for (int i = 0; i < argc; i++) {
+    Value element;
+    element.type = Utils::VarType::STR;
+    element.string_value = argv[i];
+    var->val.array_values.push_back(element);
+  }
+  evaluator.stack.push_back(var);
   evaluator.start();
 }
 
