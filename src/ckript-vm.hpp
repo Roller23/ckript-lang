@@ -57,9 +57,15 @@ class Heap {
 
 typedef std::vector<Variable *> CallStack;
 
+class NativeFunction {
+  public:
+    virtual Value execute(std::vector<Value> &args, std::int64_t line) = 0;
+};
+
 class CkriptVM {
   public:
-    std::map<std::string, Variable *> globals;
+    void load_stdlib(void);
+    std::map<std::string, NativeFunction *> globals;
     Heap heap;
 };
 

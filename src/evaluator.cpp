@@ -914,6 +914,16 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
 
 RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   assert(call.op.op_type == Operator::FUNC);
+  if (fn.value.is_lvalue() && VM.globals.find(fn.value.reference_name) != VM.globals.end()) {
+    std::vector<Value> call_args;
+    call_args.reserve(call.op.func_call.arguments.size());
+    for (auto &node_list : call.op.func_call.arguments) {
+      if (node_list.size() == 0) break;
+      call_args.push_back(evaluate_expression(node_list));
+    }
+    Value return_val = VM.globals.at(fn.value.reference_name)->execute(call_args, current_line);
+    return {return_val};
+  }
   Value &fn_value = get_value(fn);
   if (fn_value.type == VarType::CLASS) {
     return construct_object(call, fn);
@@ -1077,6 +1087,9 @@ RpnElement Evaluator::node_to_element(Node &node) {
 }
 
 Variable *Evaluator::get_reference_by_name(const std::string &name) {
+  if (VM.globals.find(name) != VM.globals.end()) {
+    throw_error("Trying to access a native function");
+  }
   for (auto &var : stack) {
     if (var->id == name) {
       return var;

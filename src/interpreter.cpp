@@ -20,6 +20,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   std::cout << "AST:\n";
   AST.print();
   CkriptVM VM;
+  VM.load_stdlib();
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
   // pass the "arguments" array
@@ -42,6 +43,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
 void Interpreter::process_stream() {
   Utils utils;
   CkriptVM VM;
+  VM.load_stdlib();
   std::string line = "";
   bool running = true;
   while (running) {

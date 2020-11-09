@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cassert>
+#include <regex>
 
 #define REG(tok_str, tok_sym) if(op==#tok_str){log("token ["#tok_sym"], ");add_token(Token::tok_sym);}else
 
@@ -17,12 +18,27 @@ static const char *_builtin_types[] = {
   "obj", "arr"
 };
 
+// std::string raw = R"(\\n)";
+// args.at(0).string_value = std::regex_replace(args.at(0).string_value, std::regex(raw), "\n");
+
 const char **Lexer::builtin_types = _builtin_types;
 int Lexer::types_count = sizeof(_builtin_types) / sizeof(char *);
 
 void Lexer::log(std::string str) const {
   if (!this->verbose) return;
   std::cout << str << std::endl;
+}
+
+void Lexer::unescape(std::string &str) {
+  std::vector<std::string> raws = {
+    R"(\\n)", R"(\\t)", R"(\\a)", R"(\\r)", R"(\\b)", R"(\\v)"
+  };
+  std::vector<std::string> actual = {
+    "\n", "\t", "\a", "\r", "\b", "\v"
+  };
+  for (int i = 0; i < raws.size(); i++) {
+    str = std::regex_replace(str, std::regex(raws.at(i)), actual.at(i));
+  }
 }
 
 bool Lexer::contains(const std::string &str, const char needle) const {
@@ -165,6 +181,7 @@ TokenList Lexer::tokenize(const std::string &code) {
           ptr++;
         }
         log("token [STRING_LITERAL: " + str + "], ");
+        unescape(str);
         add_token(Token::STRING_LITERAL, str);
       } else if (isdigit(c, loc)) {
         // might be some kind of number

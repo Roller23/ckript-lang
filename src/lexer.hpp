@@ -26,6 +26,7 @@ class Lexer {
     void add_token(Token::TokenType type);
     void add_token(Token::TokenType type, const std::string &val);
     void log(std::string str) const;
+    void unescape(std::string &str);
     std::string::const_iterator ptr;
     std::string::const_iterator end;
     std::locale loc{""};

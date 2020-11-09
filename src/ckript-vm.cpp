@@ -1,4 +1,6 @@
 #include "ckript-vm.hpp"
+#include "utils.hpp"
+#include "error-handler.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -49,4 +51,54 @@ void Heap::free(Variable *var) {
   while (chunks.size() && !chunks.back().used) {
     chunks.pop_back();
   }
+}
+
+// stdlib
+
+class NativeInput : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 0) {
+        ErrorHandler::throw_runtime_error("input() doesn't take any arguments", line);
+      }
+      Value str;
+      str.type = Utils::VarType::STR;
+      str.string_value = "";
+      std::getline(std::cin, str.string_value);
+      return str;
+    }
+};
+
+class NativePrint : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::VarType::STR) {
+        ErrorHandler::throw_runtime_error("print() expects one argument (str)", line);
+      }
+      std::cout << args.at(0).string_value;
+      Value val(Utils::VarType::VOID);
+      return {val};
+    }
+};
+
+class NativeTostr : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1) {
+        ErrorHandler::throw_runtime_error("to_str() expects one argument", line);
+      }
+      
+      Value val(Utils::VarType::STR);
+      val.string_value = "";
+      return {val};
+    }
+};
+
+void CkriptVM::load_stdlib(void) {
+  NativeInput *input = new NativeInput;
+  NativeFunction *input_ptr = input;
+  globals.insert(std::make_pair("input", input_ptr));
+  NativePrint *print = new NativePrint;
+  NativeFunction *print_ptr = print;
+  globals.insert(std::make_pair("print", print_ptr));
 }
