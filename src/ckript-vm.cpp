@@ -161,6 +161,18 @@ class NativePrint : public NativeFunction {
     }
 };
 
+class NativeFlush : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 0) {
+        ErrorHandler::throw_runtime_error("flush() takes no arguments", line);
+      }
+      std::cout << std::flush;
+      Value val(Utils::VarType::VOID);
+      return val;
+    }
+};
+
 class NativeSize : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
@@ -428,6 +440,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeTimestamp, timestamp)
   ADD(NativeInput, input)
   ADD(NativePrint, print)
+  ADD(NativeFlush, flush)
   ADD(NativeTostr, to_str)
   ADD(NativeExit, exit)
   ADD(NativeToint, to_int)
