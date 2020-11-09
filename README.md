@@ -213,6 +213,32 @@ Invoking a program like so
 Will produce a 4 element array of strings `array("your_code.ck", "one", "two", "three") str`
 These strings can be later accessed like any other array
 
+## Variable scope
+
+All variables are local to the function they were declared in.
+Even though Ckript allows declaring functions inside functions, inner functions' variable scope is only limited to their own scope
+
+Functions are also able to see a copy of themselves, allowing for recursion
+
+Example:
+
+```
+func outer = function(void) void {
+  int a = 5;
+  func inner = function(int arg) int {
+    // a is not visible here
+    return arg * 2;
+  };
+  int res = inner(a); // the only way to pass a variable local to 'outer' to 'inner'
+};
+
+func fib = function(int n) int {
+  if (n <= 1) return n;
+  return fib(n - 1) + fib(n - 2); // the function fib is visible in this scope
+};
+
+```
+
 ## if statement
 
 ```
