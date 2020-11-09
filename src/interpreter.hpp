@@ -1,4 +1,4 @@
-#ifndef __INTERPRETER_
+#if !defined(__INTERPRETER_)
 #define __INTERPRETER_
 
 #include <string>

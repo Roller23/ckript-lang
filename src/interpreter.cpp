@@ -15,7 +15,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   lexer.verbose = true;
   Utils utils;
   TokenList tokens = lexer.process_file(filename);
-  Parser parser(tokens, Token::TokenType::NONE, "MAIN", utils);
+  Parser parser(tokens, Token::TokenType::NONE, "", utils);
   Node AST = parser.parse(NULL);
   std::cout << "AST:\n";
   AST.print();
