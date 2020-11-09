@@ -10,6 +10,8 @@
 #include <chrono>
 #include <ctime>
 #include <cmath>
+#include <cstdlib>
+#include <random>
 
 #define REG(name, fn)\
   class name : public NativeFunction {\
@@ -318,6 +320,63 @@ class NativeFilewrite : public NativeFunction {
     }
 };
 
+class NativeAbs : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || (args.at(0).type != Utils::INT && args.at(1).type != Utils::FLOAT)) {
+        ErrorHandler::throw_runtime_error("abs() expects one argument (int|double)", line);
+      }
+      Value val;
+      val.type = args.at(0).type;
+      if (args.at(0).type != Utils::INT) {
+        val.number_value = args.at(0).number_value;
+        if (val.number_value < 0) {
+          val.number_value = -val.number_value;
+        }
+      } else {
+        val.float_value = args.at(0).float_value;
+        if (val.float_value < 0) {
+          val.float_value = -val.float_value;
+        }
+      }
+      return val;
+    }
+};
+
+class NativeRand : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::INT || args.at(1).type != Utils::INT) {
+        ErrorHandler::throw_runtime_error("rand() expects two arguments (int, int)", line);
+      }
+      Value val(Utils::INT);
+      std::random_device rd;
+      std::default_random_engine generator(rd());
+      std::uniform_int_distribution<std::int64_t> distribution(
+        args.at(0).number_value, args.at(1).number_value
+      );
+      val.number_value = distribution(generator);
+      return val;
+    }
+};
+
+class NativeRandf : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::FLOAT || args.at(1).type != Utils::FLOAT) {
+        ErrorHandler::throw_runtime_error("randf() expects two arguments (double, double)", line);
+      }
+      Value val(Utils::FLOAT);
+      std::random_device rd;
+      std::default_random_engine generator(rd());
+      std::uniform_int_distribution<double> distribution(
+        args.at(0).float_value, args.at(1).float_value
+      );
+      val.float_value = distribution(generator);
+      return val;
+    }
+};
+
 REG(NativeSin, sin)
 REG(NativeSinh, sinh)
 REG(NativeCos, cos)
@@ -357,4 +416,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativePow, pow)
   ADD(NativeFileread, file_read)
   ADD(NativeFilewrite, file_write)
+  ADD(NativeAbs, abs)
+  ADD(NativeRand, rand)
+  ADD(NativeRandf, randf)
 }
