@@ -200,7 +200,8 @@ test.object.null; // is still 0
 
 ## Command line arguments
 
-Ckript supports command line arguments
+Ckript supports command line arguments.
+
 Each program has a default variable called `arguments` which is an array of strings representing passed arguments
 
 Invoking a program like so
