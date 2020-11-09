@@ -239,6 +239,8 @@ func fib = function(int n) int {
 
 ```
 
+Warning: class declarations are also local to functions. Treat class declarations like variable declarations.
+
 ## if statement
 
 ```
