@@ -271,7 +271,8 @@ Ckript includes a small, simple standard library for most common tasks.
 All functions are available globally.
 
 ```
-* print(str) void - prints the string to stdout, no return value
+* print(str) void - prints the string to stdout
+* flush(void) void - flushes stdout
 * input(void) str - reads input from stdin and returns a string
 * size(arr|str) int - returns the size of the given string or array
 * to_str(any) str - returns the string representation of the given value
