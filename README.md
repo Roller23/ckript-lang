@@ -171,10 +171,10 @@ monkey.food.name; // banana
 
 ## 'this' variable
 
-If one of the object's members is a function, a special variable called `this` will be automatically pushed onto its stack
+If one of the object's members is a function, a special variable called `this` will be automatically pushed onto its stack.
 `this` is a copy of the object that is holding the function effectively making the function a method sort of
-Remember that `this` is only a copy, hence reassigning its members will not cause the original object to be modified
-Exception to this rule is a situation when `this` is a copy of a pointer
+Remember that `this` is only a copy, hence reassigning its members will not cause the original object to be modified.
+Exception to this rule is a situation when `this` is a copy of a pointer.
 
 Example:
 
