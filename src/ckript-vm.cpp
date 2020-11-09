@@ -401,7 +401,7 @@ class NativeSubstr : public NativeFunction {
       if (args.at(2).number_value < 0) {
         ErrorHandler::throw_runtime_error("length cannot be negative", line);
       }
-      if (args.at(1).number_value + args.at(2).number_value >= args.at(0).string_value.size()) {
+      if (args.at(1).number_value + args.at(2).number_value > args.at(0).string_value.size()) {
         ErrorHandler::throw_runtime_error("out of string range", line);
       }
       Value val(Utils::STR);
