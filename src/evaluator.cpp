@@ -268,9 +268,13 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
       }
       if (var->val.heap_reference != -1) {
         return var->val;
+      } else {
+        throw_error("Expression expected to be a reference");
       }
     } else if (res_val.heap_reference != -1) {
       return res_val;
+    } else {
+      throw_error("Expression expected to be a reference");
     }
   }
   if (res_val.is_lvalue() || res_val.heap_reference > -1) {
