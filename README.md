@@ -281,6 +281,7 @@ All functions are available globally.
 * exit(int) void - exits program with given status code
 * timestamp(void) int - returns a UNIX timestamp
 * file_exists(str) bool - returns a boolean value indicating whether the file exists or not
+* file_remove(str) bool - removes the specified file, returns true on success, false on failure
 * file_read(str) str - opens the given file path and returns the file contents
 * file_write(str, str) bool - opens the given file path (arg1), writes arg2, and returns true on success, false on failure
 * pow(double, double) double - returns the result of arg1 ^ arg2

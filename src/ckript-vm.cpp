@@ -346,6 +346,18 @@ class NativeFileexists : public NativeFunction {
     }
 };
 
+class NativeFileremove : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("file_remove() expects one argument (str)", line);
+      }
+      Value val(Utils::BOOL);
+      val.boolean_value = std::remove(args.at(0).string_value.c_str()) == 0;
+      return val;
+    }
+};
+
 class NativeAbs : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
@@ -501,6 +513,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeFileread, file_read)
   ADD(NativeFilewrite, file_write)
   ADD(NativeFileexists, file_exists)
+  ADD(NativeFileremove, file_remove)
   ADD(NativeAbs, abs)
   ADD(NativeRand, rand)
   ADD(NativeRandf, randf)
