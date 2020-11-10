@@ -361,12 +361,12 @@ class NativeFileremove : public NativeFunction {
 class NativeAbs : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
-      if (args.size() != 1 || (args.at(0).type != Utils::INT && args.at(1).type != Utils::FLOAT)) {
+      if (args.size() != 1 || (args.at(0).type != Utils::INT && args.at(0).type != Utils::FLOAT)) {
         ErrorHandler::throw_runtime_error("abs() expects one argument (int|double)", line);
       }
       Value val;
       val.type = args.at(0).type;
-      if (args.at(0).type != Utils::INT) {
+      if (args.at(0).type == Utils::INT) {
         val.number_value = args.at(0).number_value;
         if (val.number_value < 0) {
           val.number_value = -val.number_value;
