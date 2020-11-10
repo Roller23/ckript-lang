@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <random>
 #include <algorithm>
+#include <cstring>
 
 #define REG(name, fn)\
   class name : public NativeFunction {\
@@ -435,6 +436,30 @@ class NativeSubstr : public NativeFunction {
     }
 };
 
+class NativeSplit : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("split() expects two arguments (str, str)", line);
+      }
+      Value res(Utils::ARR);
+      res.array_type = "str";
+      std::string delim_copy = args.at(1).string_value;
+      char *c_str = strdup(args.at(0).string_value.c_str());
+      const char *c_delim = delim_copy.c_str();
+      char *token = std::strtok(c_str, c_delim);
+      while (token != NULL) {
+        Value element;
+        element.type = Utils::VarType::STR;
+        element.string_value = token;
+        res.array_values.push_back(element);
+        token = std::strtok(NULL, c_delim);
+      }
+      std::free(c_str);
+      return res;
+    }
+};
+
 REG(NativeSin, sin)
 REG(NativeSinh, sinh)
 REG(NativeCos, cos)
@@ -481,4 +506,5 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeRandf, randf)
   ADD(NativeContains, contains)
   ADD(NativeSubstr, substr)
+  ADD(NativeSplit, split)
 }

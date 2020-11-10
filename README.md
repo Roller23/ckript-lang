@@ -288,6 +288,7 @@ All functions are available globally.
 * randf(double, double) double - returns a random float from range arg1 to arg2
 * contains(str, str) bool - returns whether arg1 contains the substring arg2
 * substr(str, int, int) str - returns a substring of arg1, starting from arg2 that is arg3 characters long
+* split(str, str) arr - splits arg1 by any of the delims in arg2 and returns an array of strings
 * the following functions all accept a double value and return a double value which is the result of the mathematical operation
 * sin/sinh/cos/cosh/tan/tanh/log/log10/ceil/floor/round/exp/sqrt/abs
 ```
