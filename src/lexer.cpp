@@ -15,7 +15,7 @@
 static const char *_builtin_types[] = {
   "int", "double",
   "func", "str", "void",
-  "obj", "arr"
+  "obj", "arr", "bool"
 };
 
 const char **Lexer::builtin_types = _builtin_types;
