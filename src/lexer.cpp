@@ -190,7 +190,12 @@ TokenList Lexer::tokenize(const std::string &code) {
         bool converted = false;
         bool negation = tokens.size() != 0 && tokens.back().type == Token::OP_MINUS && !deleted_spaces;
         if (negation && !prev_deleted_spaces) {
-          negation = false;
+          if (tokens.size()) {
+            Token::TokenType t = tokens.back().type;
+            if (t == Token::IDENTIFIER || t == Token::BINARY || t == Token::DECIMAL || t == Token::OCTAL || t == Token::FLOAT || t == Token::LEFT_PAREN) {
+              negation = false;
+            }
+          }
         } 
         if (negation) {
           number_str = "-" + number_str;
