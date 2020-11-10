@@ -332,6 +332,19 @@ class NativeFilewrite : public NativeFunction {
     }
 };
 
+class NativeFileexists : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("file_exists() expects one argument (str)", line);
+      }
+      Value val(Utils::BOOL);
+      std::ifstream f(args.at(0).string_value);
+      val.boolean_value = f.good();
+      return val;
+    }
+};
+
 class NativeAbs : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
@@ -462,6 +475,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativePow, pow)
   ADD(NativeFileread, file_read)
   ADD(NativeFilewrite, file_write)
+  ADD(NativeFileexists, file_exists)
   ADD(NativeAbs, abs)
   ADD(NativeRand, rand)
   ADD(NativeRandf, randf)

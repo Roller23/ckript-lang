@@ -280,6 +280,7 @@ All functions are available globally.
 * to_double(int|str|float|bool) double - returns the float value of the given argument
 * exit(int) void - exits program with given status code
 * timestamp(void) int - returns a UNIX timestamp
+* file_exists(str) bool - returns a boolean value indicating whether the file exists or not
 * file_read(str) str - opens the given file path and returns the file contents
 * file_write(str, str) bool - opens the given file path (arg1), writes arg2, and returns true on success, false on failure
 * pow(double, double) double - returns the result of arg1 ^ arg2
