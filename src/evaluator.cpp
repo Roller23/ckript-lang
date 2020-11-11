@@ -110,8 +110,11 @@ int Evaluator::execute_statement(Node &statement) {
     return FLAG_RETURN;
   }
   if (statement.stmt.type == StmtType::WHILE) {
-    if (statement.stmt.expressions.size() == 0) return FLAG_OK;
+    assert(statement.stmt.expressions.size() != 0);
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
+    if (statement.stmt.expressions.at(0).size() == 0) {
+      throw_error("while expects an expression");
+    }
     nested_loops++;
     while (true) {
       NodeList cond = statement.stmt.expressions.at(0); // make a copy
@@ -166,7 +169,10 @@ int Evaluator::execute_statement(Node &statement) {
   }
   if (statement.stmt.type == StmtType::IF) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
-    if (statement.stmt.expressions.size() == 0) return FLAG_OK;
+    assert(statement.stmt.expressions.size() != 0);
+    if (statement.stmt.expressions.at(0).size() == 0) {
+      throw_error("if expects an expression");
+    }
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
     if (result.type != VarType::BOOL) {
       std::string msg = "Expected a boolean value in if statement, found " + stringify(result);
