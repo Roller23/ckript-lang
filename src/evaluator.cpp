@@ -129,13 +129,25 @@ int Evaluator::execute_statement(Node &statement) {
     nested_loops--;
   }
   if (statement.stmt.type == StmtType::FOR) {
-    if (statement.stmt.expressions.size() != 3) return FLAG_OK; // TO DO
+    if (statement.stmt.expressions.size() != 3) {
+      std::string given = std::to_string(statement.stmt.expressions.size());
+      throw_error("For expects 3 expressions, " + given + " given");
+    }
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
-    evaluate_expression(statement.stmt.expressions.at(0));
+    if (statement.stmt.expressions.at(0).size() != 0) {
+      evaluate_expression(statement.stmt.expressions.at(0));
+    }
     nested_loops++;
     while (true) {
       NodeList cond = statement.stmt.expressions.at(1); // make a copy
-      Value result = evaluate_expression(cond);
+      Value result;
+      if (cond.size() == 0) {
+        // empty conditions evaluate to true
+        result.type = Utils::BOOL;
+        result.boolean_value = true;
+      } else {
+        result = evaluate_expression(cond);
+      }
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         throw_error(msg);
@@ -145,8 +157,10 @@ int Evaluator::execute_statement(Node &statement) {
       int flag = execute_statement(stmt);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
-      NodeList post_expr = statement.stmt.expressions.at(2);
-      evaluate_expression(post_expr);
+      NodeList increment_expr = statement.stmt.expressions.at(2);
+      if (increment_expr.size() != 0) {
+        evaluate_expression(increment_expr);
+      }
     }
     nested_loops--;
   }
