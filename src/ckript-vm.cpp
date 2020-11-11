@@ -111,7 +111,9 @@ static std::string stringify(Value &val) {
     std::string str = "array(";
     int i = 0;
     for (auto &el : val.array_values) {
+      if (el.type == Utils::STR) str += "\"";
       str += stringify(el);
+      if (el.type == Utils::STR) str += "\"";
       if (i != val.array_values.size() - 1) {
         str += ", ";
       }
@@ -124,7 +126,10 @@ static std::string stringify(Value &val) {
     std::string str = "object(";
     int i = 0;
     for (auto &member : val.member_values) {
-      str += member.first + ": " + stringify(member.second);
+      str += member.first + ": ";
+      if (member.second.type == Utils::STR) str += "\"";
+      str += stringify(member.second);
+      if (member.second.type == Utils::STR) str += "\"";
       if (i != val.member_values.size() - 1) {
         str += ", ";
       }
@@ -153,10 +158,15 @@ class NativeInput : public NativeFunction {
 class NativePrint : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
-      if (args.size() != 1 || args.at(0).type != Utils::VarType::STR) {
-        ErrorHandler::throw_runtime_error("print() expects one argument (str)", line);
+      if (args.size() == 0) {
+        ErrorHandler::throw_runtime_error("print() expects at least one argument", line);
       }
-      std::cout << args.at(0).string_value;
+      int i = 0;
+      for (auto &arg : args) {
+        std::cout << stringify(arg);
+        if (i != args.size() - 1) std::cout << " ";
+        i++;
+      }
       Value val(Utils::VarType::VOID);
       return val;
     }
