@@ -272,6 +272,7 @@ All functions are available globally.
 
 ```
 * print(any[, any]) void - accepts any number of arguments (at least one) of any type and prints them to stdout
+* println(any) void - accepts any number of arguments, works like print() but prints a new line at the end for you
 * flush(void) void - flushes stdout
 * input(void) str - reads input from stdin and returns a string
 * size(arr|str) int - returns the size of the given string or array

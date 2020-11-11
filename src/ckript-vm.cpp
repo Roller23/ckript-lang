@@ -172,6 +172,21 @@ class NativePrint : public NativeFunction {
     }
 };
 
+class NativePrintln : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      int i = 0;
+      for (auto &arg : args) {
+        std::cout << stringify(arg);
+        if (i != args.size() - 1) std::cout << " ";
+        i++;
+      }
+      std::cout << std::endl;
+      Value val(Utils::VarType::VOID);
+      return val;
+    }
+};
+
 class NativeFlush : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
@@ -500,6 +515,7 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeTimestamp, timestamp)
   ADD(NativeInput, input)
   ADD(NativePrint, print)
+  ADD(NativePrintln, println)
   ADD(NativeFlush, flush)
   ADD(NativeTostr, to_str)
   ADD(NativeExit, exit)
