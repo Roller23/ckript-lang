@@ -803,8 +803,14 @@ void Evaluator::register_class(ClassStatement &_class) {
 void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
   if (get_reference_by_name(decl.id) != nullptr) {
-    std::string msg = decl.id + " is already defined";
-    throw_error(msg);
+    // redeclare the variable
+    Value lvalue(Utils::ID);
+    lvalue.reference_name = decl.id;
+    RpnElement lelement = lvalue;
+    Value rvalue = evaluate_expression(decl.var_expr, decl.reference);
+    RpnElement relement = rvalue;
+    assign(lelement, relement);
+    return;
   }
   Value var_val = evaluate_expression(decl.var_expr, decl.reference);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
