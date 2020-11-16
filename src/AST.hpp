@@ -38,6 +38,7 @@ class FuncExpression {
     ParamList params;
     std::string ret_type;
     bool ret_ref = false;
+    bool captures = false;
     NodeList instructions;
     FuncExpression(void) : type(FuncType::NONE) {};
     FuncExpression(FuncType _type) : type(_type) {};

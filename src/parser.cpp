@@ -183,7 +183,11 @@ Node Parser::parse_func_expr() {
   // function(arg1, arg2, ...) type statement(s);
   Node func = Node(Expression(ExprType::FUNC_EXPR));
   func.expr.func_expr.type = FuncType::FUNC;
-  advance(); // skip the function/thread
+  advance(); // skip the function
+  if (curr_token.type == Token::OP_GT) {
+    func.expr.func_expr.captures = true;
+    advance(); // skip the >
+  }
   if (curr_token.type != Token::LEFT_PAREN) {
     std::string msg = "invalid function declaration, expected '(', but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);

@@ -69,6 +69,18 @@ square(5, function(int result) void {
 });
 
 ```
+By default, functions do not capture outside variables. You can capture all outside variables by copy by using the `function>` syntax.
+```
+alloc int var = 3;
+
+func capture = function>(void) void {
+  println(var); // prints 3
+  var += 3; // var is a copy of a pointer, so this line will actually change the value
+};
+
+capture();
+println(var); // prints 6
+```
 
 ## Strings
 

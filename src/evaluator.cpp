@@ -973,13 +973,23 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     var->val = fn_value;
     func_evaluator.stack.push_back(var);
   }
-  if (fn.value.func_this.size() != 0) {
+  if (fn_value.func_this.size() != 0) {
     // push "this" onto the stack
     Variable *var = new Variable;
     var->id = "this";
     var->type = VarType::OBJ;
     var->val = fn.value.func_this.at(0);
     func_evaluator.stack.push_back(var);
+  }
+  if (fn_value.func.captures) {
+    // copy current callstack on the callstack
+    for (auto &variable : stack) {
+      if (variable->id != "this" && (fn.value.is_lvalue() && variable->id != fn.value.reference_name)) {
+        Variable *copy = new Variable;
+        *copy = *variable;
+        func_evaluator.stack.push_back(copy);
+      }
+    }
   }
   func_evaluator.start();
   if (fn_value.func.ret_ref) {
