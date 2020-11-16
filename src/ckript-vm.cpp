@@ -497,6 +497,44 @@ class NativeSplit : public NativeFunction {
     }
 };
 
+class NativeTobytes : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("to_bytes() expects one argument (str)", line);
+      }
+      Value res(Utils::ARR);
+      res.array_type = "int";
+      const char *c_str = args.at(0).string_value.c_str();
+      int i = 0;
+      while (c_str[i]) {
+        Value element;
+        element.type = Utils::VarType::INT;
+        element.number_value = (std::int64_t)c_str[i++];
+        res.array_values.push_back(element);
+      }
+      return res;
+    }
+};
+
+class NativeFrombytes : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line) {
+      if (args.size() != 1 || args.at(0).type != Utils::ARR) {
+        ErrorHandler::throw_runtime_error("to_bytes() expects one argument (arr)", line);
+      }
+      if (args.at(0).array_type != "int") {
+        ErrorHandler::throw_runtime_error("to_bytes() expects an int array", line);
+      }
+      Value res(Utils::STR);
+      res.string_value = "";
+      for (auto &el : args.at(0).array_values) {
+        res.string_value += (char)el.number_value;
+      }
+      return res;
+    }
+};
+
 REG(NativeSin, sin)
 REG(NativeSinh, sinh)
 REG(NativeCos, cos)
@@ -546,4 +584,6 @@ void CkriptVM::load_stdlib(void) {
   ADD(NativeContains, contains)
   ADD(NativeSubstr, substr)
   ADD(NativeSplit, split)
+  ADD(NativeTobytes, to_bytes)
+  ADD(NativeFrombytes, from_bytes)
 }
