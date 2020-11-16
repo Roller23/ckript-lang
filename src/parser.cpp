@@ -240,7 +240,7 @@ Node Parser::parse_class_stmt() {
 
 Node Parser::parse_array_expr() {
   advance(); // skip the array
-  Node array(Expression(ExprType::ARRAY));
+  Node array((Expression(ExprType::ARRAY)));
   if (curr_token.type != Token::LEFT_PAREN) {
     std::string msg = "invalid array expression, expected '(', but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
@@ -425,7 +425,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::SET) {
     std::uint64_t line = curr_token.line;
     advance(); // skip the $
-    Node set(Statement(StmtType::SET));
+    Node set((Statement(StmtType::SET)));
     set.stmt.line = line;
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "invalid set statement. Expected an identifier, but " + curr_token.get_name() + " found";
@@ -458,7 +458,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::SET_IDX) {
     std::uint64_t line = curr_token.line;
     advance(); // skip the #
-    Node set_idx(Statement(StmtType::SET_IDX));
+    Node set_idx((Statement(StmtType::SET_IDX)));
     set_idx.stmt.line = line;
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "invalid set index statement. Expected an identifier, but " + curr_token.get_name() + " found";
@@ -486,7 +486,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
   if (curr_token.type == Token::LEFT_BRACE) {
     // { statement(s) }
     advance(); // skip the {
-    Node comp(Statement(StmtType::COMPOUND));
+    Node comp((Statement(StmtType::COMPOUND)));
     comp.stmt.line = curr_token.line;
     int block_end = find_enclosing_brace(pos, 1);
     TokenList block_start(tokens.begin() + pos, tokens.begin() + pos + block_end + 1); // create a subvector of tokens
@@ -505,7 +505,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid if statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
-    Node if_stmt = Node(Statement(StmtType::IF));
+    Node if_stmt = Node((Statement(StmtType::IF)));
     if_stmt.stmt.line = line;
     advance(); // skip the (
     NodeList rpn = get_expression(Token::RIGHT_PAREN);
@@ -526,7 +526,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid while statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
-    Node while_stmt = Node(Statement(StmtType::WHILE));
+    Node while_stmt = Node((Statement(StmtType::WHILE)));
     while_stmt.stmt.line = line;
     advance(); // skip the (
     NodeList rpn = get_expression(Token::RIGHT_PAREN);
@@ -543,7 +543,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       std::string msg = "invalid for statement. Expected '(', but " + curr_token.get_name() + " found";
       throw_error(msg, curr_token.line);
     }
-    Node for_stmt = Node(Statement(StmtType::FOR));
+    Node for_stmt = Node((Statement(StmtType::FOR)));
     for_stmt.stmt.line = line;
     advance(); // skip the (
     for_stmt.stmt.expressions = get_many_expressions(Token::SEMI_COLON, Token::RIGHT_PAREN);
@@ -554,7 +554,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // return expression;
     std::uint64_t line = curr_token.line;
     advance(); // skip the return
-    Node return_stmt(Statement(StmtType::RETURN));
+    Node return_stmt((Statement(StmtType::RETURN)));
     return_stmt.stmt.line = line;
     NodeList rpn = get_expression(Token::SEMI_COLON);
     return_stmt.stmt.expressions.push_back(rpn);
@@ -568,7 +568,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       ErrorHandler::throw_syntax_error(msg);
     }
     advance(); // skip the ;
-    Node break_stmt = Statement(StmtType::BREAK);
+    Node break_stmt = Statement((StmtType::BREAK));
     break_stmt.stmt.line = line;
     return break_stmt;
   } else if (curr_token.type == Token::CONTINUE) {
@@ -579,7 +579,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       ErrorHandler::throw_syntax_error(msg);
     }
     advance(); // skip the ;
-    Node continue_stmt = Statement(StmtType::CONTINUE);
+    Node continue_stmt = Statement((StmtType::CONTINUE));
     continue_stmt.stmt.line = line;
     return continue_stmt;
   } else if (curr_token.type == Token::TYPE) {
@@ -590,7 +590,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     if (allocated && lookahead(-2).type == Token::CONST) {
       constant = true;
     }
-    Node var_decl = Node(Declaration(DeclType::VAR_DECL));
+    Node var_decl = Node((Declaration(DeclType::VAR_DECL)));
     var_decl.decl.line = curr_token.line;
     var_decl.decl.var_type = curr_token.value;
     advance(); // skip the variable type
@@ -609,7 +609,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     var_decl.decl.allocated = allocated;
     var_decl.decl.constant = constant;
     var_decl.decl.reference = reference;
-    Node decl_stmt(Statement(StmtType::DECL));
+    Node decl_stmt((Statement(StmtType::DECL)));
     decl_stmt.stmt.declaration.push_back(var_decl);
     advance(); // skip the semicolon
     return decl_stmt;
@@ -639,7 +639,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     return get_statement(prev, stop);
   } else if (curr_token.type == Token::SEMI_COLON && prev.type == NodeType::UNKNOWN) {
     // nop;
-    Node nop_stmt(Statement(StmtType::NOP));
+    Node nop_stmt((Statement(StmtType::NOP)));
     nop_stmt.stmt.line = curr_token.line;
     advance(); // skip the semicolon
     return nop_stmt;
@@ -650,7 +650,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     // expression;
     std::uint64_t line = curr_token.line;
     NodeList expr = get_expression(Token::SEMI_COLON);
-    Node expr_stmt(Statement(StmtType::EXPR));
+    Node expr_stmt((Statement(StmtType::EXPR)));
     expr_stmt.stmt.expressions.push_back(expr);
     expr_stmt.stmt.line = line;
     advance(); // skip the semicolon
