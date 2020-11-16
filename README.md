@@ -2,7 +2,7 @@
 An interpreter for my own programming language (Ckript)
 
 Compile using `g++` or `clang++`. `MSVC` has not been tested yet.
-If you have `g++` and `Make` installed simply running ``make`` should compile the whole project.
+If you have `g++` and `Make` installed simply running ``make`` should compile the whole project (you might need to change the Makefile a bit if you're using MinGW or clang, but it should work)
 
 Usage:
 
