@@ -21,6 +21,7 @@ Built in types
 
 * int
 * str
+* bool
 * double
 * arr
 * obj
