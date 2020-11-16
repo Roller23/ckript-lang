@@ -29,7 +29,12 @@ class Lexer {
     void unescape(std::string &str);
     std::string::const_iterator ptr;
     std::string::const_iterator end;
+    #ifdef __MINGW32__
+    // loc{""} throws an exception with MinGW for whatever reason
+    std::locale loc{"C"};
+    #else
     std::locale loc{""};
+    #endif
     std::int32_t current_line = 1;
     int deleted_spaces = 0;
     int prev_deleted_spaces = 0;
