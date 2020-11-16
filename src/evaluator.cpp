@@ -984,11 +984,11 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.func.captures) {
     // copy current callstack on the callstack
     for (auto &variable : stack) {
-      if (variable->id != "this" && (fn.value.is_lvalue() && variable->id != fn.value.reference_name)) {
-        Variable *copy = new Variable;
-        *copy = *variable;
-        func_evaluator.stack.push_back(copy);
-      }
+      if (variable->id == "this") continue;
+      if (fn.value.is_lvalue() && variable->id == fn.value.reference_name) continue;
+      Variable *copy = new Variable;
+      *copy = *variable;
+      func_evaluator.stack.push_back(copy);
     }
   }
   func_evaluator.start();
