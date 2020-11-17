@@ -807,7 +807,13 @@ void Evaluator::declare_variable(Node &declaration) {
     // redeclare the variable
     Value lvalue(Utils::ID);
     lvalue.reference_name = decl.id;
-    v->val.type = utils.var_lut.at(decl.var_type);
+    if (decl.allocated) {
+      Chunk &chunk = VM.heap.allocate();
+      v->val.heap_reference = chunk.heap_reference;
+      (*chunk.data).type = utils.var_lut.at(decl.var_type);
+    } else {
+      v->val.type = utils.var_lut.at(decl.var_type);
+    }
     RpnElement lelement = lvalue;
     Value rvalue = evaluate_expression(decl.var_expr, decl.reference);
     RpnElement relement = rvalue;
