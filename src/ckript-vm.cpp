@@ -62,18 +62,16 @@ Chunk &Heap::allocate() {
   return chunk_ref;
 }
 
-void Heap::free(Variable *var) {
+void Heap::free(std::int64_t ref) {
   // check for all possible errors
-  assert(var->is_allocated());
-  assert(var->val.heap_reference < chunks.size());
-  Chunk &chunk = chunks.at(var->val.heap_reference);
+  assert(ref < chunks.size());
+  Chunk &chunk = chunks.at(ref);
   assert(chunk.used == true);
   assert(chunk.data != nullptr);
   delete chunk.data;
   chunk.data = nullptr;
   chunk.used = false;
   chunk.heap_reference = -1;
-  var->val.heap_reference = -1;
   // shrink the heap if possible
   while (chunks.size() && !chunks.back().used) {
     chunks.pop_back();

@@ -52,7 +52,7 @@ class Heap {
   public:
     std::vector<Chunk> chunks;
     Chunk &allocate();
-    void free(Variable *var);
+    void free(std::int64_t ref);
 };
 
 typedef std::vector<Variable *> CallStack;

@@ -380,26 +380,31 @@ RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
 }
 
 RpnElement Evaluator::delete_value(RpnElement &x) {
-  if (!x.value.is_lvalue()) {
-    throw_error("Cannot delete an rvalue " + stringify(x.value) + "\n");
+  Value val = x.value;
+  Variable *v = nullptr;
+  if (val.is_lvalue()) {
+    v = get_reference_by_name(val.reference_name);
+    if (v == nullptr) {
+      throw_error(val.reference_name + " is not defined");
+    }
+    val = v->val;
   }
-  Variable *var = get_reference_by_name(x.value.reference_name);
-  if (var == nullptr) {
-    throw_error(x.value.reference_name + " is not defined");
-  }
-  if (var->val.heap_reference == -1) {
+  if (val.heap_reference == -1) {
     throw_error(x.value.reference_name + " is not allocated on heap");
   }
-  if (var->val.heap_reference >= VM.heap.chunks.size()) {
+  if (val.heap_reference >= VM.heap.chunks.size()) {
     throw_error("deleting a value that is not on the heap");
   }
-  if (VM.heap.chunks.at(var->val.heap_reference).used == false) {
+  if (VM.heap.chunks.at(val.heap_reference).used == false) {
     throw_error("double delete");
   }
-  VM.heap.free(var);
-  Value val;
-  val.type = VarType::VOID;
-  return {val};
+  VM.heap.free(val.heap_reference);
+  if (v != nullptr) {
+    v->val.heap_reference = -1;
+  }
+  Value res;
+  res.type = VarType::VOID;
+  return {res};
 }
 
 RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
