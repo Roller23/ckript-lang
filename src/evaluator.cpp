@@ -522,6 +522,9 @@ RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
   Value &x_val = get_value(x);
   Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+    if (y_val.number_value == 0) {
+      throw_error("Cannot divide by 0");
+    }
     val.type = VarType::INT;
     val.number_value = x_val.number_value % y_val.number_value;
     return {val};
