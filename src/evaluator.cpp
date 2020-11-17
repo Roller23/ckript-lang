@@ -621,7 +621,7 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
     throw_error(msg);
   }
   if (x_value.type != y_value.type) {
-    std::string msg = "Cannot assign " + stringify(y_value) + " to " + x_value.reference_name;
+    std::string msg = "Cannot assign " + stringify(y_value) + " to " + x.value.reference_name;
     throw_error(msg);
   }
   std::string ref_name = x.value.reference_name;
@@ -802,10 +802,12 @@ void Evaluator::register_class(ClassStatement &_class) {
 
 void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
-  if (get_reference_by_name(decl.id) != nullptr) {
+  Variable *v = get_reference_by_name(decl.id);
+  if (v != nullptr) {
     // redeclare the variable
     Value lvalue(Utils::ID);
     lvalue.reference_name = decl.id;
+    v->val.type = utils.var_lut.at(decl.var_type);
     RpnElement lelement = lvalue;
     Value rvalue = evaluate_expression(decl.var_expr, decl.reference);
     RpnElement relement = rvalue;
@@ -982,10 +984,18 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     func_evaluator.stack.push_back(var);
   }
   if (fn_value.func.captures) {
-    // copy current callstack on the callstack
+    // copy current callstack on the new callstack
     for (auto &variable : stack) {
       if (variable->id == "this") continue;
       if (fn.value.is_lvalue() && variable->id == fn.value.reference_name) continue;
+      bool contains = false;
+      for (auto &p : fn_value.func.params) {
+        if (p.param_name == variable->id) {
+          contains = true;
+          break;
+        }
+      }
+      if (contains) continue;
       Variable *copy = new Variable;
       *copy = *variable;
       func_evaluator.stack.push_back(copy);
