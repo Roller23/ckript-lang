@@ -69,7 +69,7 @@ square(5, function(int result) void {
 });
 
 ```
-By default, functions do not capture outside variables. You can capture all outside variables by copy by using the `function>` syntax.
+By default, functions do not capture outside variables. You can forward all outside variables by copy by using the `function>` syntax. Forwarding is done at invocation time, not declaration time.
 ```
 alloc int var = 3;
 
