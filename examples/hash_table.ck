@@ -18,7 +18,8 @@ func newHashTable = function(void) obj {
       int hash = 17;
       int i = 0;
       arr bytes = to_bytes(string);
-      for (; i < size(bytes); i += 1) {
+      int bytes_length = size(bytes);
+      for (; i < bytes_length; i += 1) {
         hash = (13 * hash * bytes[i]) % this.size;
       }
       return hash;
