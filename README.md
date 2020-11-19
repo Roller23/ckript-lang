@@ -211,7 +211,7 @@ bind(Mark);
 Mark.greet(); // Hello my name is Mark
 ```
 
-The reason for this is the fact that functions and object are very loosely connected.
+The reason for this is the fact that functions and objects are very loosely connected.
 When a function is an object member it is treated like any other value, it is not a method (yet).
 
 In this example `bind()` binds the reference to the object to all its member functions, effectively turning them into methods.
