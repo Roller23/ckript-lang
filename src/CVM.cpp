@@ -19,7 +19,7 @@
   class name : public NativeFunction {\
     public:\
       Value execute(std::vector<Value> &args, std::int64_t line) {\
-        if (args.size() != 1 || args.at(0).type != Utils::VarType::FLOAT) {\
+        if (args.size() != 1 || args.at(0).type != Utils::FLOAT) {\
           ErrorHandler::throw_runtime_error(#fn "() expects one argument (double)", line);\
         }\
         Value val(Utils::FLOAT);\
@@ -80,31 +80,31 @@ void Heap::free(std::int64_t ref) {
 // stdlib
 
 static std::string stringify(Value &val) {
-  if (val.type == Utils::VarType::STR) {
+  if (val.type == Utils::STR) {
     return val.string_value;
   }
-  if (val.type == Utils::VarType::INT) {
+  if (val.type == Utils::INT) {
     return std::to_string(val.number_value);
   }
-  if (val.type == Utils::VarType::FLOAT) {
+  if (val.type == Utils::FLOAT) {
     return std::to_string(val.float_value);
   }
-  if (val.type == Utils::VarType::FUNC) {
+  if (val.type == Utils::FUNC) {
     return "function";
   }
-  if (val.type == Utils::VarType::BOOL) {
+  if (val.type == Utils::BOOL) {
     return val.boolean_value ? "true" : "false";
   }
-  if (val.type == Utils::VarType::CLASS) {
+  if (val.type == Utils::CLASS) {
     return "class " + val.class_name;
   }
-  if (val.type == Utils::VarType::VOID) {
+  if (val.type == Utils::VOID) {
     return "void";
   }
-  if (val.type == Utils::VarType::UNKNOWN) {
+  if (val.type == Utils::UNKNOWN) {
     return "null";
   }
-  if (val.type == Utils::VarType::ARR) {
+  if (val.type == Utils::ARR) {
     std::string str = "array(";
     int i = 0;
     for (auto &el : val.array_values) {
@@ -119,7 +119,7 @@ static std::string stringify(Value &val) {
     str += ")";
     return str;
   }
-  if (val.type == Utils::VarType::OBJ) {
+  if (val.type == Utils::OBJ) {
     std::string str = "object(";
     int i = 0;
     for (auto &member : val.member_values) {
@@ -145,7 +145,7 @@ class NativeInput : public NativeFunction {
         ErrorHandler::throw_runtime_error("input() doesn't take any arguments", line);
       }
       Value str;
-      str.type = Utils::VarType::STR;
+      str.type = Utils::STR;
       str.string_value = "";
       std::getline(std::cin, str.string_value);
       return str;
@@ -164,7 +164,7 @@ class NativePrint : public NativeFunction {
         if (i != args.size() - 1) std::cout << " ";
         i++;
       }
-      Value val(Utils::VarType::VOID);
+      Value val(Utils::VOID);
       return val;
     }
 };
@@ -179,7 +179,7 @@ class NativePrintln : public NativeFunction {
         i++;
       }
       std::cout << std::endl;
-      Value val(Utils::VarType::VOID);
+      Value val(Utils::VOID);
       return val;
     }
 };
@@ -191,7 +191,7 @@ class NativeFlush : public NativeFunction {
         ErrorHandler::throw_runtime_error("flush() takes no arguments", line);
       }
       std::cout << std::flush;
-      Value val(Utils::VarType::VOID);
+      Value val(Utils::VOID);
       return val;
     }
 };
@@ -203,7 +203,7 @@ class NativeSize : public NativeFunction {
         ErrorHandler::throw_runtime_error("size() expects one argument", line);
       }
       Value &arg = args.at(0);
-      Value val(Utils::VarType::INT);
+      Value val(Utils::INT);
       if (arg.type == Utils::ARR) {
         val.number_value = arg.array_values.size();
       } else if (arg.type == Utils::STR) {
@@ -221,7 +221,7 @@ class NativeTostr : public NativeFunction {
       if (args.size() != 1) {
         ErrorHandler::throw_runtime_error("to_str() expects one argument", line);
       }
-      Value val(Utils::VarType::STR);
+      Value val(Utils::STR);
       val.string_value = stringify(args.at(0));
       return val;
     }
@@ -284,7 +284,7 @@ class NativeTodouble : public NativeFunction {
 class NativeExit : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
-      if (args.size() != 1 || args.at(0).type != Utils::VarType::INT) {
+      if (args.size() != 1 || args.at(0).type != Utils::INT) {
         ErrorHandler::throw_runtime_error("exit() expects one argument (int)", line);
       }
       std::exit(args.at(0).number_value);
@@ -484,7 +484,7 @@ class NativeSplit : public NativeFunction {
       char *token = std::strtok(c_str, c_delim);
       while (token != NULL) {
         Value element;
-        element.type = Utils::VarType::STR;
+        element.type = Utils::STR;
         element.string_value = token;
         res.array_values.push_back(element);
         token = std::strtok(NULL, c_delim);
@@ -506,7 +506,7 @@ class NativeTobytes : public NativeFunction {
       int i = 0;
       while (c_str[i]) {
         Value element;
-        element.type = Utils::VarType::INT;
+        element.type = Utils::INT;
         element.number_value = (std::int64_t)c_str[i++];
         res.array_values.push_back(element);
       }
