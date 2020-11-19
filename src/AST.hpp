@@ -63,6 +63,7 @@ class Expression {
     NodeList index;
     NodeListList array_expressions;
     std::string array_type;
+    NodeList array_size;
     bool is_negative = false;
     std::int64_t number_literal = 0;
     std::string string_literal = "";

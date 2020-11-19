@@ -144,6 +144,15 @@ int element = array[1]; // getting the value
 
 ```
 
+Reserving space in advance
+
+```
+// will reserve space for 10 elements, the size is still 0 though!
+// operations like appending are faster now since Ckript doesn't have to
+// reallocate memory for each new element
+arr my_array = arr() [10] int;
+```
+
 ## Objects and classes
 
 Define a class like so

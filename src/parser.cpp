@@ -252,6 +252,11 @@ Node Parser::parse_array_expr() {
   advance(); // skip the (
   array.expr.array_expressions = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN);
   advance(); // skip the )
+  if (curr_token.type == Token::LEFT_BRACKET) {
+    advance(); // skip the [
+    array.expr.array_size = get_expression(Token::RIGHT_BRACKET);
+    advance(); // skip the ]
+  }
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid array expression, expected a type, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);

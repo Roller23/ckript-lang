@@ -1083,9 +1083,24 @@ RpnElement Evaluator::node_to_element(Node &node) {
     return {val};
   }
   if (node.expr.type == Expression::ARRAY) {
+    Value initial_size(Utils::INT);
+    std::size_t elemenets_count = node.expr.array_expressions.size();
+    initial_size.number_value = elemenets_count;
+    if (node.expr.array_size.size() > 0) {
+      initial_size = evaluate_expression(node.expr.array_size);
+      if (initial_size.type != Utils::INT) {
+        throw_error("Number expected, but " + stringify(initial_size) + " found");
+      }
+      if (initial_size.number_value < 0) {
+        throw_error("Array size cannot be negative");
+      }
+      if (initial_size.number_value < elemenets_count) {
+        initial_size.number_value = elemenets_count;
+      }
+    }
     val.type = VarType::ARR;
     val.array_type = node.expr.array_type;
-    val.array_values.reserve(node.expr.array_expressions.size());
+    val.array_values.reserve(initial_size.number_value);
     int i = 0;
     for (auto &node_list : node.expr.array_expressions) {
       if (node_list.size() == 0) {
