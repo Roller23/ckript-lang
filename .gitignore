@@ -1,10 +1,8 @@
 *.out
-*.ck
 .vscode/
 .vscode/*
 .VSCodeCounter/
 .VSCodeCounter/*
 grammar.txt
 build/*
-doc/*
 bin/*
