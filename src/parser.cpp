@@ -10,7 +10,6 @@ typedef Expression::ExprType ExprType;
 typedef Declaration::DeclType DeclType;
 typedef Statement::StmtType StmtType;
 typedef Node::NodeType NodeType;
-typedef FuncExpression::FuncType FuncType;
 typedef Token::TokenType TokenType;
 
 void Parser::throw_error(const std::string &cause, std::uint32_t line) {
@@ -182,7 +181,6 @@ NodeListList Parser::get_many_expressions(TokenType sep, TokenType stop) {
 Node Parser::parse_func_expr() {
   // function(arg1, arg2, ...) type statement(s);
   Node func = Node(Expression(ExprType::FUNC_EXPR));
-  func.expr.func_expr.type = FuncType::FUNC;
   advance(); // skip the function
   if (curr_token.type == Token::OP_GT) {
     func.expr.func_expr.captures = true;

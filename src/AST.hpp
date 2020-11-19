@@ -17,8 +17,8 @@ typedef std::vector<Expression> ExpressionList;
 
 class FuncParam {
   public:
-    std::string type_name;
-    std::string param_name;
+    std::string type_name = "int";
+    std::string param_name = "";
     bool is_ref = false;
     FuncParam(const std::string &_type, const std::string &_name) 
       : type_name(_type), param_name(_name) {};
@@ -31,23 +31,17 @@ class FuncCall {
 
 class FuncExpression {
   public:
-    typedef enum func_type {
-      FUNC, NONE
-    } FuncType;
-    FuncType type;
     ParamList params;
-    std::string ret_type;
+    std::string ret_type = "void";
     bool ret_ref = false;
     bool captures = false;
     NodeList instructions;
-    FuncExpression(void) : type(FuncType::NONE) {};
-    FuncExpression(FuncType _type) : type(_type) {};
 };
 
 class ClassStatement {
   public:
     ParamList members;
-    std::string class_name;
+    std::string class_name = "";
 };
 
 class Expression {
