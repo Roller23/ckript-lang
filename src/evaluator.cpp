@@ -896,7 +896,6 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
       std::string msg = "Argument " + num + " expected to be " + class_val.members.at(i).type_name + ", but " + stringify(real_val) + " given";
       throw_error(msg);
     }
-    arg_val.is_member = true;
     arg_val.member_name = class_val.members.at(i).param_name;
     val.member_values.insert(std::make_pair(class_val.members.at(i).param_name, arg_val));
     if (arg_val.type == VarType::FUNC) {
@@ -1213,7 +1212,7 @@ void Evaluator::set_index(Statement &stmt) {
 
 Value &Evaluator::get_value(RpnElement &el) {
   if (el.value.is_lvalue()) {
-    if (el.value.is_member) {
+    if (el.value.member_name != "") {
       return el.value;
     }
     Variable *var = get_reference_by_name(el.value.reference_name);

@@ -11,8 +11,8 @@
 class Value {
   public:
     Utils::VarType type;
-    bool boolean_value = 0;
-    double float_value = 0;
+    bool boolean_value = false;
+    double float_value = 0.0;
     std::string string_value = "";
     std::int64_t number_value = 0;
     std::string reference_name = "";
@@ -22,10 +22,9 @@ class Value {
     ParamList members;
     std::map<std::string, Value> member_values;
     std::vector<Value> array_values;
-    std::string array_type;
-    std::string class_name;
-    std::string member_name;
-    bool is_member = false;
+    std::string array_type = "int";
+    std::string class_name = "";
+    std::string member_name = "";
     bool is_lvalue();
     Value(void) : type(Utils::UNKNOWN) {};
     Value(Utils::VarType _type) : type(_type) {};

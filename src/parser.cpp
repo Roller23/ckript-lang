@@ -281,7 +281,7 @@ Node Parser::get_expr_node() {
     return id;
   }
   if (curr_token.type == Token::LEFT_PAREN) {
-    if (prev.type == Token::RIGHT_PAREN || prev.type == Token::IDENTIFIER) {
+    if (prev.type == Token::RIGHT_PAREN || prev.type == Token::IDENTIFIER || prev.type == Token::RIGHT_BRACKET) {
       // it's a function call
       // identifier(arg1, arg2...)
       FuncCall fc;
