@@ -417,8 +417,9 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   if (x_val.type == VarType::ARR) {
     if (y_val.type == utils.var_lut.at(x_val.array_type)) {
       // append to array
-      x_val.array_values.push_back(y_val);
-      return {x_val};
+      Value x_val_cpy = x_val;
+      x_val_cpy.array_values.push_back(y_val);
+      return {x_val_cpy};
     } else {
       throw_error("Cannot append " + stringify(y_val) + " an array of " + x_val.array_type + "s");
     }
@@ -426,8 +427,9 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   if (y_val.type == VarType::ARR) {
     if (x_val.type == utils.var_lut.at(y_val.array_type)) {
       // prepend to array
-      y_val.array_values.insert(y_val.array_values.begin(), x_val);
-      return {y_val};
+      Value y_val_cpy = y_val;
+      y_val_cpy.array_values.insert(y_val.array_values.begin(), x_val);
+      return {y_val_cpy};
     } else {
       throw_error("Cannot prepend " + stringify(x_val) + " an array of " + y_val.array_type + "s");
     }
@@ -556,9 +558,9 @@ RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
   if (x_val.type == VarType::ARR && y_val.type == VarType::ARR) {
     // concat arrays
     if (x_val.array_type == y_val.array_type) {
-      // vector1.insert( vector1.end(), vector2.begin(), vect
-      x_val.array_values.insert(x_val.array_values.end(), y_val.array_values.begin(), y_val.array_values.end());
-      return {x_val};
+      Value x_val_cpy = x_val;
+      x_val_cpy.array_values.insert(x_val.array_values.end(), y_val.array_values.begin(), y_val.array_values.end());
+      return {x_val_cpy};
     } else {
       std::string msg = "Cannot concatenate arrays of type " + x_val.array_type + " and " + y_val.array_type;
       throw_error(msg);
