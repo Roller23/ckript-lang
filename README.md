@@ -289,6 +289,6 @@ All functions are available globally.
 * split(str, str) arr - splits arg1 by any of the delims in arg2 and returns an array of strings
 * to_bytes(str) arr - returns the bytes of arg1 as an array of ints
 * from_bytes(arr) str - constructs a string from the array of bytes
-* the following functions all accept a double value and return a double value which is the result of the mathematical operation
+* the following functions all accept a double|int value and return a double value which is the result of the mathematical operation
 * sin/sinh/cos/cosh/tan/tanh/log/log10/ceil/floor/round/exp/sqrt/abs
 ```

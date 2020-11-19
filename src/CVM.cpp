@@ -19,11 +19,13 @@
   class name : public NativeFunction {\
     public:\
       Value execute(std::vector<Value> &args, std::int64_t line) {\
-        if (args.size() != 1 || args.at(0).type != Utils::FLOAT) {\
-          ErrorHandler::throw_runtime_error(#fn "() expects one argument (double)", line);\
+        if (args.size() != 1 || args.at(0).type != Utils::FLOAT && args.at(0).type != Utils::INT) {\
+          ErrorHandler::throw_runtime_error(#fn "() expects one argument (double|int)", line);\
         }\
         Value val(Utils::FLOAT);\
-        val.float_value = std::fn(args.at(0).float_value);\
+        double arg = args.at(0).float_value;\
+        if (args.at(0).type == Utils::INT) arg = (double)args.at(0).number_value;\
+        val.float_value = std::fn(arg);\
         return val;\
       }\
   };
@@ -309,11 +311,19 @@ class NativeTimestamp : public NativeFunction {
 class NativePow : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line) {
-      if (args.size() != 2 || args.at(0).type != Utils::FLOAT || args.at(1).type != Utils::FLOAT) {
-        ErrorHandler::throw_runtime_error("pow() expects two arguments (double, double)", line);
+      if (args.size() != 2) {
+        ErrorHandler::throw_runtime_error("pow() expects two arguments (double|int, double|int)", line);
+      }
+      if (!(args.at(0).type == Utils::FLOAT || args.at(0).type == Utils::INT)
+       || !(args.at(1).type == Utils::FLOAT || args.at(1).type == Utils::INT)) {
+         ErrorHandler::throw_runtime_error("pow() arguments must be either int or double", line);
       }
       Value val(Utils::FLOAT);
-      val.float_value = std::pow(args.at(0).float_value, args.at(1).float_value);
+      double arg1 = args.at(0).float_value;
+      double arg2 = args.at(1).float_value;
+      if (args.at(0).type == Utils::INT) arg1 = (double)args.at(0).number_value;
+      if (args.at(1).type == Utils::INT) arg2 = (double)args.at(1).number_value;
+      val.float_value = std::pow(arg1, arg2);
       return val;
     }
 };
