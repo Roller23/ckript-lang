@@ -1084,7 +1084,10 @@ RpnElement Evaluator::node_to_element(Node &node) {
   }
   if (node.expr.type == Expression::ARRAY) {
     Value initial_size(Utils::INT);
-    std::size_t elemenets_count = node.expr.array_expressions.size();
+    std::size_t elemenets_count = 0;
+    if (node.expr.array_expressions.size() != 0 && node.expr.array_expressions.at(0).size() != 0) {
+      elemenets_count = node.expr.array_expressions.size();
+    }
     initial_size.number_value = elemenets_count;
     if (node.expr.array_size.size() > 0) {
       initial_size = evaluate_expression(node.expr.array_size);
@@ -1100,7 +1103,11 @@ RpnElement Evaluator::node_to_element(Node &node) {
     }
     val.type = VarType::ARR;
     val.array_type = node.expr.array_type;
-    val.array_values.reserve(initial_size.number_value);
+    if (initial_size.number_value != 0) {
+      val.array_values.resize(initial_size.number_value);
+    }
+    Utils::VarType arr_type = utils.var_lut.at(node.expr.array_type);
+    for (auto &v : val.array_values) v.type = arr_type;
     int i = 0;
     for (auto &node_list : node.expr.array_expressions) {
       if (node_list.size() == 0) {
@@ -1111,11 +1118,11 @@ RpnElement Evaluator::node_to_element(Node &node) {
         }
       }
       Value array_element = evaluate_expression(node_list);
-      if (array_element.type != utils.var_lut.at(node.expr.array_type)) {
+      if (array_element.type != arr_type) {
         std::string msg = "Cannot add " + stringify(array_element) + " to an array of " + node.expr.array_type + "s";
         throw_error(msg);
       }
-      val.array_values.push_back(array_element);
+      val.array_values.at(i) = array_element;
       i++;
     }
     return {val};

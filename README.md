@@ -147,10 +147,10 @@ int element = array[1]; // getting the value
 Reserving space in advance
 
 ```
-// will reserve space for 10 elements, the size is still 0 though!
-// operations like appending are faster now since Ckript doesn't have to
-// reallocate memory for each new element
+// will reserve space for 10 elements
 arr my_array = array() [10] int;
+// works fine, but the value is undefined. Especially dangerous with 2D arrays or arrays of objects
+int element = my_array[5];
 ```
 
 ## Objects and classes
