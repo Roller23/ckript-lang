@@ -1168,11 +1168,13 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     prev = member;
   }
   Value rvalue = evaluate_expression(expression);
-  if (references.back()->type != rvalue.type) {
+  Value *fin = references.back();
+  fin = fin->heap_reference != -1 ? &get_heap_value(fin->heap_reference) : fin;
+  if (fin->type != rvalue.type) {
     std::string msg = "Cannot assign " + stringify(rvalue) + ", incorrect type";
     throw_error(msg);
   }
-  *references.back() = rvalue;
+  *fin = rvalue;
 }
 
 void Evaluator::set_index(Statement &stmt) {
@@ -1203,11 +1205,13 @@ void Evaluator::set_index(Statement &stmt) {
     references.push_back(&temp->array_values.at(index_val.number_value));
   }
   Value rvalue = evaluate_expression(stmt.expressions.at(0));
-  if (references.back()->type != rvalue.type) {
+  Value *fin = references.back();
+  fin = fin->heap_reference != -1 ? &get_heap_value(fin->heap_reference) : fin;
+  if (fin->type != rvalue.type) {
     std::string msg = "Cannot assign " + stringify(rvalue) + ", incorrect type";
     throw_error(msg);
   }
-  *references.back() = rvalue;
+  *fin = rvalue;
 }
 
 Value &Evaluator::get_value(RpnElement &el) {
