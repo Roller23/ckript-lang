@@ -193,9 +193,10 @@ monkey.food.name; // banana
 
 Warning - class declarations are treated like variables. They'll not be visible inside inner functions unless captured.
 
-## 'this' variable and bind()
+## 'this' and bind()
 
-To use `this` keyword inside member functions you need to use `bind()`
+`this` is the reference to the object holding the function.
+To use `this` inside member functions you need to use `bind()`.
 
 Example:
 
@@ -211,9 +212,11 @@ Mark.greet(); // Hello my name is Mark
 ```
 
 The reason for this is the fact that functions and object are very loosely connected.
-When a function is an object member it is treated like any other value, it is not a method.
-In this example `bind()` binds the reference to the parent object to all its member functions.
-The type of `this` is `ref obj` meaning that only allocated objects can have member functions that make use of `this`.
+When a function is an object member it is treated like any other value, it is not a method (yet).
+
+In this example `bind()` binds the reference to the object to all its member functions, effectively turning them into methods.
+
+The type of `this` is `ref obj` meaning that only allocated objects can have member functions that use `this`.
 
 ## Command line arguments
 
