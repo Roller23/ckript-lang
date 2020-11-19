@@ -193,34 +193,27 @@ monkey.food.name; // banana
 
 Warning - class declarations are treated like variables. They'll not be visible inside inner functions unless captured.
 
-## 'this' variable
+## 'this' variable and bind()
 
-If one of the object's members is a function, a special variable called `this` will be automatically pushed onto its stack.
-`this` is a copy of the object that is holding the function effectively making the function a method sort of.
-
-Remember that `this` is only a copy, hence reassigning its members will not cause the original object to be modified.
-Exception to this rule is a situation when `this.member` is a copy of a pointer.
+To use `this` keyword inside member functions you need to use `bind()`
 
 Example:
 
 ```
-class Null(int null);
-class PtrTest(ref obj ptr, obj object, func change);
+class Person(str name, int age, func greet);
 
-alloc obj null_ptr = Null(0);
-obj null = Null(0);
-
-obj test = PtrTest(null_ptr, null, function(void) void {
-  $this.ptr.null = 123;
-  $this.object.null = 123;
+alloc obj Mark = Person("Mark", 23, function(void) void {
+  println('Hello my name is ' + this.name);
 });
 
-test.change();
-
-test.ptr.null; // is 123
-test.object.null; // is still 0
-
+bind(Mark);
+Mark.greet(); // Hello my name is Mark
 ```
+
+The reason for this is the fact that functions and object are very loosely connected.
+When a function is an object member it is treated like any other value, it is not a method.
+In this example `bind()` binds the reference to the parent object to all its member functions.
+The type of `this` is `ref obj` meaning that only allocated objects can have member functions that make use of `this`.
 
 ## Command line arguments
 
@@ -271,6 +264,7 @@ All functions are available globally.
 * println(any) void - accepts any number of arguments, works like print() but prints a new line at the end for you
 * flush(void) void - flushes stdout
 * input(void) str - reads input from stdin and returns a string
+* bind(ref obj) void - binds the reference to arg1 to all its member functions
 * size(arr|str) int - returns the size of the given string or array
 * to_str(any) str - returns the string representation of the given value
 * to_int(int|str|float|bool) int - returns the number value of the given argument

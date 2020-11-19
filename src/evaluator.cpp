@@ -62,7 +62,7 @@ int Evaluator::execute_statement(Node &statement) {
       std::cout << "< ";
       std::vector<Value> v(1);
       v.at(0) = result;
-      VM.globals.at("println")->execute(v, current_line);
+      VM.globals.at("println")->execute(v, current_line, VM);
     }
     return FLAG_OK;
   }
@@ -883,7 +883,6 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
   val.class_name = _class.value.reference_name;
   val.type = VarType::OBJ;
   int i = 0;
-  std::vector<std::string> this_mapper;
   for (auto &node_list : call.op.func_call.arguments) {
     std::string num = std::to_string(i + 1);
     Value arg_val = evaluate_expression(node_list, class_val.members.at(i).is_ref);
@@ -903,14 +902,7 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
     }
     arg_val.member_name = class_val.members.at(i).param_name;
     val.member_values.insert(std::make_pair(class_val.members.at(i).param_name, arg_val));
-    if (arg_val.type == VarType::FUNC) {
-      this_mapper.push_back(class_val.members.at(i).param_name);
-    }
     i++;
-  }
-  for (auto &str : this_mapper) {
-    // pass the object copy as "this" to object's methods
-    val.member_values.at(str).func_this.push_back(val);
   }
   return {val};
 }
@@ -922,16 +914,16 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     call_args.reserve(call.op.func_call.arguments.size());
     for (auto &node_list : call.op.func_call.arguments) {
       if (node_list.size() == 0) break;
-      call_args.push_back(evaluate_expression(node_list));
+      call_args.push_back(evaluate_expression(node_list, fn.value.reference_name == "bind"));
     }
-    Value return_val = VM.globals.at(fn.value.reference_name)->execute(call_args, current_line);
+    Value return_val = VM.globals.at(fn.value.reference_name)->execute(call_args, current_line, VM);
     return {return_val};
   }
   Value &fn_value = get_value(fn);
   if (fn_value.type == VarType::CLASS) {
     return construct_object(call, fn);
   }
-  if (fn_value.func.instructions.size() == 0) return {}; // might break something
+  if (fn_value.func.instructions.size() == 0) return {};
   if (fn_value.type != VarType::FUNC) {
     std::string msg = stringify(fn_value) + " is not a function";
     throw_error(msg);
@@ -993,12 +985,12 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     var->val = fn_value;
     func_evaluator.stack.push_back(var);
   }
-  if (fn_value.func_this.size() != 0) {
+  if (fn_value.this_ref != -1) {
     // push "this" onto the stack
     Variable *var = new Variable;
     var->id = "this";
     var->type = VarType::OBJ;
-    var->val = fn.value.func_this.at(0);
+    var->val.heap_reference = fn_value.this_ref;
     func_evaluator.stack.push_back(var);
   }
   if (fn_value.func.captures) {

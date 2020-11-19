@@ -18,7 +18,7 @@
 #define REG_FN(name, fn)\
   class name : public NativeFunction {\
     public:\
-      Value execute(std::vector<Value> &args, std::int64_t line) {\
+      Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {\
         if (args.size() != 1 || args.at(0).type != Utils::FLOAT && args.at(0).type != Utils::INT) {\
           ErrorHandler::throw_runtime_error(#fn "() expects one argument (double|int)", line);\
         }\
@@ -142,7 +142,7 @@ static std::string stringify(Value &val) {
 
 class NativeInput : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 0) {
         ErrorHandler::throw_runtime_error("input() doesn't take any arguments", line);
       }
@@ -156,7 +156,7 @@ class NativeInput : public NativeFunction {
 
 class NativePrint : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() == 0) {
         ErrorHandler::throw_runtime_error("print() expects at least one argument", line);
       }
@@ -173,7 +173,7 @@ class NativePrint : public NativeFunction {
 
 class NativePrintln : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       int i = 0;
       for (auto &arg : args) {
         std::cout << stringify(arg);
@@ -188,7 +188,7 @@ class NativePrintln : public NativeFunction {
 
 class NativeFlush : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 0) {
         ErrorHandler::throw_runtime_error("flush() takes no arguments", line);
       }
@@ -200,7 +200,7 @@ class NativeFlush : public NativeFunction {
 
 class NativeSize : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1) {
         ErrorHandler::throw_runtime_error("size() expects one argument", line);
       }
@@ -219,7 +219,7 @@ class NativeSize : public NativeFunction {
 
 class NativeTostr : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1) {
         ErrorHandler::throw_runtime_error("to_str() expects one argument", line);
       }
@@ -231,7 +231,7 @@ class NativeTostr : public NativeFunction {
 
 class NativeToint : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1) {
         ErrorHandler::throw_runtime_error("to_int() expects one argument", line);
       }
@@ -258,7 +258,7 @@ class NativeToint : public NativeFunction {
 
 class NativeTodouble : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1) {
         ErrorHandler::throw_runtime_error("to_double() expects one argument", line);
       }
@@ -285,7 +285,7 @@ class NativeTodouble : public NativeFunction {
 
 class NativeExit : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::INT) {
         ErrorHandler::throw_runtime_error("exit() expects one argument (int)", line);
       }
@@ -296,7 +296,7 @@ class NativeExit : public NativeFunction {
 
 class NativeTimestamp : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 0) {
         ErrorHandler::throw_runtime_error("timestamp() expects no arguments", line);
       }
@@ -310,7 +310,7 @@ class NativeTimestamp : public NativeFunction {
 
 class NativePow : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2) {
         ErrorHandler::throw_runtime_error("pow() expects two arguments (double|int, double|int)", line);
       }
@@ -330,7 +330,7 @@ class NativePow : public NativeFunction {
 
 class NativeFileread : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("file_read() expects one argument (str)", line);
       }
@@ -348,7 +348,7 @@ class NativeFileread : public NativeFunction {
 
 class NativeFilewrite : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("file_write() expects two arguments (str, str)", line);
       }
@@ -367,7 +367,7 @@ class NativeFilewrite : public NativeFunction {
 
 class NativeFileexists : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("file_exists() expects one argument (str)", line);
       }
@@ -380,7 +380,7 @@ class NativeFileexists : public NativeFunction {
 
 class NativeFileremove : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("file_remove() expects one argument (str)", line);
       }
@@ -392,7 +392,7 @@ class NativeFileremove : public NativeFunction {
 
 class NativeAbs : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || (args.at(0).type != Utils::INT && args.at(0).type != Utils::FLOAT)) {
         ErrorHandler::throw_runtime_error("abs() expects one argument (int|double)", line);
       }
@@ -415,7 +415,7 @@ class NativeAbs : public NativeFunction {
 
 class NativeRand : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2 || args.at(0).type != Utils::INT || args.at(1).type != Utils::INT) {
         ErrorHandler::throw_runtime_error("rand() expects two arguments (int, int)", line);
       }
@@ -432,7 +432,7 @@ class NativeRand : public NativeFunction {
 
 class NativeRandf : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2 || args.at(0).type != Utils::FLOAT || args.at(1).type != Utils::FLOAT) {
         ErrorHandler::throw_runtime_error("randf() expects two arguments (double, double)", line);
       }
@@ -449,7 +449,7 @@ class NativeRandf : public NativeFunction {
 
 class NativeContains : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("contains() expects two arguments (str, str)", line);
       }
@@ -461,7 +461,7 @@ class NativeContains : public NativeFunction {
 
 class NativeSubstr : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 3 || args.at(0).type != Utils::STR || args.at(1).type != Utils::INT || args.at(2).type != Utils::INT) {
         ErrorHandler::throw_runtime_error("substr() expects three arguments (str, int, int)", line);
       }
@@ -482,7 +482,7 @@ class NativeSubstr : public NativeFunction {
 
 class NativeSplit : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 2 || args.at(0).type != Utils::STR || args.at(1).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("split() expects two arguments (str, str)", line);
       }
@@ -506,7 +506,7 @@ class NativeSplit : public NativeFunction {
 
 class NativeTobytes : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::STR) {
         ErrorHandler::throw_runtime_error("to_bytes() expects one argument (str)", line);
       }
@@ -526,7 +526,7 @@ class NativeTobytes : public NativeFunction {
 
 class NativeFrombytes : public NativeFunction {
   public:
-    Value execute(std::vector<Value> &args, std::int64_t line) {
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args.at(0).type != Utils::ARR) {
         ErrorHandler::throw_runtime_error("to_bytes() expects one argument (arr)", line);
       }
@@ -538,6 +538,40 @@ class NativeFrombytes : public NativeFunction {
       for (auto &el : args.at(0).array_values) {
         res.string_value += (char)el.number_value;
       }
+      return res;
+    }
+};
+
+class NativeBind : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 1 || args.at(0).heap_reference == -1) {
+        ErrorHandler::throw_runtime_error("to_bytes() expects one argument (ref obj)", line);
+      }
+      std::int64_t ref = args.at(0).heap_reference;
+      if (ref < 0 || ref >= VM.heap.chunks.size()) {
+        ErrorHandler::throw_runtime_error("dereferencing a value that is not on the heap");
+      }
+      Value *ptr = VM.heap.chunks.at(ref).data;
+      if (ptr == nullptr) {
+        ErrorHandler::throw_runtime_error("dereferencing a null pointer");
+      }
+      if (ptr->type != Utils::OBJ) {
+        ErrorHandler::throw_runtime_error("Can only bind a reference");
+      }
+      for (auto &pair : ptr->member_values) {
+        Value *v = &pair.second;
+        if (v->heap_reference != -1) {
+          v = VM.heap.chunks.at(v->heap_reference).data;
+        }
+        if (v == nullptr) {
+          ErrorHandler::throw_runtime_error("dereferencing a null pointer");
+        }
+        if (v->type == Utils::FUNC) {
+          v->this_ref = ref;
+        }
+      }
+      Value res(Utils::VOID);
       return res;
     }
 };
@@ -596,4 +630,5 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeSplit, split)
   ADD_FN(NativeTobytes, to_bytes)
   ADD_FN(NativeFrombytes, from_bytes)
+  ADD_FN(NativeBind, bind);
 }

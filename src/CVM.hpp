@@ -8,6 +8,8 @@
 #include "utils.hpp"
 #include "AST.hpp"
 
+// Ckript Virtual Machine
+
 class Value {
   public:
     Utils::VarType type;
@@ -17,8 +19,8 @@ class Value {
     std::int64_t number_value = 0;
     std::string reference_name = "";
     std::int64_t heap_reference = -1;
+    std::int64_t this_ref = -1;
     FuncExpression func;
-    std::vector<Value> func_this;
     ParamList members;
     std::map<std::string, Value> member_values;
     std::vector<Value> array_values;
@@ -56,18 +58,18 @@ class Heap {
 
 typedef std::vector<Variable *> CallStack;
 
-class NativeFunction {
-  public:
-    virtual Value execute(std::vector<Value> &args, std::int64_t line) = 0;
-};
-
-// Ckript Virtual Machine
+class NativeFunction;
 
 class CVM {
   public:
     void load_stdlib(void);
     std::map<std::string, NativeFunction *> globals;
     Heap heap;
+};
+
+class NativeFunction {
+  public:
+    virtual Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) = 0;
 };
 
 #endif // __CVM_

@@ -8,10 +8,12 @@ func newHashTable = function(void) obj {
     ref arr table,
     func keys,
     func values,
+    ref arr indexes,
     func destroy
   );
   int _size = 1137;
   alloc arr _table = array() [_size] arr;
+  alloc arr _indexes = array() int;
   return HashTable(
     _size,
     function(str string) int {
@@ -51,45 +53,57 @@ func newHashTable = function(void) obj {
       } else {
         #_tab[idx] = _tab[idx] + array(key, val) str;
       }
+      ref arr _indexes = this.indexes;
+      _indexes += idx;
     },
     function(str key) bool {
       int idx = this.hash(key);
-      int _i = 0;
-      for (; _i < size(this.table[idx]); _i += 1) {
-        if (this.table[idx][_i][0] == key) return true;
+      int i = 0;
+      for (; i < size(this.table[idx]); i += 1) {
+        if (this.table[idx][i][0] == key) return true;
       }
       return false;
     },
     _table,
     function(void) arr {
       arr _keys = array() str;
-      int _i = 0;
-      for (; _i < this.size; _i += 1) {
-        int _j = 0;
-        for (; _j < size(this.table[_i]); _j += 1) {
-          _keys += this.table[_i][_j][0];
+      int i = 0;
+      ref arr tab = this.table;
+      ref arr _indexes = this.indexes;
+      int indexes_size = size(_indexes);
+      for (; i < indexes_size; i += 1) {
+        int j = 0;
+        for (; j < size(tab[_indexes[i]]); j += 1) {
+          _keys += tab[_indexes[i]][j][0];
         }
       }
       return _keys;
     },
     function(void) arr {
       arr _values = array() str;
-      int _i = 0;
-      for (; _i < this.size; _i += 1) {
-        int _j = 0;
-        for (; _j < size(this.table[_i]); _j += 1) {
-          _values += this.table[_i][_j][1];
+      int i = 0;
+      ref arr tab = this.table;
+      ref arr _indexes = this.indexes;
+      int indexes_size = size(_indexes);
+      for (; i < indexes_size; i += 1) {
+        int j = 0;
+        for (; j < size(tab[_indexes[i]]); j += 1) {
+          _values += tab[_indexes[i]][j][1];
         }
       }
       return _values;
     },
+    _indexes,
     function(void) void {
       del this.table;
+      del this.indexes;
+      del this;
     }
   );
 };
 
-obj table = newHashTable();
+alloc obj table = newHashTable();
+bind(table);
 
 table.set("Key", "Value");
 table.set("Hotel", "Trivago");
