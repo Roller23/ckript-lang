@@ -43,6 +43,9 @@ void Interpreter::process_stream() {
   VM.load_stdlib();
   std::string line = "";
   bool running = true;
+  std::cout << "Ckript 1.0\n";
+  std::cout << "Made by https://github.com/Roller23\n";
+  std::cout << "Type 'exit' to exit\n";
   while (running) {
     std::cout << "> ";
     std::getline(std::cin, line);

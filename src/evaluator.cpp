@@ -59,7 +59,10 @@ int Evaluator::execute_statement(Node &statement) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions.at(0));
     if (stream && result.type != VarType::VOID) {
-      std::cout << "< " + stringify(result) << "\n";
+      std::cout << "< ";
+      std::vector<Value> v(1);
+      v.at(0) = result;
+      VM.globals.at("println")->execute(v, current_line);
     }
     return FLAG_OK;
   }
