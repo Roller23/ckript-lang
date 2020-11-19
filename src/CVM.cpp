@@ -1,4 +1,4 @@
-#include "ckript-vm.hpp"
+#include "CVM.hpp"
 #include "utils.hpp"
 #include "error-handler.hpp"
 
@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cstring>
 
-#define REG(name, fn)\
+#define REG_FN(name, fn)\
   class name : public NativeFunction {\
     public:\
       Value execute(std::vector<Value> &args, std::int64_t line) {\
@@ -28,10 +28,9 @@
       }\
   };
 
-#define ADD(name, fn)\
-  name *fn = new name;\
-  NativeFunction *fn##_ptr = fn;\
-  globals.insert(std::make_pair(#fn, fn##_ptr));
+#define ADD_FN(name, fn)\
+  NativeFunction *fn = new name;\
+  globals.insert(std::make_pair(#fn, fn));
 
 bool Value::is_lvalue() {
   return reference_name.size() != 0;
@@ -533,55 +532,58 @@ class NativeFrombytes : public NativeFunction {
     }
 };
 
-REG(NativeSin, sin)
-REG(NativeSinh, sinh)
-REG(NativeCos, cos)
-REG(NativeCosh, cosh)
-REG(NativeTan, tan)
-REG(NativeTanh, tanh)
-REG(NativeSqrt, sqrt)
-REG(NativeLog, log)
-REG(NativeLogten, log10)
-REG(NativeExp, exp)
-REG(NativeFloor, floor)
-REG(NativeCeil, ceil)
-REG(NativeRound, round)
+// used only for math functions
 
-void CkriptVM::load_stdlib(void) {
-  ADD(NativeTimestamp, timestamp)
-  ADD(NativeInput, input)
-  ADD(NativePrint, print)
-  ADD(NativePrintln, println)
-  ADD(NativeFlush, flush)
-  ADD(NativeTostr, to_str)
-  ADD(NativeExit, exit)
-  ADD(NativeToint, to_int)
-  ADD(NativeTodouble, to_double)
-  ADD(NativeSize, size)
-  ADD(NativeSin, sin)
-  ADD(NativeSinh, sinh)
-  ADD(NativeCos, cos)
-  ADD(NativeCosh, cosh)
-  ADD(NativeTan, tan)
-  ADD(NativeTanh, tanh)
-  ADD(NativeSqrt, sqrt)
-  ADD(NativeLog, log)
-  ADD(NativeLogten, log10)
-  ADD(NativeExp, exp)
-  ADD(NativeFloor, floor)
-  ADD(NativeCeil, ceil)
-  ADD(NativeRound, round)
-  ADD(NativePow, pow)
-  ADD(NativeFileread, file_read)
-  ADD(NativeFilewrite, file_write)
-  ADD(NativeFileexists, file_exists)
-  ADD(NativeFileremove, file_remove)
-  ADD(NativeAbs, abs)
-  ADD(NativeRand, rand)
-  ADD(NativeRandf, randf)
-  ADD(NativeContains, contains)
-  ADD(NativeSubstr, substr)
-  ADD(NativeSplit, split)
-  ADD(NativeTobytes, to_bytes)
-  ADD(NativeFrombytes, from_bytes)
+REG_FN(NativeSin, sin)
+REG_FN(NativeSinh, sinh)
+REG_FN(NativeCos, cos)
+REG_FN(NativeCosh, cosh)
+REG_FN(NativeTan, tan)
+REG_FN(NativeTanh, tanh)
+REG_FN(NativeSqrt, sqrt)
+REG_FN(NativeLog, log)
+REG_FN(NativeLogten, log10)
+REG_FN(NativeExp, exp)
+REG_FN(NativeFloor, floor)
+REG_FN(NativeCeil, ceil)
+REG_FN(NativeRound, round)
+
+void CVM::load_stdlib(void) {
+  // allocate 
+  ADD_FN(NativeTimestamp, timestamp)
+  ADD_FN(NativeInput, input)
+  ADD_FN(NativePrint, print)
+  ADD_FN(NativePrintln, println)
+  ADD_FN(NativeFlush, flush)
+  ADD_FN(NativeTostr, to_str)
+  ADD_FN(NativeExit, exit)
+  ADD_FN(NativeToint, to_int)
+  ADD_FN(NativeTodouble, to_double)
+  ADD_FN(NativeSize, size)
+  ADD_FN(NativeSin, sin)
+  ADD_FN(NativeSinh, sinh)
+  ADD_FN(NativeCos, cos)
+  ADD_FN(NativeCosh, cosh)
+  ADD_FN(NativeTan, tan)
+  ADD_FN(NativeTanh, tanh)
+  ADD_FN(NativeSqrt, sqrt)
+  ADD_FN(NativeLog, log)
+  ADD_FN(NativeLogten, log10)
+  ADD_FN(NativeExp, exp)
+  ADD_FN(NativeFloor, floor)
+  ADD_FN(NativeCeil, ceil)
+  ADD_FN(NativeRound, round)
+  ADD_FN(NativePow, pow)
+  ADD_FN(NativeFileread, file_read)
+  ADD_FN(NativeFilewrite, file_write)
+  ADD_FN(NativeFileexists, file_exists)
+  ADD_FN(NativeFileremove, file_remove)
+  ADD_FN(NativeAbs, abs)
+  ADD_FN(NativeRand, rand)
+  ADD_FN(NativeRandf, randf)
+  ADD_FN(NativeContains, contains)
+  ADD_FN(NativeSubstr, substr)
+  ADD_FN(NativeSplit, split)
+  ADD_FN(NativeTobytes, to_bytes)
+  ADD_FN(NativeFrombytes, from_bytes)
 }

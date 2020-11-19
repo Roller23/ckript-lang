@@ -1,7 +1,7 @@
 #include "evaluator.hpp"
 #include "utils.hpp"
 #include "error-handler.hpp"
-#include "ckript-vm.hpp"
+#include "CVM.hpp"
 
 #include <iostream>
 #include <cassert>

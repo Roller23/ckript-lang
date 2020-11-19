@@ -1,7 +1,7 @@
 #include "interpreter.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "ckript-vm.hpp"
+#include "CVM.hpp"
 #include "token.hpp"
 #include "evaluator.hpp"
 #include "utils.hpp"
@@ -16,7 +16,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   TokenList tokens = lexer.process_file(filename);
   Parser parser(tokens, Token::TokenType::NONE, "", utils);
   Node AST = parser.parse(NULL);
-  CkriptVM VM;
+  CVM VM;
   VM.load_stdlib();
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
@@ -39,7 +39,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
 
 void Interpreter::process_stream() {
   Utils utils;
-  CkriptVM VM;
+  CVM VM;
   VM.load_stdlib();
   std::string line = "";
   bool running = true;

@@ -1,7 +1,7 @@
 #if !defined(__EVALUATOR_)
 #define __EVALUATOR_
 
-#include "ckript-vm.hpp"
+#include "CVM.hpp"
 #include "AST.hpp"
 #include "token.hpp"
 #include "utils.hpp"
@@ -41,12 +41,12 @@ typedef std::vector<RpnElement> RpnStack;
 
 class Evaluator {
   public:
-    CkriptVM &VM;
+    CVM &VM;
     Node &AST;
     Utils &utils;
     bool stream = false;
     CallStack stack;
-    Evaluator(Node &_AST, CkriptVM &_VM, Utils &_utils, bool is_stream = false) : 
+    Evaluator(Node &_AST, CVM &_VM, Utils &_utils, bool is_stream = false) : 
       VM(_VM),
       AST(_AST), 
       utils(_utils),

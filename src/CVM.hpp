@@ -1,5 +1,5 @@
-#if !defined(__CKRIPT_VM_)
-#define __CKRIPT_VM_
+#if !defined(__CVM_)
+#define __CVM_
 
 #include <map>
 #include <vector>
@@ -62,11 +62,13 @@ class NativeFunction {
     virtual Value execute(std::vector<Value> &args, std::int64_t line) = 0;
 };
 
-class CkriptVM {
+// Ckript Virtual Machine
+
+class CVM {
   public:
     void load_stdlib(void);
     std::map<std::string, NativeFunction *> globals;
     Heap heap;
 };
 
-#endif // __CKRIPT_VM_
+#endif // __CVM_
