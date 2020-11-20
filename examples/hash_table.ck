@@ -1,4 +1,4 @@
-func newHashTable = function(void) obj {
+func newHashTable = function(void) ref obj {
   class HashTable(
     int size,
     func hash,
@@ -15,7 +15,7 @@ func newHashTable = function(void) obj {
   int _size = 1137;
   alloc arr _table = array() [_size] arr;
   alloc arr _indexes = array() int;
-  return HashTable(
+  alloc obj _hashTable = HashTable(
     _size,
     function(str string) int {
       int hash = 17;
@@ -113,10 +113,11 @@ func newHashTable = function(void) obj {
       del this;
     }
   );
+  bind(_hashTable);
+  return _hashTable;
 };
 
-alloc obj table = newHashTable();
-bind(table);
+ref obj table = newHashTable();
 
 table.set("Key", "Value");
 table.set("Hotel", "Trivago");
