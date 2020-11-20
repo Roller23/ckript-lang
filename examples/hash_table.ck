@@ -127,13 +127,13 @@ println("Key -> " + table.get("Key"));
 
 println("Hotel? " + table.get("Hotel"));
 
-println("Keys = " + to_str(table.keys()));
-println("Values = " + to_str(table.values()));
+println("Keys = @1"(table.keys()));
+println("Values = @1"(table.values()));
 
 println(table.has("bad"));
 println(table.has("Key"));
 table.remove("Key");
 println(table.has("Key"));
-println("Values = " + to_str(table.values()));
+println("Values = @1"(table.values()));
 
 table.destroy();

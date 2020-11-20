@@ -9,6 +9,6 @@ int n = to_int(input());
 int start = timestamp();
 int i = 0;
 for (; i <= n; i += 1)
-  println("Fib number no. " + i + " = " + fib(i));
+  println('Fib number no. @1 = @2'(i, fib(i)));
 
-println("It took " + (timestamp() - start) + "ms to calculate " + n + " fibonacci numbers");
+println('It took @1ms to calculate @2 fibonacci numbers'(timestamp() - start, n));

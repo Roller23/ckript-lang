@@ -79,9 +79,7 @@ void Heap::free(std::int64_t ref) {
   }
 }
 
-// stdlib
-
-static std::string stringify(Value &val) {
+std::string CVM::stringify(Value &val) {
   if (val.type == Utils::STR) {
     return val.string_value;
   }
@@ -140,6 +138,8 @@ static std::string stringify(Value &val) {
   return "";
 }
 
+// stdlib
+
 class NativeInput : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
@@ -162,7 +162,7 @@ class NativePrint : public NativeFunction {
       }
       int i = 0;
       for (auto &arg : args) {
-        std::cout << stringify(arg);
+        std::cout << VM.stringify(arg);
         if (i != args.size() - 1) std::cout << " ";
         i++;
       }
@@ -176,7 +176,7 @@ class NativePrintln : public NativeFunction {
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       int i = 0;
       for (auto &arg : args) {
-        std::cout << stringify(arg);
+        std::cout << VM.stringify(arg);
         if (i != args.size() - 1) std::cout << " ";
         i++;
       }
@@ -211,7 +211,7 @@ class NativeSize : public NativeFunction {
       } else if (arg.type == Utils::STR) {
         val.number_value = arg.string_value.size();
       } else {
-        ErrorHandler::throw_runtime_error("Cannot get the size of " + stringify(arg), line);
+        ErrorHandler::throw_runtime_error("Cannot get the size of " + VM.stringify(arg), line);
       }
       return val;
     }
@@ -224,7 +224,7 @@ class NativeTostr : public NativeFunction {
         ErrorHandler::throw_runtime_error("to_str() expects one argument", line);
       }
       Value val(Utils::STR);
-      val.string_value = stringify(args.at(0));
+      val.string_value = VM.stringify(args.at(0));
       return val;
     }
 };
@@ -250,7 +250,7 @@ class NativeToint : public NativeFunction {
       } else if (arg.type == Utils::BOOL) {
         val.number_value = (std::int64_t)arg.boolean_value;
       } else {
-        ErrorHandler::throw_runtime_error(stringify(arg) + " cannot be converted to int", line);
+        ErrorHandler::throw_runtime_error(VM.stringify(arg) + " cannot be converted to int", line);
       }
       return val;
     }
@@ -277,7 +277,7 @@ class NativeTodouble : public NativeFunction {
       } else if (arg.type == Utils::BOOL) {
         val.float_value = (double)arg.boolean_value;
       } else {
-        ErrorHandler::throw_runtime_error(stringify(arg) + " cannot be converted to double", line);
+        ErrorHandler::throw_runtime_error(VM.stringify(arg) + " cannot be converted to double", line);
       }
       return val;
     }

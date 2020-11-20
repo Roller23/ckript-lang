@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <regex>
 
 #define FLAG_OK 0
 #define FLAG_BREAK 1
@@ -933,18 +934,38 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.type == VarType::CLASS) {
     return construct_object(call, fn);
   }
-  if (fn_value.func.instructions.size() == 0) return {};
+  if (fn_value.type == VarType::STR) {
+    // string interpolation
+    int args = 0;
+    for (auto &arg : call.op.func_call.arguments) {
+      if (arg.size() != 0) {
+        args++;
+      } else if (args != 0) {
+        throw_error("Illegal string interpolation, missing arguments");
+      }
+    }
+    Value str = fn_value;
+    if (args == 0) return {str};
+    int argn = 1;
+    for (auto &arg : call.op.func_call.arguments) {
+      Value arg_val = evaluate_expression(arg);
+      std::string find = "@" + std::to_string(argn);
+      str.string_value = std::regex_replace(str.string_value, std::regex(find), VM.stringify(arg_val));
+      argn++;
+    }
+    return {str};
+  }
   if (fn_value.type != VarType::FUNC) {
     std::string msg = stringify(fn_value) + " is not a function";
     throw_error(msg);
   }
+  if (fn_value.func.instructions.size() == 0) return {};
   int args_counter = 0;
   for (auto &arg : call.op.func_call.arguments) {
     if (arg.size() != 0) {
       args_counter++;
     } else if (args_counter != 0) {
-      std::string msg = "Illegal function invocation, missing arguments";
-      throw_error(msg);
+      throw_error("Illegal function invocation, missing arguments");
     }
   }
   if (args_counter != fn_value.func.params.size()) {

@@ -62,6 +62,7 @@ class NativeFunction;
 
 class CVM {
   public:
+    std::string stringify(Value &val);
     void load_stdlib(void);
     std::map<std::string, NativeFunction *> globals;
     Heap heap;

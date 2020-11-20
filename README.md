@@ -90,6 +90,21 @@ str string2 = string + " new"; // concatenation
 str pi_str = "this is pi " + 3.14; // will stringify the number
 ```
 
+## String formatting
+
+You can interpolate any string by calling it like a function and passing any number of parameters of any kind.
+
+The placeholder for literals is `@n` where `n` is the parameter number (starting from 1).
+
+Example:
+
+```
+str name = "Joe";
+
+str result = "@1 is @2 years old. That's how old @1 is."(name, 78, name);
+println(result); // "Joe is 78 years old. That's how old Joe is."
+```
+
 ## Memory allocation
 
 Use ``alloc`` to allocate something on the heap, ``del`` to delete from the heap, ``ref`` to get the pointer of that value
