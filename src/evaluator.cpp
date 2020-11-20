@@ -287,7 +287,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
     if (res_val.is_lvalue()) {
       Variable *var = get_reference_by_name(res_val.reference_name);
       if (var == nullptr) {
-        std::string msg = res_val.reference_name + " is not defined";
+        std::string msg = "'" + res_val.reference_name + "' is not defined";
         throw_error(msg);
       }
       if (var->val.heap_reference != -1) {
@@ -1175,7 +1175,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   std::string base = members.at(0);
   Variable *var = get_reference_by_name(base);
   if (var == nullptr) {
-    std::string msg = base + " is not defined";
+    std::string msg = "'" + base + "' is not defined";
     throw_error(msg);
   }
   Value *val = var->val.heap_reference != -1 ? &get_heap_value(var->val.heap_reference) : &var->val;
@@ -1189,7 +1189,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
     if (temp->member_values.find(member) == temp->member_values.end()) {
-      std::string msg = prev + " has no member " + member;
+      std::string msg = prev + " has no member '" + member + "'";
       throw_error(msg);
     }
     references.push_back(&temp->member_values.at(member));
@@ -1211,7 +1211,7 @@ void Evaluator::set_index(Statement &stmt) {
   assert(stmt.expressions.size() == 1);
   Variable *arr = get_reference_by_name(stmt.obj_members.at(0));
   if (arr == nullptr) {
-    std::string msg = stmt.obj_members.at(0) + " is not defined";
+    std::string msg = "'" + stmt.obj_members.at(0) + "' is not defined";
     throw_error(msg);
   }
   Value *val = arr->val.heap_reference != -1 ? &get_heap_value(arr->val.heap_reference) : &arr->val;
@@ -1249,7 +1249,7 @@ Value &Evaluator::get_value(RpnElement &el) {
     }
     Variable *var = get_reference_by_name(el.value.reference_name);
     if (var == nullptr) {
-      std::string msg = el.value.reference_name + " is not defined";
+      std::string msg = "'" + el.value.reference_name + "' is not defined";
       throw_error(msg);
     }
     if (var->val.heap_reference > -1) {

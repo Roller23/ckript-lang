@@ -223,7 +223,7 @@ class Person(str name, int age, func greet);
 alloc obj Mark = Person("Mark", 23, function(void) void {
   println('Hello my name is ' + this.name);
 });
-
+Mark.greet(); // Runtime error: 'this' is not defined
 bind(Mark);
 Mark.greet(); // Hello my name is Mark
 ```
@@ -279,7 +279,6 @@ Ckript includes a small, simple standard library for most common tasks.
 
 All functions are available globally.
 
-```
 * print(any[, any]) void - accepts any number of arguments (at least one) of any type and prints them to stdout
 * println(any) void - accepts any number of arguments, works like print() but prints a new line at the end for you
 * flush(void) void - flushes stdout
@@ -305,4 +304,3 @@ All functions are available globally.
 * from_bytes(arr) str - constructs a string from the array of bytes
 * the following functions all accept a double|int value and return a double value which is the result of the mathematical operation
 * sin/sinh/cos/cosh/tan/tanh/log/log10/ceil/floor/round/exp/sqrt/abs
-```

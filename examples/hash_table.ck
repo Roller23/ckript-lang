@@ -121,19 +121,19 @@ bind(table);
 table.set("Key", "Value");
 table.set("Hotel", "Trivago");
 
-println("Key -> " + table.get("Key"));
+println("Key ->", table.get("Key"));
 table.set("Key", "Different value");
-println("Key -> " + table.get("Key"));
+println("Key ->", table.get("Key"));
 
-println("Hotel? " + table.get("Hotel"));
+println("Hotel?", table.get("Hotel"));
 
-println("Keys = @1"(table.keys()));
-println("Values = @1"(table.values()));
+println("Keys =", table.keys());
+println("Values =", table.values());
 
 println(table.has("bad"));
 println(table.has("Key"));
 table.remove("Key");
 println(table.has("Key"));
-println("Values = @1"(table.values()));
+println("Values =", table.values());
 
 table.destroy();
