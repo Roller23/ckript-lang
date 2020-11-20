@@ -139,6 +139,8 @@ my_array2 = "Test" + my_array2; // prepending to the array
 
 my_array1 ^= array(1, 2, 3) int; // array concatenation
 
+my_array1 -= 1; // removes the nth element from the array (second element in this case)
+
 int element = array[1]; // getting the value
 #element[0] = 42; // setting a new value (# is required)
 

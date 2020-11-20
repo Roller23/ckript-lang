@@ -467,6 +467,16 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
     val.number_value = x_val.number_value - y_val.number_value;
     return {val};
   }
+  if (x_val.type == VarType::ARR && y_val.type == VarType::INT) {
+    // remove from array
+    Value x_val_cpy = x_val;
+    if (y_val.number_value < 0 || y_val.number_value >= x_val_cpy.array_values.size()) {
+      std::string msg = "cannot remove index [" + std::to_string(y_val.number_value) + "] (out of range)";
+      throw_error(msg);
+    }
+    x_val_cpy.array_values.erase(x_val_cpy.array_values.begin() + y_val.number_value);
+    return {x_val_cpy};
+  }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);

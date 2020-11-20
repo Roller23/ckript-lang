@@ -4,6 +4,7 @@ func newHashTable = function(void) obj {
     func hash,
     func get,
     func set,
+    func remove,
     func has,
     ref arr table,
     func keys,
@@ -56,11 +57,30 @@ func newHashTable = function(void) obj {
       ref arr _indexes = this.indexes;
       _indexes += idx;
     },
+    function(str key) void {
+      if (!this.has(key)) return;
+      int idx = this.hash(key);
+      ref arr _tab = this.table;
+      #_tab[idx] = array() arr;
+      int i = 0;
+      ref arr _indexes = this.indexes;
+      for (; i < size(_indexes); i += 1) {
+        if (_indexes[i] == idx) _indexes -= i;
+      }
+    },
     function(str key) bool {
       int idx = this.hash(key);
       int i = 0;
-      for (; i < size(this.table[idx]); i += 1) {
-        if (this.table[idx][i][0] == key) return true;
+      ref arr tab = this.table;
+      ref arr _indexes = this.indexes;
+      int indexes_size = size(_indexes);
+      for (; i < indexes_size; i += 1) {
+        if (_indexes[i] == idx) {
+          int j = 0;
+          for (; j < size(tab[idx]); j += 1) {
+            if (tab[idx][j][0] == key) return true;
+          }
+        }
       }
       return false;
     },
@@ -119,5 +139,8 @@ println("Values = " + to_str(table.values()));
 
 println(table.has("bad"));
 println(table.has("Key"));
+table.remove("Key");
+println(table.has("Key"));
+println("Values = " + to_str(table.values()));
 
 table.destroy();
