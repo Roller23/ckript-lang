@@ -22,18 +22,16 @@ func newHashTable = function(void) obj {
       int i = 0;
       arr bytes = to_bytes(string);
       int bytes_length = size(bytes);
-      for (; i < bytes_length; i += 1) {
+      for (; i < bytes_length; i += 1)
         hash = (13 * hash * bytes[i]) % this.size;
-      }
       return hash;
     },
     function(str key) str {
       int idx = this.hash(key);
       int _i = 0;
       for (; _i < size(this.table[idx]); _i += 1) {
-        if (this.table[idx][_i][0] == key) {
+        if (this.table[idx][_i][0] == key)
           return this.table[idx][_i][1];
-        }
       }
       return "";
     },
@@ -54,8 +52,7 @@ func newHashTable = function(void) obj {
       } else {
         #_tab[idx] = _tab[idx] + array(key, val) str;
       }
-      ref arr _indexes = this.indexes;
-      _indexes += idx;
+      $this.indexes = this.indexes + idx;
     },
     function(str key) void {
       if (!this.has(key)) return;
@@ -64,9 +61,8 @@ func newHashTable = function(void) obj {
       #_tab[idx] = array() arr;
       int i = 0;
       ref arr _indexes = this.indexes;
-      for (; i < size(_indexes); i += 1) {
+      for (; i < size(_indexes); i += 1)
         if (_indexes[i] == idx) _indexes -= i;
-      }
     },
     function(str key) bool {
       int idx = this.hash(key);
@@ -77,9 +73,8 @@ func newHashTable = function(void) obj {
       for (; i < indexes_size; i += 1) {
         if (_indexes[i] == idx) {
           int j = 0;
-          for (; j < size(tab[idx]); j += 1) {
+          for (; j < size(tab[idx]); j += 1)
             if (tab[idx][j][0] == key) return true;
-          }
         }
       }
       return false;
@@ -93,9 +88,8 @@ func newHashTable = function(void) obj {
       int indexes_size = size(_indexes);
       for (; i < indexes_size; i += 1) {
         int j = 0;
-        for (; j < size(tab[_indexes[i]]); j += 1) {
+        for (; j < size(tab[_indexes[i]]); j += 1)
           _keys += tab[_indexes[i]][j][0];
-        }
       }
       return _keys;
     },
@@ -107,9 +101,8 @@ func newHashTable = function(void) obj {
       int indexes_size = size(_indexes);
       for (; i < indexes_size; i += 1) {
         int j = 0;
-        for (; j < size(tab[_indexes[i]]); j += 1) {
+        for (; j < size(tab[_indexes[i]]); j += 1)
           _values += tab[_indexes[i]][j][1];
-        }
       }
       return _values;
     },
