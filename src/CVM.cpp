@@ -174,11 +174,8 @@ class NativePrint : public NativeFunction {
 class NativePrintln : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
-      int i = 0;
-      for (auto &arg : args) {
-        std::cout << VM.stringify(arg);
-        if (i != args.size() - 1) std::cout << " ";
-        i++;
+      if (args.size() != 0) {
+        VM.globals.at("print")->execute(args, line, VM);
       }
       std::cout << std::endl;
       Value val(Utils::VOID);

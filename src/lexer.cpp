@@ -308,6 +308,5 @@ TokenList Lexer::process_file(const std::string &filename) {
     ErrorHandler::throw_file_error("Couldn't open " + filename);
   }
   std::string buffer(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{});
-  result = tokenize(buffer);
-  return result;
+  return tokenize(buffer);
 }

@@ -295,7 +295,7 @@ All functions are available globally.
 * file_remove(str) bool - removes the specified file, returns true on success, false on failure
 * file_read(str) str - opens the given file path and returns the file contents
 * file_write(str, str) bool - opens the given file path (arg1), writes arg2, and returns true on success, false on failure
-* pow(double, double) double - returns the result of arg1 ^ arg2
+* pow(double|int, double|int) double - returns the result of arg1 to the power of arg2
 * rand(int, int) int - returns a random number from range arg1 to arg2
 * randf(double, double) double - returns a random float from range arg1 to arg2
 * contains(str, str) bool - returns whether arg1 contains the substring arg2
