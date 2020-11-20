@@ -101,7 +101,7 @@ Example:
 ```
 str name = "Joe";
 
-str result = "@1 is @2 years old. That's how old @1 is."(name, 78, name);
+str result = "@1 is @2 years old. That's how old @1 is."(name, 78);
 println(result); // "Joe is 78 years old. That's how old Joe is."
 ```
 
