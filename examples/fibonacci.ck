@@ -3,7 +3,7 @@ func fib = function(int n) int {
   return fib(n - 1) + fib(n - 2);
 };
 
-print("How many fibonacci numbers? ");
+print('How many fibonacci numbers? ');
 int n = to_int(input());
 
 int start = timestamp();

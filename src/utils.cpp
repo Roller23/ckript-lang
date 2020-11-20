@@ -24,7 +24,7 @@ Utils::Utils(void) {
   REG(OP_AND, 3); // &&
   REG(OP_OR_BIT, 4); // |
   REG(OP_XOR, 5); // ^
-  REG(OP_AND, 6); // &
+  REG(OP_AND_BIT, 6); // &
   REG(OP_NOT_EQ, 7); // !=
   REG(OP_EQ, 7); // ==
   REG(OP_GT, 8); // >
