@@ -33,7 +33,8 @@ void Lexer::unescape(std::string &str) {
   std::vector<std::string> actual = {
     "\n", "\t", "\a", "\r", "\b", "\v"
   };
-  for (int i = 0; i < raws.size(); i++) {
+  size_t s = raws.size();
+  for (int i = 0; i < s; i++) {
     str = std::regex_replace(str, std::regex(raws.at(i)), actual.at(i));
   }
 }
@@ -255,6 +256,18 @@ TokenList Lexer::tokenize(const std::string &code) {
         if (op.size() == 1) {
           add_char_token(c);
         } else if (op.size() > 1 && op.size() < 4) {
+          if (op == "//") {
+            // remove the comment
+            while (true) {
+              if (*ptr == '\n') {
+                current_line++;
+                break;
+              }
+              if (ptr == end) break;
+              ptr++;
+            }
+            if (ptr == end) break;
+          } else
           REG(==, OP_EQ)
           REG(!=, OP_NOT_EQ)
           REG(&&, OP_AND)
