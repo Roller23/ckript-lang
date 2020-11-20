@@ -1244,7 +1244,7 @@ void Evaluator::set_index(Statement &stmt) {
 
 Value &Evaluator::get_value(RpnElement &el) {
   if (el.value.is_lvalue()) {
-    if (el.value.member_name != "") {
+    if (el.value.member_name.size() != 0) {
       return el.value;
     }
     Variable *var = get_reference_by_name(el.value.reference_name);

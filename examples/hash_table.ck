@@ -138,15 +138,3 @@ println(table.has("Key"));
 println("Values =", table.values());
 
 table.destroy();
-
-int number = 5;
-
-int i = 0;
-
-for (; i < 64; i += 1) {
-  int bit = ((1 << i) & number);
-  if (bit != 0) bit = 1;
-  print(bit);
-}
-
-println();
