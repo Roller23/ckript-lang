@@ -238,7 +238,7 @@ Mark.greet(); // Runtime error: 'this' is not defined
 
 The reference to the object is bound at runtime when you allocate a new object.
 
-In a situation where one of the object's methods changes you have to rebind the reference yourself by using `bind()`.
+In a situation where one of the object's member functions changes you have to rebind the reference yourself by using `bind()`.
 
 `bind()` is called implicitly for you at runtime, but only when allocating a new object.
 
@@ -260,11 +260,11 @@ bind(Mark);
 Mark.greet(); // This is a new greeting from Mark
 ```
 
-Why? In Ckript objects and functions are very loosely connected. Methods can be separated from objects and still retain the reference to the object they were bound to previously.
+Why? In Ckript objects and functions are very loosely connected. Member functions can be separated from objects and still retain the reference to the object they were bound to previously.
 
 ```
 func a = Mark.greet;
-a(); // // This is a new greeting from Mark
+a(); // This is a new greeting from Mark
 ```
 
 This is due to the fact that functions are values like all other types.
