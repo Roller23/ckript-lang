@@ -1147,8 +1147,9 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
   if (VM.globals.find(name) != VM.globals.end()) {
     throw_error("Trying to access a native function");
   }
-  if (stack.find(name) == stack.end()) return nullptr;
-  return stack.at(name);
+  auto el = stack.find(name);
+  if (el == stack.end()) return nullptr;
+  return el->second;
 }
 
 void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
