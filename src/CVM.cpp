@@ -65,6 +65,7 @@ Chunk &Heap::allocate() {
 
 void Heap::free(std::int64_t ref) {
   // check for all possible errors
+  assert(ref >= 0);
   assert(ref < chunks.size());
   Chunk &chunk = chunks.at(ref);
   assert(chunk.used == true);

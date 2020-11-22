@@ -22,7 +22,6 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   evaluator.stack.reserve(100);
   // pass the "arguments" array
   Variable *var = new Variable;
-  var->id = "arguments";
   var->type = Utils::VarType::ARR;
   var->val.array_type = "str";
   var->val.type = Utils::VarType::ARR;
@@ -33,7 +32,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
     element.string_value = argv[i];
     var->val.array_values.push_back(element);
   }
-  evaluator.stack.push_back(var);
+  evaluator.stack["arguments"] = var;
   evaluator.start();
 }
 

@@ -43,11 +43,10 @@ void Evaluator::start() {
   }
   if (stream) return; // retain callstack
   // empty the callstack
-  while (stack.size()) {
-    Variable *var = stack.back();
-    delete var;
-    stack.pop_back();
+  for (auto &pair : stack) {
+    delete pair.second;
   }
+  stack.clear();
   if (return_value.type == VarType::UNKNOWN) {
     return_value.type = VarType::VOID;
   }
@@ -812,38 +811,15 @@ RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
 }
 
 void Evaluator::register_class(ClassStatement &_class) {
-  if (get_reference_by_name(_class.class_name) != nullptr) {
-    std::string msg = _class.class_name + " is already defined";
-    throw_error(msg);
-  }
   Variable *var = new Variable;
-  var->id = _class.class_name;
   var->type = "class";
   var->val.type = VarType::CLASS;
   var->val.members = _class.members;
-  stack.push_back(var);
+  stack[_class.class_name] = var;
 }
 
 void Evaluator::declare_variable(Node &declaration) {
   Declaration &decl = declaration.decl;
-  Variable *v = get_reference_by_name(decl.id);
-  if (v != nullptr) {
-    // redeclare the variable
-    Value lvalue(Utils::ID);
-    lvalue.reference_name = decl.id;
-    if (decl.allocated) {
-      Chunk &chunk = VM.heap.allocate();
-      v->val.heap_reference = chunk.heap_reference;
-      (*chunk.data).type = utils.var_lut.at(decl.var_type);
-    } else {
-      v->val.type = utils.var_lut.at(decl.var_type);
-    }
-    RpnElement lelement = lvalue;
-    Value rvalue = evaluate_expression(decl.var_expr, decl.reference);
-    RpnElement relement = rvalue;
-    assign(lelement, relement);
-    return;
-  }
   Value var_val = evaluate_expression(decl.var_expr, decl.reference);
   Utils::VarType var_type = utils.var_lut.at(decl.var_type);
   Utils::VarType expr_type = var_val.type;
@@ -854,30 +830,32 @@ void Evaluator::declare_variable(Node &declaration) {
     std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
     throw_error(msg);
   }
+  Variable *v = get_reference_by_name(decl.id);
+  if (v != nullptr) {
+    // to avoid memory leak while redeclaring
+    delete v;
+  }
   if (decl.allocated) {
     assert(decl.reference == false);
     Chunk &chunk = VM.heap.allocate();
     Variable *var = new Variable;
     var->val.heap_reference = chunk.heap_reference;
-    var->id = decl.id;
     var->type = decl.var_type;
     var->constant = decl.constant;
     *chunk.data = var_val;
-    stack.push_back(var);
+    stack[decl.id] = var;
     if (var_val.type == Utils::OBJ) {
       // bind the reference to the object to 'this' in its methods
-      std::vector<Value> args(1);
-      args.at(0) = var->val;
+      std::vector<Value> args(1, var->val);
       VM.globals.at("bind")->execute(args, current_line, VM);
     }
     return;
   }
   Variable *var = new Variable;
-  var->id = decl.id;
   var->type = decl.var_type;
   var->val = var_val;
   var->constant = decl.constant;
-  stack.push_back(var);
+  stack[decl.id] = var;
 }
 
 RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
@@ -1007,45 +985,42 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
         throw_error(msg);
       }
       Variable *var = new Variable;
-      var->id = fn_value.func.params.at(i).param_name;
       var->type = fn_value.func.params.at(i).type_name;
       var->val = arg_val;
-      func_evaluator.stack.push_back(var);
+      func_evaluator.stack[fn_value.func.params.at(i).param_name] = var;
       i++;
     } 
   }
   if (fn.value.is_lvalue()) {
     // push itself onto the callstack
     Variable *var = new Variable;
-    var->id = fn.value.reference_name;
     var->type = VarType::FUNC;
     var->val = fn_value;
-    func_evaluator.stack.push_back(var);
+    func_evaluator.stack[fn.value.reference_name] = var;
   }
   if (fn_value.this_ref != -1) {
     // push "this" onto the stack
     Variable *var = new Variable;
-    var->id = "this";
     var->type = VarType::OBJ;
     var->val.heap_reference = fn_value.this_ref;
-    func_evaluator.stack.push_back(var);
+    func_evaluator.stack["this"] = var;
   }
   if (fn_value.func.captures) {
     // copy current callstack on the new callstack
-    for (auto &variable : stack) {
-      if (variable->id == "this") continue;
-      if (fn.value.is_lvalue() && variable->id == fn.value.reference_name) continue;
+    for (auto &pair : stack) {
+      if (pair.first == "this") continue;
+      if (fn.value.is_lvalue() && pair.first == fn.value.reference_name) continue;
       bool contains = false;
       for (auto &p : fn_value.func.params) {
-        if (p.param_name == variable->id) {
+        if (p.param_name == pair.first) {
           contains = true;
           break;
         }
       }
       if (contains) continue;
       Variable *copy = new Variable;
-      *copy = *variable;
-      func_evaluator.stack.push_back(copy);
+      *copy = *pair.second;
+      func_evaluator.stack[pair.first] = copy;
     }
   }
   func_evaluator.start();
@@ -1168,12 +1143,8 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
   if (VM.globals.find(name) != VM.globals.end()) {
     throw_error("Trying to access a native function");
   }
-  for (auto &var : stack) {
-    if (var->id == name) {
-      return var;
-    }
-  }
-  return nullptr;
+  if (stack.find(name) == stack.end()) return nullptr;
+  return stack.at(name);
 }
 
 void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {

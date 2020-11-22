@@ -2,6 +2,7 @@
 #define __CVM_
 
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 
@@ -34,7 +35,6 @@ class Value {
 
 class Variable {
   public:
-    std::string id;
     std::string type;
     Value val;
     bool constant = false;
@@ -56,7 +56,7 @@ class Heap {
     void free(std::int64_t ref);
 };
 
-typedef std::vector<Variable *> CallStack;
+typedef std::unordered_map<std::string, Variable *> CallStack;
 
 class NativeFunction;
 
