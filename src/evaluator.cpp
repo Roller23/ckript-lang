@@ -811,6 +811,10 @@ RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
 }
 
 void Evaluator::register_class(ClassStatement &_class) {
+  Variable *v = get_reference_by_name(_class.class_name);
+  if (v != nullptr) {
+    delete v;
+  }
   Variable *var = new Variable;
   var->type = "class";
   var->val.type = VarType::CLASS;
