@@ -238,7 +238,7 @@ Mark.greet(); // Runtime error: 'this' is not defined
 
 The reference to the object is bound at runtime when you allocate a new object.
 
-In a situation where on of the object's methods changes you have to rebind the reference again yourself using `bind()`.
+In a situation where one of the object's methods changes you have to rebind the reference again yourself using `bind()`.
 `bind()` is called implicitly for you at runtime, but only when allocating a new object.
 
 Example:
