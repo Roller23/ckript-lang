@@ -711,11 +711,12 @@ RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
     std::string msg = stringify(obj) + " is not an object";
     throw_error(msg);
   }
-  if (obj.member_values.find(y.value.reference_name) == obj.member_values.end()) {
+  auto member_it = obj.member_values.find(y.value.reference_name);
+  if (member_it == obj.member_values.end()) {
     std::string msg = "Object has no member named " + y.value.reference_name;
     throw_error(msg);
   }
-  Value &val = obj.member_values.at(y.value.reference_name);
+  Value &val = member_it->second;
   return {val};
 }
 
@@ -908,14 +909,15 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
 
 RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   assert(call.op.op_type == Operator::FUNC);
-  if (fn.value.is_lvalue() && VM.globals.find(fn.value.reference_name) != VM.globals.end()) {
+  auto global_it = VM.globals.find(fn.value.reference_name);
+  if (fn.value.is_lvalue() && global_it != VM.globals.end()) {
     std::vector<Value> call_args;
     call_args.reserve(call.op.func_call.arguments.size());
     for (auto &node_list : call.op.func_call.arguments) {
       if (node_list.size() == 0) break;
       call_args.push_back(evaluate_expression(node_list, fn.value.reference_name == "bind"));
     }
-    Value return_val = VM.globals.at(fn.value.reference_name)->execute(call_args, current_line, VM);
+    Value return_val = global_it->second->execute(call_args, current_line, VM);
     return {return_val};
   }
   Value &fn_value = get_value(fn);
@@ -1170,11 +1172,12 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     if (i++ == 0) continue;
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
-    if (temp->member_values.find(member) == temp->member_values.end()) {
+    auto member_it = temp->member_values.find(member);
+    if (member_it == temp->member_values.end()) {
       std::string msg = prev + " has no member '" + member + "'";
       throw_error(msg);
     }
-    references.push_back(&temp->member_values.at(member));
+    references.push_back(&member_it->second);
     prev = member;
   }
   Value rvalue = evaluate_expression(expression);
