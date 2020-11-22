@@ -1131,12 +1131,12 @@ RpnElement Evaluator::node_to_element(Node &node) {
           throw_error("Empty array element");
         }
       }
-      Value array_element = evaluate_expression(node_list);
-      if (array_element.type != arr_type) {
-        std::string msg = "Cannot add " + stringify(array_element) + " to an array of " + node.expr.array_type + "s";
+      Value &curr_el = val.array_values.at(i);
+      curr_el = evaluate_expression(node_list);
+      if (curr_el.type != arr_type) {
+        std::string msg = "Cannot add " + stringify(curr_el) + " to an array of " + node.expr.array_type + "s";
         throw_error(msg);
       }
-      val.array_values.at(i) = array_element;
       i++;
     }
     return {val};
