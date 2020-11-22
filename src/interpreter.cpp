@@ -22,15 +22,15 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   evaluator.stack.reserve(100);
   // pass the "arguments" array
   Variable *var = new Variable;
-  var->type = Utils::VarType::ARR;
+  var->type = Utils::ARR;
   var->val.array_type = "str";
-  var->val.type = Utils::VarType::ARR;
-  var->val.array_values.reserve(argc);
+  var->val.type = Utils::ARR;
+  var->val.array_values.resize(argc);
   for (int i = 0; i < argc; i++) {
     Value element;
-    element.type = Utils::VarType::STR;
+    element.type = Utils::STR;
     element.string_value = argv[i];
-    var->val.array_values.push_back(element);
+    var->val.array_values.at(i) = element;
   }
   evaluator.stack["arguments"] = var;
   evaluator.start();
