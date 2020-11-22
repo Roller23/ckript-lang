@@ -228,6 +228,46 @@ Mark.greet(); // Hello my name is Mark
 
 The type of `this` is `ref obj` meaning that only allocated objects can have member functions that use `this`.
 
+```
+obj Mark = Person("Mark", 23, function(void) void {
+  println('Hello my name is ' + this.name);
+});
+
+Mark.greet(); // Runtime error: 'this' is not defined
+```
+
+The reference to the object is bound at runtime when you allocate a new object.
+
+In a situation where on of the object's methods changes you have to rebind the reference again yourself using `bind()`.
+`bind()` is called implicitly for you at runtime, but only when allocating a new object.
+
+Example:
+
+```
+alloc obj Mark = Person("Mark", 23, function(void) void {
+  println('Hello my name is ' + this.name);
+});
+
+Mark.greet(); // Hello my name is Mark
+
+$Mark.greet = function(void) void {
+  println('This is a new greeting from ' + this.name);
+};
+
+Mark.greet(); // Runtime error: 'this' is not defined
+bind(Mark);
+Mark.greet(); // This is a new greeting from Mark
+```
+
+Why? In Ckript objects and functions are very loosely connected. Methods can be separated from objects and still retain the reference to the object they were bound to previously.
+
+```
+func a = Mark.greet;
+a(); // // This is a new greeting from Mark
+```
+
+This is due to the fact that functions are values like all other types.
+
 ## Command line arguments
 
 Ckript supports command line arguments.
