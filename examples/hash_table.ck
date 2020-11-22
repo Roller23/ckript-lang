@@ -113,7 +113,6 @@ func newHashTable = function(void) ref obj {
       del this;
     }
   );
-  bind(_hashTable);
   return _hashTable;
 };
 

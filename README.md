@@ -213,7 +213,6 @@ Warning - class declarations are treated like variables. They'll not be visible 
 ## 'this' and bind()
 
 `this` is the reference to the object holding the function.
-To use `this` inside member functions you need to use `bind()`.
 
 Example:
 
@@ -223,15 +222,9 @@ class Person(str name, int age, func greet);
 alloc obj Mark = Person("Mark", 23, function(void) void {
   println('Hello my name is ' + this.name);
 });
-Mark.greet(); // Runtime error: 'this' is not defined
-bind(Mark);
+
 Mark.greet(); // Hello my name is Mark
 ```
-
-The reason for this is the fact that functions and objects are very loosely connected.
-When a function is an object member it is treated like any other value, it is not a method (yet).
-
-In this example `bind()` binds the reference to the object to all its member functions, effectively turning them into methods.
 
 The type of `this` is `ref obj` meaning that only allocated objects can have member functions that use `this`.
 

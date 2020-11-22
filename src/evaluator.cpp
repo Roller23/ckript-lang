@@ -864,6 +864,12 @@ void Evaluator::declare_variable(Node &declaration) {
     var->constant = decl.constant;
     *chunk.data = var_val;
     stack.push_back(var);
+    if (var_val.type == Utils::OBJ) {
+      // bind the reference to the object to 'this' in its methods
+      std::vector<Value> args(1);
+      args.at(0) = var->val;
+      VM.globals.at("bind")->execute(args, current_line, VM);
+    }
     return;
   }
   Variable *var = new Variable;
