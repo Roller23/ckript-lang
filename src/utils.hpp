@@ -4,7 +4,7 @@
 #include "token.hpp"
 #include "AST.hpp"
 
-#include <map>
+#include <unordered_map>
 
 class Utils {
   public:
@@ -15,8 +15,8 @@ class Utils {
     bool op_unary(Token::TokenType token);
     int get_precedence(Expression &e);
     bool right_assoc(Node &n);
-    std::map<std::string, VarType> var_lut;
-    std::map<Token::TokenType, int> op_precedence;
+    std::unordered_map<std::string, VarType> var_lut;
+    std::unordered_map<Token::TokenType, int> op_precedence;
     bool has_key(Token::TokenType key);
     Utils(void);
 };

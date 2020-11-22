@@ -3,9 +3,8 @@
 
 #include <cstring>
 #include <iostream>
-#include <map>
 
-#define REG(op, val) op_precedence.insert(std::make_pair(Token::TokenType::op, val))
+#define REG(op, val) op_precedence[Token::TokenType::op] = val
 
 Utils::Utils(void) {
   // from lowest to highest
@@ -41,15 +40,15 @@ Utils::Utils(void) {
   REG(DOT, 13); // .
   REG(LEFT_BRACKET, 13); // []
 
-  var_lut.insert(std::make_pair("double", FLOAT));
-  var_lut.insert(std::make_pair("int", INT));
-  var_lut.insert(std::make_pair("str", STR));
-  var_lut.insert(std::make_pair("arr", ARR));
-  var_lut.insert(std::make_pair("obj", OBJ));
-  var_lut.insert(std::make_pair("bool", BOOL));
-  var_lut.insert(std::make_pair("func", FUNC));
-  var_lut.insert(std::make_pair("class", CLASS));
-  var_lut.insert(std::make_pair("void", VOID));
+  var_lut["double"] = FLOAT;
+  var_lut["int"] = INT;
+  var_lut["str"] = STR;
+  var_lut["arr"] = ARR;
+  var_lut["obj"] = OBJ;
+  var_lut["bool"] = BOOL;
+  var_lut["func"] = FUNC;
+  var_lut["class"] = CLASS;
+  var_lut["void"] = VOID;
 }
 
 bool Utils::has_key(Token::TokenType key) {

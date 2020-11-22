@@ -13,7 +13,7 @@
 
 class Value {
   public:
-    Utils::VarType type;
+    Utils::VarType type = Utils::UNKNOWN;
     bool boolean_value = false;
     double float_value = 0.0;
     std::string string_value = "";
@@ -64,7 +64,7 @@ class CVM {
   public:
     std::string stringify(Value &val);
     void load_stdlib(void);
-    std::map<std::string, NativeFunction *> globals;
+    std::unordered_map<std::string, NativeFunction *> globals;
     Heap heap;
 };
 

@@ -5,14 +5,12 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
-#include <streambuf>
 #include <sstream>
 #include <chrono>
 #include <ctime>
 #include <cmath>
 #include <cstdlib>
 #include <random>
-#include <algorithm>
 #include <cstring>
 
 #define REG_FN(name, fn)\
