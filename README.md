@@ -267,8 +267,6 @@ func a = Mark.greet;
 a(); // This is a new greeting from Mark
 ```
 
-This is due to the fact that functions are values like all other types.
-
 ## Command line arguments
 
 Ckript supports command line arguments.
