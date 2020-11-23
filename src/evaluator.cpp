@@ -248,7 +248,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
           if (res_stack.size() < 1) {
-            std::string msg = "Operator " + Token::get_name(token.op.type) + " an operand"; 
+            std::string msg = "Operator " + Token::get_name(token.op.type) + "expects one operand"; 
             throw_error(msg);
           }
           RpnElement x = res_stack.back();
@@ -532,7 +532,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     val.float_value = f1 / f2;
     return {val};
   }
-  std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
+  std::string msg = "Cannot perform division on " + stringify(x_val) + " and " + stringify(y_val);
   throw_error(msg);
   return {};
 }
