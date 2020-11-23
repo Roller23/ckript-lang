@@ -7,6 +7,7 @@
 #define REG(op, val) op_precedence[Token::TokenType::op] = val
 
 Utils::Utils(void) {
+  op_precedence.reserve(31);
   // from lowest to highest
   REG(AND_ASSIGN, 1); // &=
   REG(OR_ASSIGN, 1); // |=
@@ -39,7 +40,7 @@ Utils::Utils(void) {
   REG(OP_MOD, 11); // %
   REG(DOT, 13); // .
   REG(LEFT_BRACKET, 13); // []
-
+  var_lut.reserve(9);
   var_lut["double"] = FLOAT;
   var_lut["int"] = INT;
   var_lut["str"] = STR;

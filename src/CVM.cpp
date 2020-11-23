@@ -589,7 +589,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  // allocate 
+  globals.reserve(37);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)

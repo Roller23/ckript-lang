@@ -875,33 +875,36 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
       throw_error(msg);
     }
   }
-  if (args_counter != class_val.members.size()) {
+  std::size_t members_count = class_val.members.size();
+  if (args_counter != members_count) {
     std::string msg = _class.value.reference_name + " has " + std::to_string(class_val.members.size());
     msg += " members, " + std::to_string(args_counter) + " given";
     throw_error(msg);
   }
   val.class_name = _class.value.reference_name;
   val.type = VarType::OBJ;
+  val.members.reserve(members_count);
   int i = 0;
   for (auto &node_list : call.op.func_call.arguments) {
     std::string num = std::to_string(i + 1);
-    Value arg_val = evaluate_expression(node_list, class_val.members.at(i).is_ref);
+    FuncParam &member = class_val.members.at(i);
+    Value arg_val = evaluate_expression(node_list, member.is_ref);
     Value real_val = arg_val;
     VarType arg_type = arg_val.type;
     if (arg_val.heap_reference != -1) {
       real_val = get_heap_value(arg_val.heap_reference);
       arg_type = real_val.type;
     }
-    if (class_val.members.at(i).is_ref && arg_val.heap_reference == -1) {
+    if (member.is_ref && arg_val.heap_reference == -1) {
       std::string msg = "Object argument " + num + " expected to be a reference, but value given";
       throw_error(msg);
     }
-    if (arg_type != utils.var_lut.at(class_val.members.at(i).type_name)) {
-      std::string msg = "Argument " + num + " expected to be " + class_val.members.at(i).type_name + ", but " + stringify(real_val) + " given";
+    if (arg_type != utils.var_lut.at(member.type_name)) {
+      std::string msg = "Argument " + num + " expected to be " + member.type_name + ", but " + stringify(real_val) + " given";
       throw_error(msg);
     }
-    arg_val.member_name = class_val.members.at(i).param_name;
-    val.member_values.insert(std::make_pair(class_val.members.at(i).param_name, arg_val));
+    arg_val.member_name = member.param_name;
+    val.member_values.insert(std::make_pair(member.param_name, arg_val));
     i++;
   }
   return {val};
