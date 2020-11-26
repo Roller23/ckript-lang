@@ -760,6 +760,11 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
     val.boolean_value = x_val.string_value == y_val.string_value;
     return {val};
   }
+  if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
+    val.type = VarType::BOOL;
+    val.boolean_value = x_val.boolean_value == y_val.boolean_value;
+    return {val};
+  }
   std::string msg = "Cannot compare " + stringify(x_val) + " to " + stringify(y_val);
   throw_error(msg);
   return {};
