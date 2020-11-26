@@ -79,6 +79,17 @@ void Heap::free(std::int64_t ref) {
 }
 
 std::string CVM::stringify(Value &val) {
+  if (val.heap_reference != -1) {
+    if (val.heap_reference >= this->heap.chunks.size()) {
+      return "null";
+    }
+    Value *ptr = this->heap.chunks.at(val.heap_reference).data;
+    if (ptr == nullptr) {
+      return "null";
+    } else {
+      return "ref to " + stringify(*ptr);
+    }
+  }
   if (val.type == Utils::STR) {
     return val.string_value;
   }
@@ -104,7 +115,7 @@ std::string CVM::stringify(Value &val) {
     return "null";
   }
   if (val.type == Utils::ARR) {
-    std::string str = "array(";
+    std::string str = "array<" + val.array_type + ">(";
     int i = 0;
     for (auto &el : val.array_values) {
       if (el.type == Utils::STR) str += "\"";
@@ -119,7 +130,7 @@ std::string CVM::stringify(Value &val) {
     return str;
   }
   if (val.type == Utils::OBJ) {
-    std::string str = "object(";
+    std::string str = "object<" + val.class_name + ">(";
     int i = 0;
     for (auto &member : val.member_values) {
       str += member.first + ": ";

@@ -825,6 +825,7 @@ void Evaluator::register_class(ClassStatement &_class) {
   var->type = "class";
   var->val.type = VarType::CLASS;
   var->val.members = _class.members;
+  var->val.class_name = _class.class_name;
   stack[_class.class_name] = var;
 }
 
