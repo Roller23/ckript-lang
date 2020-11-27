@@ -596,6 +596,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     return continue_stmt;
   } else if (curr_token.type == Token::TYPE) {
     // type identifier = expression;
+    std::uint32_t curr_line = curr_token.line;
     bool allocated = this->prev.type == Token::ALLOC;
     bool constant = this->prev.type == Token::CONST;
     bool reference = this->prev.type == Token::REF;
@@ -603,7 +604,6 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
       constant = true;
     }
     Node var_decl = Node((Declaration(DeclType::VAR_DECL)));
-    var_decl.decl.line = curr_token.line;
     var_decl.decl.var_type = curr_token.value;
     advance(); // skip the variable type
     if (curr_token.type != Token::IDENTIFIER) {
@@ -623,6 +623,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     var_decl.decl.reference = reference;
     Node decl_stmt((Statement(StmtType::DECL)));
     decl_stmt.stmt.declaration.push_back(var_decl);
+    decl_stmt.stmt.line = curr_line;
     advance(); // skip the semicolon
     return decl_stmt;
   } else if (curr_token.type == Token::ALLOC) {
