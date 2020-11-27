@@ -1141,8 +1141,16 @@ RpnElement Evaluator::node_to_element(Node &node) {
         }
       }
       Value &curr_el = val.array_values[i];
-      curr_el = evaluate_expression(node_list);
-      if (curr_el.type != arr_type) {
+      curr_el = evaluate_expression(node_list, node.expr.array_holds_refs);
+      if (node.expr.array_holds_refs && curr_el.heap_reference == -1) {
+        throw_error("Array holds references, but null or value given");
+      }
+      if (node.expr.array_holds_refs) {
+        if (arr_type != get_heap_value(curr_el.heap_reference).type) {
+          std::string msg = "Cannot add " + stringify(curr_el) + " to an array of ref " + node.expr.array_type + "s";
+          throw_error(msg);
+        }
+      } else if (curr_el.type != arr_type) {
         std::string msg = "Cannot add " + stringify(curr_el) + " to an array of " + node.expr.array_type + "s";
         throw_error(msg);
       }

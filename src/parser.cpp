@@ -255,6 +255,10 @@ Node Parser::parse_array_expr() {
     array.expr.array_size = get_expression(Token::RIGHT_BRACKET);
     advance(); // skip the ]
   }
+  if (curr_token.type == Token::REF) {
+    array.expr.array_holds_refs = true;
+    advance(); // skip the ref
+  }
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid array expression, expected a type, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
