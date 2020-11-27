@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <cstring>
 
 #include "utils.hpp"
 #include "AST.hpp"
@@ -45,13 +46,27 @@ class Variable {
 class Chunk {
   public:
     Value *data = nullptr;
-    std::int64_t heap_reference;
+    std::int64_t heap_reference = -1;
     bool used = false;
+};
+
+class Cache {
+  private:
+    static const int CACHE_SIZE = 10000;
+    int index = -1;
+  public:
+    std::vector<std::int64_t> refs;
+    void push(std::int64_t ref);
+    std::int64_t pop(void);
+    Cache(void) {
+      refs.resize(CACHE_SIZE);
+    }
 };
 
 class Heap {
   public:
     std::vector<Chunk> chunks;
+    Cache cache;
     Chunk &allocate();
     void free(std::int64_t ref);
 };

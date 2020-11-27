@@ -40,17 +40,24 @@ bool Variable::is_allocated() const {
   return val.heap_reference != -1;
 }
 
+void Cache::push(std::int64_t ref) {
+  if (index == refs.size() - 2) {
+    refs.resize(refs.size() + CACHE_SIZE / 2);
+  }
+  refs[++index] = ref;
+}
+
+std::int64_t Cache::pop(void) {
+  if (index == -1) return -1;
+  return refs[index--];
+}
+
 Chunk &Heap::allocate() {
-  std::int64_t index = 0;
-  // try to find a free chunk
-  for (auto &chunk : chunks) {
-    if (!chunk.used) {
-      chunk.used = true;
-      chunk.data = new Value;
-      chunk.heap_reference = index;
-      return chunk;
-    }
-    index++;
+  std::int64_t index = cache.pop();
+  if (index != -1) {
+    Chunk &chunk = chunks[index];
+    chunk.used = true;
+    return chunk;
   }
   // add a new chunk
   chunks.push_back(Chunk());
@@ -62,20 +69,9 @@ Chunk &Heap::allocate() {
 }
 
 void Heap::free(std::int64_t ref) {
-  // check for all possible errors
-  assert(ref >= 0);
-  assert(ref < chunks.size());
   Chunk &chunk = chunks.at(ref);
-  assert(chunk.used == true);
-  assert(chunk.data != nullptr);
-  delete chunk.data;
-  chunk.data = nullptr;
   chunk.used = false;
-  chunk.heap_reference = -1;
-  // shrink the heap if possible
-  while (chunks.size() && !chunks.back().used) {
-    chunks.pop_back();
-  }
+  cache.push(ref);
 }
 
 std::string CVM::stringify(Value &val) {
