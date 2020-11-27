@@ -27,11 +27,12 @@ func newHashTable = function(void) ref obj {
       return hash;
     },
     function(str key) str {
-      int idx = this.hash(key);
       int _i = 0;
-      for (; _i < size(this.table[idx]); _i += 1) {
-        if (this.table[idx][_i][0] == key)
-          return this.table[idx][_i][1];
+      arr tab = this.table[this.hash(key)];
+      int _size = size(tab);
+      for (; _i < _size; _i += 1) {
+        if (tab[_i][0] == key)
+          return tab[_i][1];
       }
       return "";
     },
