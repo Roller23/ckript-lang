@@ -182,12 +182,19 @@ TokenList Lexer::tokenize(const std::string &code) {
         // start of a string
         std::string str = "";
         ptr++;
+        bool might_need_unescape = false;
         while (*ptr != c && ptr != end) {
-          str += *ptr;
+          const char chr = *ptr;
+          str += chr;
+          if (!might_need_unescape && chr == '\\') {
+            might_need_unescape = true;
+          }
           ptr++;
         }
         log("token [STRING_LITERAL: " + str + "], ");
-        unescape(str);
+        if (might_need_unescape) {
+          unescape(str);
+        }
         add_token(Token::STRING_LITERAL, str);
       } else if (isdigit(c, loc)) {
         // might be some kind of number
