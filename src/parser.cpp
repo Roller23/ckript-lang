@@ -52,7 +52,7 @@ int Parser::find_enclosing_brace(int start_pos, int braces) {
   int i = 0;
   int size = tokens.size();
   while (true) {
-    if (size == i) {
+    if (size == i + start_pos) {
       std::string msg = "Invalid function declaration, no enclosing brace found";
       throw_error(msg, tokens[start_pos + i - 1].line);
     }
@@ -64,21 +64,6 @@ int Parser::find_enclosing_brace(int start_pos, int braces) {
       if (braces == 0) {
         return i;
       }
-    }
-    i++;
-  }
-}
-
-int Parser::find_enclosing_semi(int start_pos) {
-  int i = 0;
-  int size = tokens.size();
-  while (true) {
-    if (size == i) {
-      std::string msg = "Invalid function declaration, no semicolon found";
-      throw_error(msg, tokens[start_pos + i - 1].line);
-    }
-    if (tokens[start_pos + i].type == Token::SEMI_COLON) {
-      return i;
     }
     i++;
   }
@@ -108,10 +93,7 @@ int Parser::find_enclosing_paren() {
 }
 
 int Parser::find_block_end(void) {
-  if (curr_token.type == Token::LEFT_BRACE) {
-    return find_enclosing_brace(pos);
-  }
-  return find_enclosing_semi(pos);
+  return find_enclosing_brace(pos);
 }
 
 ParamList Parser::parse_func_params(bool is_class) {
@@ -193,9 +175,8 @@ Node Parser::parse_func_expr() {
   advance(); // skip the (
   func.expr.func_expr.params = parse_func_params();
   advance(); // skip the )
-  bool returns_ref = false;
-  if (curr_token.type == Token::REF) {
-    returns_ref = true;
+  bool returns_ref = curr_token.type == Token::REF;
+  if (returns_ref) {
     advance(); // skip the ref
   }
   if (curr_token.type != Token::TYPE) {
@@ -205,13 +186,17 @@ Node Parser::parse_func_expr() {
   func.expr.func_expr.ret_type = curr_token.value;
   func.expr.func_expr.ret_ref = returns_ref;
   advance(); // skip the type
+  if (curr_token.type != Token::LEFT_BRACE) {
+    std::string msg = "invalid function declaration, expected '{', but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
   int func_end = find_block_end();
   TokenList func_start(tokens.begin() + pos, tokens.begin() + pos + func_end + 1); // create a subvector of tokens
-  Parser func_parser(func_start, Token::NONE, "FUNC", utils);
+  Parser func_parser(func_start, Token::NONE, "", utils);
   int end_pos = 0;
   func.expr.func_expr.instructions.push_back(func_parser.parse(&end_pos));
   pos += end_pos;
-  advance(); // skip the semicolon
+  advance();
   return func;
 }
 
@@ -502,7 +487,7 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     comp.stmt.line = curr_token.line;
     int block_end = find_enclosing_brace(pos, 1);
     TokenList block_start(tokens.begin() + pos, tokens.begin() + pos + block_end + 1); // create a subvector of tokens
-    Parser block_parser(block_start, Token::RIGHT_BRACE, "BLOCK", utils);
+    Parser block_parser(block_start, Token::RIGHT_BRACE, "", utils);
     int end_pos = 0;
     comp.stmt.statements.push_back(block_parser.parse(&end_pos));
     pos += end_pos;
