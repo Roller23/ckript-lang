@@ -42,7 +42,7 @@ void Lexer::log(std::string str) const {
 }
 
 void Lexer::unescape(std::string &str) {
-  for (int i = 0; i < regex_size; i++) {
+  for (size_t i = 0; i < regex_size; i++) {
     str = std::regex_replace(str, regexes[i], regex_actual[i]);
   }
 }
@@ -97,6 +97,7 @@ TokenList Lexer::tokenize(const std::string &code) {
   this->end = code.end();
   std::string chars = ".,:;{}[]()~$#";
   std::string chars2 = "=+-*&|/<>!%^";
+  tokens.reserve(code.size() / 2); // estimate needed space - not memory efficient but speeds things up
   while (ptr != end) {
     deleted_spaces = 0;
     consume_whitespace();
@@ -161,15 +162,14 @@ TokenList Lexer::tokenize(const std::string &code) {
           log("token [CONST], ");
           add_token(Token::CONST);
         } else {
-          // to do - speed this up (LUT maybe?)
-          std::string found_type = "";
+          const char *found_type = NULL;
           for (int i = 0; i < Lexer::types_count; i++) {
             if (token_str == Lexer::builtin_types[i]) {
               found_type = Lexer::builtin_types[i];
               break;
             }
           }
-          if (found_type == "") {
+          if (found_type == NULL) {
             // probably an identifier
             log("token [IDENTIFIER: " + token_str + "], ");
             add_token(Token::IDENTIFIER, token_str);
