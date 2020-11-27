@@ -53,6 +53,8 @@ class Evaluator {
       stream(is_stream) {};
     void start();
   private:
+    NativeFunction *native_bind = nullptr;
+    NativeFunction *native_println = nullptr;
     bool inside_func = false;
     bool returns_ref = false;
     int nested_loops = 0;
@@ -64,7 +66,6 @@ class Evaluator {
     void register_class(ClassStatement &_class);
     void flatten_tree(RpnStack &res, NodeList &expression_tree);
     RpnElement node_to_element(Node &node);
-    RpnElement var_to_element(Variable *var);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(Value &val);

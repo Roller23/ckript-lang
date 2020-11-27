@@ -76,11 +76,15 @@ typedef std::unordered_map<std::string, Variable *> CallStack;
 class NativeFunction;
 
 class CVM {
+  private:
+    void load_stdlib(void);
   public:
     std::string stringify(Value &val);
-    void load_stdlib(void);
     std::unordered_map<std::string, NativeFunction *> globals;
     Heap heap;
+    CVM(void) {
+      load_stdlib();
+    }
 };
 
 class NativeFunction {

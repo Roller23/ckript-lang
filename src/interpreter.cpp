@@ -17,7 +17,6 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   Parser parser(tokens, Token::TokenType::NONE, "", utils);
   Node AST = parser.parse(NULL);
   CVM VM;
-  VM.load_stdlib();
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
   // pass the "arguments" array
@@ -37,10 +36,9 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
 void Interpreter::process_stream() {
   Utils utils;
   CVM VM;
-  VM.load_stdlib();
   std::string line = "";
   bool running = true;
-  std::cout << "Ckript 1.0\n";
+  std::cout << "Ckript shell\n";
   std::cout << "Made by https://github.com/Roller23\n";
   std::cout << "Type 'exit' to exit\n";
   while (running) {

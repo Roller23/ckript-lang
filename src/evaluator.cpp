@@ -12,7 +12,7 @@
 #define FLAG_CONTINUE 2
 #define FLAG_RETURN 3
 
-#define REG(OP, FN) if (token.op.type == Token::OP) {result=FN(x, y);} else
+#define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.push_back(FN(x, y));} else
 
 #define BITWISE(OP, NAME)\
   Value val;\
@@ -35,6 +35,8 @@ void Evaluator::throw_error(const std::string &cause) {
 }
 
 void Evaluator::start() {
+  native_bind = VM.globals.at("bind");
+  native_println = VM.globals.at("println");  
   for (auto &statement : AST.children) {
     int flag = execute_statement(statement);
     if (flag == FLAG_RETURN) {
@@ -42,11 +44,10 @@ void Evaluator::start() {
     }
   }
   if (stream) return; // retain callstack
-  // empty the callstack
+  // deallocate variables on callstack
   for (auto &pair : stack) {
     delete pair.second;
   }
-  stack.clear();
   if (return_value.type == VarType::UNKNOWN) {
     return_value.type = VarType::VOID;
   }
@@ -60,9 +61,8 @@ int Evaluator::execute_statement(Node &statement) {
     Value result = evaluate_expression(statement.stmt.expressions[0]);
     if (stream && result.type != VarType::VOID) {
       std::cout << "< ";
-      std::vector<Value> v(1);
-      v[0] = result;
-      VM.globals.at("println")->execute(v, current_line, VM);
+      std::vector<Value> v(1, result);
+      native_println->execute(v, current_line, VM);
     }
     return FLAG_OK;
   }
@@ -212,7 +212,6 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           res_stack.pop_back();
           RpnElement x = res_stack.back();
           res_stack.pop_back();
-          RpnElement result;
           REG(DOT, access_member)
           REG(OP_PLUS, perform_addition)
           REG(OP_MINUS, perform_subtraction)
@@ -245,7 +244,6 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
             std::string msg = "Unknown binary operator " + Token::get_name(token.op.type);
             throw_error(msg);
           }
-          res_stack.push_back(result);
         } else if (utils.op_unary(token.op.type)) {
           if (res_stack.size() < 1) {
             std::string msg = "Operator " + Token::get_name(token.op.type) + "expects one operand"; 
@@ -253,29 +251,25 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           }
           RpnElement x = res_stack.back();
           res_stack.pop_back();
-          RpnElement result;
           if (token.op.type == Token::OP_NOT) {
-            result = logical_not(x);
+            res_stack.push_back(logical_not(x));
           } else if (token.op.type == Token::OP_NEG) {
-            result = bitwise_not(x);
+            res_stack.push_back(bitwise_not(x));
           } else if (token.op.type == Token::DEL) {
-            result = delete_value(x);
+            res_stack.push_back(delete_value(x));
           } else {
             std::string msg = "Unknown unary operator " + Token::get_name(token.op.type);
             throw_error(msg);
           }
-          res_stack.push_back(result);
         }
       } else if (token.op.op_type == Operator::FUNC) {
         RpnElement fn = res_stack.back();
         res_stack.pop_back();
-        RpnElement result = execute_function(token, fn);
-        res_stack.push_back(result);
+        res_stack.push_back(execute_function(token, fn));
       } else if (token.op.op_type == Operator::INDEX) {
         RpnElement arr = res_stack.back();
         res_stack.pop_back();
-        RpnElement result = access_index(arr, token);
-        res_stack.push_back(result);
+        res_stack.push_back(access_index(arr, token));
       }
     } else {
       res_stack.push_back(token);
@@ -843,7 +837,7 @@ void Evaluator::declare_variable(Node &declaration) {
   }
   Variable *v = get_reference_by_name(decl.id);
   if (v != nullptr) {
-    // to avoid memory leak while redeclaring
+    // to avoid memory leaks while redeclaring
     delete v;
   }
   if (decl.allocated) {
@@ -858,7 +852,7 @@ void Evaluator::declare_variable(Node &declaration) {
     if (var_val.type == Utils::OBJ) {
       // bind the reference to the object to 'this' in its methods
       std::vector<Value> args(1, var->val);
-      VM.globals.at("bind")->execute(args, current_line, VM);
+      native_bind->execute(args, current_line, VM);
     }
     return;
   }
@@ -1282,11 +1276,9 @@ void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {
   for (auto &node : expression_tree) {
     if (node.expr.rpn_stack.size() != 0) {
       flatten_tree(res, node.expr.rpn_stack);
-      node.expr.rpn_stack.clear();
     }
     if (node.expr.type != Expression::RPN) {
       res.push_back(node_to_element(node));
     }
   }
-  expression_tree.clear();
 }
