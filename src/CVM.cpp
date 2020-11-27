@@ -579,6 +579,18 @@ class NativeBind : public NativeFunction {
     }
 };
 
+class NativeClassname : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 1 || args[0].type != Utils::OBJ) {
+        ErrorHandler::throw_runtime_error("class_name() expects one argument (obj)", line);
+      }
+      Value res(Utils::STR);
+      res.string_value = args[0].class_name;
+      return res;
+    }
+};
+
 // used only for math functions
 
 REG_FN(NativeSin, sin)
@@ -596,7 +608,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  globals.reserve(37);
+  globals.reserve(38);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)
@@ -634,4 +646,5 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeTobytes, to_bytes)
   ADD_FN(NativeFrombytes, from_bytes)
   ADD_FN(NativeBind, bind);
+  ADD_FN(NativeClassname, class_name);
 }
