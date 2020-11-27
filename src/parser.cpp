@@ -24,9 +24,9 @@ void Parser::fail_if_EOF(TokenType expected) {
 
 void Parser::advance(void) {
   pos++;
-  prev = tokens.at(pos - 1);
+  prev = tokens[pos - 1];
   if (pos < tokens_count) {
-    curr_token = tokens.at(pos);
+    curr_token = tokens[pos];
   } else {
     curr_token = Token(Token::NONE);
     pos--;
@@ -36,8 +36,8 @@ void Parser::advance(void) {
 void Parser::retreat(void) {
   if (pos == 0) return;
   pos--;
-  curr_token = tokens.at(pos);
-  prev = pos > 0 ? tokens.at(pos - 1) : Token(Token::NONE);
+  curr_token = tokens[pos];
+  prev = pos > 0 ? tokens[pos - 1] : Token(Token::NONE);
 }
 
 Token Parser::lookahead(int offset) {
@@ -45,7 +45,7 @@ Token Parser::lookahead(int offset) {
   if (pos + offset >= tokens.size()) {
     return {}; // empty token
   }
-  return tokens.at(pos + offset);
+  return tokens[pos + offset];
 }
 
 int Parser::find_enclosing_brace(int start_pos, int braces) {
@@ -54,12 +54,12 @@ int Parser::find_enclosing_brace(int start_pos, int braces) {
   while (true) {
     if (size == i) {
       std::string msg = "Invalid function declaration, no enclosing brace found";
-      throw_error(msg, tokens.at(start_pos + i - 1).line);
+      throw_error(msg, tokens[start_pos + i - 1].line);
     }
-    if (tokens.at(start_pos + i).type == Token::LEFT_BRACE) {
+    if (tokens[start_pos + i].type == Token::LEFT_BRACE) {
       braces++;
     }
-    if (tokens.at(start_pos + i).type == Token::RIGHT_BRACE) {
+    if (tokens[start_pos + i].type == Token::RIGHT_BRACE) {
       braces--;
       if (braces == 0) {
         return i;
@@ -75,9 +75,9 @@ int Parser::find_enclosing_semi(int start_pos) {
   while (true) {
     if (size == i) {
       std::string msg = "Invalid function declaration, no semicolon found";
-      throw_error(msg, tokens.at(start_pos + i - 1).line);
+      throw_error(msg, tokens[start_pos + i - 1].line);
     }
-    if (tokens.at(start_pos + i).type == Token::SEMI_COLON) {
+    if (tokens[start_pos + i].type == Token::SEMI_COLON) {
       return i;
     }
     i++;
@@ -92,12 +92,12 @@ int Parser::find_enclosing_paren() {
   while (true) {
     if (size == i) {
       std::string msg = "Invalid expression, no enclosing parenthesis found";
-      throw_error(msg, tokens.at(start_pos + i - 1).line);
+      throw_error(msg, tokens[start_pos + i - 1].line);
     }
-    if (tokens.at(start_pos + i).type == Token::LEFT_PAREN) {
+    if (tokens[start_pos + i].type == Token::LEFT_PAREN) {
       lparen++;
     }
-    if (tokens.at(start_pos + i).type == Token::RIGHT_PAREN) {
+    if (tokens[start_pos + i].type == Token::RIGHT_PAREN) {
       lparen--;
       if (lparen == 0) {
         return i;

@@ -69,7 +69,7 @@ int Utils::get_precedence(Expression &e) {
     return 13;
   }
   if (op_unary(e.op)) return 12;
-  return op_precedence.at(e.op);
+  return op_precedence[e.op];
 }
 
 bool Utils::right_assoc(Node &n) {

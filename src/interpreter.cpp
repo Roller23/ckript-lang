@@ -27,8 +27,8 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   var->val.type = Utils::ARR;
   var->val.array_values.resize(argc);
   for (int i = 0; i < argc; i++) {
-    var->val.array_values.at(i).type = Utils::STR;
-    var->val.array_values.at(i).string_value = argv[i];
+    var->val.array_values[i].type = Utils::STR;
+    var->val.array_values[i].string_value = argv[i];
   }
   evaluator.stack["arguments"] = var;
   evaluator.start();

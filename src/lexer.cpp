@@ -18,6 +18,21 @@ static const char *_builtin_types[] = {
   "obj", "arr", "bool"
 };
 
+static const char *const regex_actual[] = {
+  "\n", "\t", "\a", "\r", "\b", "\v"
+};
+
+static const std::regex regexes[] = {
+  std::regex(R"(\\n)"),
+  std::regex(R"(\\t)"),
+  std::regex(R"(\\a)"),
+  std::regex(R"(\\r)"), 
+  std::regex(R"(\\b)"),
+  std::regex(R"(\\v)")
+};
+
+static const size_t regex_size = sizeof(regex_actual) / sizeof(const char *);
+
 const char **Lexer::builtin_types = _builtin_types;
 int Lexer::types_count = sizeof(_builtin_types) / sizeof(char *);
 
@@ -27,15 +42,8 @@ void Lexer::log(std::string str) const {
 }
 
 void Lexer::unescape(std::string &str) {
-  std::vector<std::string> raws = {
-    R"(\\n)", R"(\\t)", R"(\\a)", R"(\\r)", R"(\\b)", R"(\\v)"
-  };
-  std::vector<std::string> actual = {
-    "\n", "\t", "\a", "\r", "\b", "\v"
-  };
-  size_t s = raws.size();
-  for (int i = 0; i < s; i++) {
-    str = std::regex_replace(str, std::regex(raws.at(i)), actual.at(i));
+  for (int i = 0; i < regex_size; i++) {
+    str = std::regex_replace(str, regexes[i], regex_actual[i]);
   }
 }
 

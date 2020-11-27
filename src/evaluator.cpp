@@ -57,11 +57,11 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
   if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
-    Value result = evaluate_expression(statement.stmt.expressions.at(0));
+    Value result = evaluate_expression(statement.stmt.expressions[0]);
     if (stream && result.type != VarType::VOID) {
       std::cout << "< ";
       std::vector<Value> v(1);
-      v.at(0) = result;
+      v[0] = result;
       VM.globals.at("println")->execute(v, current_line, VM);
     }
     return FLAG_OK;
@@ -72,7 +72,7 @@ int Evaluator::execute_statement(Node &statement) {
   }
   if (statement.stmt.type == StmtType::SET) {
     if (statement.stmt.expressions.size() == 0) return FLAG_OK; // might break something
-    set_member(statement.stmt.obj_members, statement.stmt.expressions.at(0));
+    set_member(statement.stmt.obj_members, statement.stmt.expressions[0]);
     return FLAG_OK;
   }
   if (statement.stmt.type == StmtType::SET_IDX) {
@@ -81,11 +81,11 @@ int Evaluator::execute_statement(Node &statement) {
   }
   if (statement.stmt.type == StmtType::DECL) {
     if (statement.stmt.declaration.size() != 1) return FLAG_OK;
-    declare_variable(statement.stmt.declaration.at(0));
+    declare_variable(statement.stmt.declaration[0]);
   }
   if (statement.stmt.type == StmtType::COMPOUND) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK;
-    for (auto &stmt : statement.stmt.statements.at(0).children) {
+    for (auto &stmt : statement.stmt.statements[0].children) {
       int flag = execute_statement(stmt);
       if (flag) return flag;
     }
@@ -106,8 +106,8 @@ int Evaluator::execute_statement(Node &statement) {
     if (!inside_func) {
       throw_error("return statement outside of functions is illegal");
     }
-    if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions.at(0).size() != 0) {
-      NodeList return_expr = statement.stmt.expressions.at(0);
+    if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions[0].size() != 0) {
+      NodeList return_expr = statement.stmt.expressions[0];
       return_value = evaluate_expression(return_expr, returns_ref);
     }
     return FLAG_RETURN;
@@ -115,19 +115,19 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::WHILE) {
     assert(statement.stmt.expressions.size() != 0);
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
-    if (statement.stmt.expressions.at(0).size() == 0) {
+    if (statement.stmt.expressions[0].size() == 0) {
       throw_error("while expects an expression");
     }
     nested_loops++;
     while (true) {
-      NodeList cond = statement.stmt.expressions.at(0); // make a copy
+      NodeList cond = statement.stmt.expressions[0]; // make a copy
       Value result = evaluate_expression(cond);
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         throw_error(msg);
       }
       if (!result.boolean_value) break;
-      Node stmt = statement.stmt.statements.at(0); // make a copy
+      Node stmt = statement.stmt.statements[0]; // make a copy
       int flag = execute_statement(stmt);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
@@ -140,12 +140,12 @@ int Evaluator::execute_statement(Node &statement) {
       throw_error("For expects 3 expressions, " + given + " given");
     }
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
-    if (statement.stmt.expressions.at(0).size() != 0) {
-      evaluate_expression(statement.stmt.expressions.at(0));
+    if (statement.stmt.expressions[0].size() != 0) {
+      evaluate_expression(statement.stmt.expressions[0]);
     }
     nested_loops++;
     while (true) {
-      NodeList cond = statement.stmt.expressions.at(1); // make a copy
+      NodeList cond = statement.stmt.expressions[1]; // make a copy
       Value result;
       if (cond.size() == 0) {
         // empty conditions evaluate to true
@@ -159,11 +159,11 @@ int Evaluator::execute_statement(Node &statement) {
         throw_error(msg);
       }
       if (!result.boolean_value) break;
-      Node stmt = statement.stmt.statements.at(0); // make a copy
+      Node stmt = statement.stmt.statements[0]; // make a copy
       int flag = execute_statement(stmt);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
-      NodeList increment_expr = statement.stmt.expressions.at(2);
+      NodeList increment_expr = statement.stmt.expressions[2];
       if (increment_expr.size() != 0) {
         evaluate_expression(increment_expr);
       }
@@ -173,20 +173,20 @@ int Evaluator::execute_statement(Node &statement) {
   if (statement.stmt.type == StmtType::IF) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
     assert(statement.stmt.expressions.size() != 0);
-    if (statement.stmt.expressions.at(0).size() == 0) {
+    if (statement.stmt.expressions[0].size() == 0) {
       throw_error("if expects an expression");
     }
-    Value result = evaluate_expression(statement.stmt.expressions.at(0));
+    Value result = evaluate_expression(statement.stmt.expressions[0]);
     if (result.type != VarType::BOOL) {
       std::string msg = "Expected a boolean value in if statement, found " + stringify(result);
       throw_error(msg);
     }
     if (result.boolean_value) {
-      int flag = execute_statement(statement.stmt.statements.at(0));
+      int flag = execute_statement(statement.stmt.statements[0]);
       if (flag) return flag;
     } else {
       if (statement.stmt.statements.size() == 2) {
-        int flag = execute_statement(statement.stmt.statements.at(1));
+        int flag = execute_statement(statement.stmt.statements[1]);
         if (flag) return flag;
       }
     }
@@ -281,7 +281,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
       res_stack.push_back(token);
     }
   }
-  Value &res_val = res_stack.at(0).value;
+  Value &res_val = res_stack[0].value;
   if (get_ref) {
     if (res_val.is_lvalue()) {
       Variable *var = get_reference_by_name(res_val.reference_name);
@@ -398,7 +398,7 @@ RpnElement Evaluator::delete_value(RpnElement &x) {
   if (val.heap_reference >= VM.heap.chunks.size()) {
     throw_error("deleting a value that is not on the heap");
   }
-  if (VM.heap.chunks.at(val.heap_reference).used == false) {
+  if (VM.heap.chunks[val.heap_reference].used == false) {
     throw_error("double delete");
   }
   VM.heap.free(val.heap_reference);
@@ -735,7 +735,7 @@ RpnElement Evaluator::access_index(RpnElement &arr, RpnElement &idx) {
     std::string msg = "index [" + std::to_string(index.number_value) + "] out of range";
     throw_error(msg);
   }
-  Value &res = array.array_values.at(index.number_value);
+  Value &res = array.array_values[index.number_value];
   return {res};
 }
 
@@ -893,7 +893,7 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
   int i = 0;
   for (auto &node_list : call.op.func_call.arguments) {
     std::string num = std::to_string(i + 1);
-    FuncParam &member = class_val.members.at(i);
+    FuncParam &member = class_val.members[i];
     Value arg_val = evaluate_expression(node_list, member.is_ref);
     Value real_val = arg_val;
     VarType arg_type = arg_val.type;
@@ -974,7 +974,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     throw_error(msg);
   }
 
-  Node fn_AST = fn_value.func.instructions.at(0);
+  Node fn_AST = fn_value.func.instructions[0];
   Evaluator func_evaluator(fn_AST, VM, utils);
   func_evaluator.stack.reserve(100);
   func_evaluator.inside_func = true;
@@ -984,25 +984,25 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     int i = 0;
     for (auto &node_list : call.op.func_call.arguments) {
       std::string num = std::to_string(i + 1);
-      Value arg_val = evaluate_expression(node_list, fn_value.func.params.at(i).is_ref);
+      Value arg_val = evaluate_expression(node_list, fn_value.func.params[i].is_ref);
       Value real_val = arg_val;
       VarType arg_type = arg_val.type;
       if (arg_val.heap_reference != -1) {
         real_val = get_heap_value(arg_val.heap_reference);
         arg_type = real_val.type;
       }
-      if (fn_value.func.params.at(i).is_ref && arg_val.heap_reference == -1) {
+      if (fn_value.func.params[i].is_ref && arg_val.heap_reference == -1) {
         std::string msg = "Argument " + num + " expected to be a reference, but value given";
         throw_error(msg);
       }
-      if (arg_type != utils.var_lut.at(fn_value.func.params.at(i).type_name)) {
-        std::string msg = "Argument " + num + " expected to be " + fn_value.func.params.at(i).type_name + ", but " + stringify(real_val) + " given";
+      if (arg_type != utils.var_lut.at(fn_value.func.params[i].type_name)) {
+        std::string msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
         throw_error(msg);
       }
       Variable *var = new Variable;
-      var->type = fn_value.func.params.at(i).type_name;
+      var->type = fn_value.func.params[i].type_name;
       var->val = arg_val;
-      func_evaluator.stack[fn_value.func.params.at(i).param_name] = var;
+      func_evaluator.stack[fn_value.func.params[i].param_name] = var;
       i++;
     } 
   }
@@ -1108,7 +1108,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
   if (node.expr.type == Expression::ARRAY) {
     Value initial_size(Utils::INT);
     std::size_t elemenets_count = 0;
-    if (node.expr.array_expressions.size() != 0 && node.expr.array_expressions.at(0).size() != 0) {
+    if (node.expr.array_expressions.size() != 0 && node.expr.array_expressions[0].size() != 0) {
       elemenets_count = node.expr.array_expressions.size();
     }
     initial_size.number_value = elemenets_count;
@@ -1140,7 +1140,7 @@ RpnElement Evaluator::node_to_element(Node &node) {
           throw_error("Empty array element");
         }
       }
-      Value &curr_el = val.array_values.at(i);
+      Value &curr_el = val.array_values[i];
       curr_el = evaluate_expression(node_list);
       if (curr_el.type != arr_type) {
         std::string msg = "Cannot add " + stringify(curr_el) + " to an array of " + node.expr.array_type + "s";
@@ -1165,7 +1165,7 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
 
 void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
   assert(members.size() > 1);
-  std::string base = members.at(0);
+  std::string base = members[0];
   Variable *var = get_reference_by_name(base);
   if (var == nullptr) {
     std::string msg = "'" + base + "' is not defined";
@@ -1176,7 +1176,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   references.reserve(members.size() + 1);
   references.push_back(val);
   int i = 0;
-  std::string prev = members.at(0);
+  std::string prev = members[0];
   for (auto &member : members) {
     if (i++ == 0) continue;
     Value *temp = references.back();
@@ -1203,9 +1203,9 @@ void Evaluator::set_index(Statement &stmt) {
   assert(stmt.indexes.size() > 0);
   assert(stmt.obj_members.size() == 1);
   assert(stmt.expressions.size() == 1);
-  Variable *arr = get_reference_by_name(stmt.obj_members.at(0));
+  Variable *arr = get_reference_by_name(stmt.obj_members[0]);
   if (arr == nullptr) {
-    std::string msg = "'" + stmt.obj_members.at(0) + "' is not defined";
+    std::string msg = "'" + stmt.obj_members[0] + "' is not defined";
     throw_error(msg);
   }
   Value *val = arr->val.heap_reference != -1 ? &get_heap_value(arr->val.heap_reference) : &arr->val;
@@ -1224,9 +1224,9 @@ void Evaluator::set_index(Statement &stmt) {
       std::string msg = "Index [" + std::to_string(index_val.number_value) + "] out of range";
       throw_error(msg);
     }
-    references.push_back(&temp->array_values.at(index_val.number_value));
+    references.push_back(&temp->array_values[index_val.number_value]);
   }
-  Value rvalue = evaluate_expression(stmt.expressions.at(0));
+  Value rvalue = evaluate_expression(stmt.expressions[0]);
   Value *fin = references.back();
   fin = fin->heap_reference != -1 ? &get_heap_value(fin->heap_reference) : fin;
   if (fin->type != rvalue.type) {
@@ -1262,7 +1262,7 @@ Value &Evaluator::get_heap_value(std::int64_t ref) {
     std::string msg = "dereferencing a value that is not on the heap";
     throw_error(msg);
   }
-  Value *ptr = VM.heap.chunks.at(ref).data;
+  Value *ptr = VM.heap.chunks[ref].data;
   if (ptr == nullptr) {
     std::string msg = "dereferencing a null pointer";
     throw_error(msg);
