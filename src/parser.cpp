@@ -43,9 +43,7 @@ void Parser::retreat(void) {
 
 Token Parser::lookahead(int offset) {
   if (pos + offset < 0) return {};
-  if (pos + offset >= tokens.size()) {
-    return {}; // empty token
-  }
+  if (pos + offset >= tokens.size()) return {};
   return tokens[pos + offset];
 }
 
@@ -146,9 +144,7 @@ ParamList Parser::parse_func_params(bool is_class) {
     res.push_back(param);
     advance();
     fail_if_EOF(stop);
-    if (curr_token.type == stop) {
-      break;
-    }
+    if (curr_token.type == stop) break;
     advance(); // skip the sep
   }
   return res;
@@ -168,7 +164,7 @@ NodeListList Parser::get_many_expressions(TokenType sep, TokenType stop) {
 }
 
 Node Parser::parse_func_expr() {
-  // function(arg1, arg2, ...) type statement(s);
+  // function(arg1, arg2, ...) type { statement(s) };
   Node func = Node(Expression(ExprType::FUNC_EXPR));
   advance(); // skip the function
   if (curr_token.type == Token::OP_GT) {
