@@ -43,6 +43,7 @@ class Evaluator {
   private:
     NativeFunction *native_bind = nullptr;
     NativeFunction *native_println = nullptr;
+    NativeFunction *native_stacktrace = nullptr;
   public:
     CVM &VM;
     Node &AST;
@@ -56,6 +57,7 @@ class Evaluator {
       stream(is_stream) {
         native_bind = VM.globals.at("bind");
         native_println = VM.globals.at("println");
+        native_stacktrace = VM.globals.at("stack_trace");
       };
     void start();
   private:

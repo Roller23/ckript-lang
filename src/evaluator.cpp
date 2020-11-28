@@ -34,10 +34,8 @@ void Evaluator::throw_error(const std::string &cause) {
   if (VM.trace.stack.size() == 0)
     return ErrorHandler::throw_runtime_error(cause, current_line);
   std::cout << "Runtime error: " << cause << " (line " << current_line << ")\n";
-  for (auto crumb = VM.trace.stack.rbegin(); crumb != VM.trace.stack.rend(); crumb++) {
-    std::string name = crumb->name == "<anonymous function>" ? crumb->name : "function '" + crumb->name + "'";
-    std::cout << "  in " << name << " called on line " << crumb->line << std::endl;
-  }
+  std::vector<Value> args;
+  native_stacktrace->execute(args, current_line, VM);
   std::exit(EXIT_FAILURE);
 }
 

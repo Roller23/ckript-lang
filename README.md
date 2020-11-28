@@ -319,6 +319,7 @@ All functions are available globally.
 * size(arr|str) int - returns the size of the given string or array
 * class_name(obj) str - returns the name of the class used to instantiate the object
 * array_type(arr) str - returns the type of the values held by the array
+* stack_trace(void) void - prints the stack trace
 * to_str(any) str - returns the string representation of the given value
 * to_int(int|str|float|bool) int - returns the number value of the given argument
 * to_double(int|str|float|bool) double - returns the float value of the given argument

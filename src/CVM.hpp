@@ -12,6 +12,8 @@
 
 // Ckript Virtual Machine
 
+class NativeFunction;
+
 class Value {
   public:
     Utils::VarType type = Utils::UNKNOWN;
@@ -72,8 +74,6 @@ class Heap {
 };
 
 typedef std::unordered_map<std::string, Variable *> CallStack;
-
-class NativeFunction;
 
 class StackTrace {
   private:

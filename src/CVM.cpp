@@ -182,8 +182,7 @@ class NativePrint : public NativeFunction {
         if (i != args.size() - 1) std::cout << " ";
         i++;
       }
-      Value val(Utils::VOID);
-      return val;
+      return {Utils::VOID};
     }
 };
 
@@ -194,8 +193,7 @@ class NativePrintln : public NativeFunction {
         VM.globals.at("print")->execute(args, line, VM);
       }
       std::cout << std::endl;
-      Value val(Utils::VOID);
-      return val;
+      return {Utils::VOID};
     }
 };
 
@@ -206,8 +204,7 @@ class NativeFlush : public NativeFunction {
         ErrorHandler::throw_runtime_error("flush() takes no arguments", line);
       }
       std::cout << std::flush;
-      Value val(Utils::VOID);
-      return val;
+      return {Utils::VOID};
     }
 };
 
@@ -584,8 +581,7 @@ class NativeBind : public NativeFunction {
           v->this_ref = ref;
         }
       }
-      Value res(Utils::VOID);
-      return res;
+      return {Utils::VOID};
     }
 };
 
@@ -613,6 +609,20 @@ class NativeArraytype : public NativeFunction {
     }
 };
 
+class NativeStacktrace : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 0) {
+        ErrorHandler::throw_runtime_error("stack_trace() expects no arguments", line);
+      }
+      for (auto crumb = VM.trace.stack.rbegin(); crumb != VM.trace.stack.rend(); crumb++) {
+        std::string name = crumb->name == "<anonymous function>" ? crumb->name : "function '" + crumb->name + "'";
+        std::cout << "  in " << name << " called on line " << crumb->line << std::endl;
+      }
+      return {Utils::VOID};
+    }
+};
+
 // used only for math functions
 
 REG_FN(NativeSin, sin)
@@ -630,7 +640,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  globals.reserve(39);
+  globals.reserve(40);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)
@@ -670,4 +680,5 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeBind, bind);
   ADD_FN(NativeClassname, class_name);
   ADD_FN(NativeArraytype, array_type);
+  ADD_FN(NativeStacktrace, stack_trace);
 }
