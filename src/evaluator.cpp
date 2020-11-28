@@ -710,10 +710,14 @@ RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
   }
   auto member_it = obj.member_values.find(y.value.reference_name);
   if (member_it == obj.member_values.end()) {
-    std::string msg = "Object has no member named " + y.value.reference_name;
+    std::string object_name = x.value.is_lvalue() ? " " + x.value.reference_name + " " : " ";
+    std::string msg = "Object" + object_name + "has no member named " + y.value.reference_name;
     throw_error(msg);
   }
   Value &val = member_it->second;
+  if (val.type == Utils::FUNC) {
+    val.func_name = y.value.reference_name;
+  }
   return {val};
 }
 
@@ -1038,7 +1042,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       func_evaluator.stack[pair.first] = copy;
     }
   }
-  std::string fn_name = fn.value.is_lvalue() ? fn.value.reference_name : "<anonymous function>";
+  const std::string &fn_name = fn.value.is_lvalue() ? fn.value.reference_name : fn_value.func_name;
   VM.trace.push(fn_name, current_line);
   func_evaluator.start();
   if (fn_value.func.ret_ref) {

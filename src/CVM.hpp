@@ -25,6 +25,7 @@ class Value {
     std::int64_t heap_reference = -1;
     std::int64_t this_ref = -1;
     FuncExpression func;
+    std::string func_name = "";
     ParamList members;
     std::map<std::string, Value> member_values;
     std::vector<Value> array_values;
