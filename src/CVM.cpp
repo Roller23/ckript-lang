@@ -615,9 +615,16 @@ class NativeStacktrace : public NativeFunction {
       if (args.size() != 0) {
         ErrorHandler::throw_runtime_error("stack_trace() expects no arguments", line);
       }
+      int limit = 100;
+      int printed = 0;
       for (auto crumb = VM.trace.stack.rbegin(); crumb != VM.trace.stack.rend(); crumb++) {
+        if (printed > limit) {
+          std::cout << "    and " << (VM.trace.stack.size() - printed) << " more\n";
+          break;
+        }
         std::string name = crumb->name.size() == 0 ? "<anonymous function>" : "function '" + crumb->name + "'";
         std::cout << "  in " << name << " called on line " << crumb->line << std::endl;
+        printed++;
       }
       return {Utils::VOID};
     }
