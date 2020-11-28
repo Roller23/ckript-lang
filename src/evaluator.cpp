@@ -31,12 +31,17 @@ typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
 
 void Evaluator::throw_error(const std::string &cause) {
-  ErrorHandler::throw_runtime_error(cause, current_line);
+  if (VM.trace.stack.size() == 0)
+    return ErrorHandler::throw_runtime_error(cause, current_line);
+  std::cout << "Runtime error: " << cause << " (line " << current_line << ")\n";
+  for (auto crumb = VM.trace.stack.rbegin(); crumb != VM.trace.stack.rend(); crumb++) {
+    std::string name = crumb->name == "<anonymous function>" ? crumb->name : "function '" + crumb->name + "'";
+    std::cout << "  in " << name << " called on line " << crumb->line << std::endl;
+  }
+  std::exit(EXIT_FAILURE);
 }
 
 void Evaluator::start() {
-  native_bind = VM.globals.at("bind");
-  native_println = VM.globals.at("println");  
   for (auto &statement : AST.children) {
     int flag = execute_statement(statement);
     if (flag == FLAG_RETURN) {
@@ -921,7 +926,9 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       if (node_list.size() == 0) break;
       call_args.push_back(evaluate_expression(node_list, needs_ref));
     }
+    VM.trace.push(fn.value.reference_name, current_line);
     Value return_val = global_it->second->execute(call_args, current_line, VM);
+    VM.trace.pop();
     return {return_val};
   }
   Value &fn_value = get_value(fn);
@@ -1033,6 +1040,8 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       func_evaluator.stack[pair.first] = copy;
     }
   }
+  std::string fn_name = fn.value.is_lvalue() ? fn.value.reference_name : "<anonymous function>";
+  VM.trace.push(fn_name, current_line);
   func_evaluator.start();
   if (fn_value.func.ret_ref) {
     if (func_evaluator.return_value.heap_reference == -1) {
@@ -1046,6 +1055,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       throw_error(msg);
       return {};
     }
+    VM.trace.pop();
     return {func_evaluator.return_value};
   } else {
     if (func_evaluator.return_value.type != utils.var_lut.at(fn_value.func.ret_type)) {
@@ -1053,6 +1063,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       throw_error(msg);
       return {};
     }
+    VM.trace.pop();
     return {func_evaluator.return_value};
   }
   return {};

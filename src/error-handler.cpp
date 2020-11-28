@@ -23,6 +23,5 @@ void ErrorHandler::throw_runtime_error(const std::string &cause, std::uint32_t l
 }
 
 void ErrorHandler::throw_file_error(const std::string &cause) {
-  std::cout << "File error: ";
-  throw_generic_error(cause);
+  throw_generic_error("File error: " + cause);
 }

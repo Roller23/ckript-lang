@@ -75,6 +75,21 @@ typedef std::unordered_map<std::string, Variable *> CallStack;
 
 class NativeFunction;
 
+class StackTrace {
+  private:
+    typedef struct {
+      std::uint64_t line;
+      std::string name;
+    } Call;
+  public:
+    std::vector<Call> stack;
+    void pop(void);
+    void push(const std::string &_name, std::uint64_t _line);
+    StackTrace(void) {
+      stack.reserve(1000);
+    }
+};
+
 class CVM {
   private:
     void load_stdlib(void);
@@ -82,6 +97,7 @@ class CVM {
     std::string stringify(Value &val);
     std::unordered_map<std::string, NativeFunction *> globals;
     Heap heap;
+    StackTrace trace;
     CVM(void) {
       load_stdlib();
     }

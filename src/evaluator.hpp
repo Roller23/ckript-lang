@@ -40,6 +40,9 @@ class RpnElement {
 typedef std::vector<RpnElement> RpnStack;
 
 class Evaluator {
+  private:
+    NativeFunction *native_bind = nullptr;
+    NativeFunction *native_println = nullptr;
   public:
     CVM &VM;
     Node &AST;
@@ -50,11 +53,12 @@ class Evaluator {
       VM(_VM),
       AST(_AST), 
       utils(_utils),
-      stream(is_stream) {};
+      stream(is_stream) {
+        native_bind = VM.globals.at("bind");
+        native_println = VM.globals.at("println");
+      };
     void start();
   private:
-    NativeFunction *native_bind = nullptr;
-    NativeFunction *native_println = nullptr;
     bool inside_func = false;
     bool returns_ref = false;
     int nested_loops = 0;

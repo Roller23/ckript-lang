@@ -32,6 +32,16 @@
   NativeFunction *fn = new name;\
   globals.insert(std::make_pair(#fn, fn));
 
+
+void StackTrace::pop(void) {
+  if (stack.size() == 0) return;
+  stack.pop_back();
+}
+
+void StackTrace::push(const std::string &_name, std::uint64_t _line) {
+  stack.push_back({_line, _name});
+}
+
 bool Value::is_lvalue() {
   return reference_name.size() != 0;
 }
