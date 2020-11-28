@@ -916,9 +916,10 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn.value.is_lvalue() && global_it != VM.globals.end()) {
     std::vector<Value> call_args;
     call_args.reserve(call.op.func_call.arguments.size());
+    bool needs_ref = fn.value.reference_name == "bind";
     for (auto &node_list : call.op.func_call.arguments) {
       if (node_list.size() == 0) break;
-      call_args.push_back(evaluate_expression(node_list, fn.value.reference_name == "bind"));
+      call_args.push_back(evaluate_expression(node_list, needs_ref));
     }
     Value return_val = global_it->second->execute(call_args, current_line, VM);
     return {return_val};
