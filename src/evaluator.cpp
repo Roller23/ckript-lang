@@ -1008,7 +1008,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       var->val = arg_val;
       func_evaluator.stack[fn_value.func.params[i].param_name] = var;
       i++;
-    } 
+    }
   }
   if (fn.value.is_lvalue()) {
     // push itself onto the callstack

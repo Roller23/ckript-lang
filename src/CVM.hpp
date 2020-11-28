@@ -12,8 +12,6 @@
 
 // Ckript Virtual Machine
 
-class NativeFunction;
-
 class Value {
   public:
     Utils::VarType type = Utils::UNKNOWN;
@@ -90,6 +88,8 @@ class StackTrace {
       stack.reserve(1000);
     }
 };
+
+class NativeFunction;
 
 class CVM {
   private:
