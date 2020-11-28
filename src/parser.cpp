@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 typedef Expression::ExprType ExprType;
 typedef Declaration::DeclType DeclType;
@@ -99,6 +100,7 @@ int Parser::find_block_end(void) {
 ParamList Parser::parse_func_params(bool is_class) {
   ParamList res;
   TokenType stop = Token::RIGHT_PAREN;
+  std::unordered_set<std::string> param_names;
   while (true) {
     fail_if_EOF(Token::TYPE);
     bool is_ref = false;
@@ -132,6 +134,11 @@ ParamList Parser::parse_func_params(bool is_class) {
     fail_if_EOF(Token::IDENTIFIER);
     if (curr_token.type != Token::IDENTIFIER) {
       std::string msg = "Invalid function declaration, expected an identifier, but " + curr_token.get_name() + " found";
+      throw_error(msg, curr_token.line);
+    }
+    if (!param_names.insert(curr_token.value).second) {
+      std::string n = is_class ? "function" : "class";
+      std::string msg = "Invalid " + n + " declaration, duplicate parameter name '" + curr_token.value + "'";
       throw_error(msg, curr_token.line);
     }
     FuncParam param{type, curr_token.value};
