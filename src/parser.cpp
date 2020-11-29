@@ -186,6 +186,10 @@ Node Parser::parse_func_expr() {
     std::string msg = "invalid function declaration, expected a type, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);
   }
+  if (returns_ref && curr_token.value == "void") {
+    std::string msg = "invalid function declaration, cannot return a reference to void";
+    throw_error(msg, curr_token.line);
+  }
   func.expr.func_expr.ret_type = curr_token.value;
   func.expr.func_expr.ret_ref = returns_ref;
   advance(); // skip the type
@@ -249,6 +253,10 @@ Node Parser::parse_array_expr() {
   }
   if (curr_token.type != Token::TYPE) {
     std::string msg = "invalid array expression, expected a type, but " + curr_token.get_name() + " found";
+    throw_error(msg, curr_token.line);
+  }
+  if (curr_token.value == "void") {
+    std::string msg = "invalid array expression, cannot hold void values";
     throw_error(msg, curr_token.line);
   }
   array.expr.array_type = curr_token.value;
@@ -584,6 +592,10 @@ Node Parser::get_statement(Node &prev, TokenType stop) {
     return continue_stmt;
   } else if (curr_token.type == Token::TYPE) {
     // type identifier = expression;
+    if (curr_token.value == "void") {
+      std::string msg = "invalid variable declaration. Cannot declare a void variable";
+      throw_error(msg, curr_token.line);
+    }
     std::uint32_t curr_line = curr_token.line;
     bool allocated = this->prev.type == Token::ALLOC;
     bool constant = this->prev.type == Token::CONST;

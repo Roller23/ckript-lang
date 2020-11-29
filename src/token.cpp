@@ -4,7 +4,6 @@
 #define REG(id, ret) if (type == id) return ret
 
 std::string Token::get_name(TokenType type) {
-  // trust me there's no better way
   REG(FUNCTION, "function");
   REG(RETURN, "return");
   REG(IF, "if");
