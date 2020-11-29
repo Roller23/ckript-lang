@@ -1,7 +1,5 @@
 #include "token.hpp"
 
-#include <iostream>
-
 // register a new name
 #define REG(id, ret) if (type == id) return ret
 
