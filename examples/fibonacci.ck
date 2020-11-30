@@ -3,12 +3,11 @@ func fib = function(int n) int {
   return fib(n - 1) + fib(n - 2);
 };
 
-print('How many fibonacci numbers? ');
-int n = to_int(input());
-
-int start = timestamp();
+int nums = to_int(input());
 int i = 0;
-for (; i <= n; i += 1)
-  println('Fib number no. @1 = @2'(i, fib(i)));
+int start = timestamp();
+for (; i <= nums; i += 1) {
+  println(i, '=', fib(i));
+}
 
-println('It took @1ms to calculate @2 fibonacci numbers'(timestamp() - start, n));
+println('executed in', timestamp() - start, 'ms');

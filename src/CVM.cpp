@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <random>
 #include <cstring>
+#include <thread>
 
 #define REG_FN(name, fn)\
   class name : public NativeFunction {\
@@ -630,6 +631,20 @@ class NativeStacktrace : public NativeFunction {
     }
 };
 
+class NativeSleep : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 1 || args[0].type != Utils::INT) {
+        ErrorHandler::throw_runtime_error("sleep() expects one argument (int)", line);
+      }
+      if (args[0].number_value < 0) {
+        ErrorHandler::throw_runtime_error("Sleep time must be greater than -1", line);
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(args[0].number_value));
+      return {Utils::VOID};
+    }
+};
+
 // used only for math functions
 
 REG_FN(NativeSin, sin)
@@ -647,7 +662,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  globals.reserve(40);
+  globals.reserve(41);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)
@@ -688,4 +703,5 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeClassname, class_name);
   ADD_FN(NativeArraytype, array_type);
   ADD_FN(NativeStacktrace, stack_trace);
+  ADD_FN(NativeSleep, sleep);
 }
