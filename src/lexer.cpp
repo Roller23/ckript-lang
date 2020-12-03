@@ -89,8 +89,8 @@ void Lexer::add_char_token(const char c) {
     std::stringstream s;
     s << "token [" << c << "], ";
     log(s.str());
+    std::cout << std::flush;
   }
-  std::cout << std::flush;
   add_token((Token::TokenType)c);
 }
 
