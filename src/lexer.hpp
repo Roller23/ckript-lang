@@ -39,7 +39,7 @@ class Lexer {
     int deleted_spaces = 0;
     int prev_deleted_spaces = 0;
     std::string file_dir = "";
-    std::string file_name = "";
+    std::string *file_name = new std::string;
     TokenList tokens;
 };
 

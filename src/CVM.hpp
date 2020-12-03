@@ -79,11 +79,12 @@ class StackTrace {
     typedef struct {
       std::uint64_t line;
       std::string name;
+      std::string *source;
     } Call;
   public:
     std::vector<Call> stack;
     void pop(void);
-    void push(const std::string &_name, std::uint64_t _line);
+    void push(const std::string &_name, std::uint64_t _line, std::string *_source);
     StackTrace(void) {
       stack.reserve(1000);
     }

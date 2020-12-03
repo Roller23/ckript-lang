@@ -39,8 +39,8 @@ void StackTrace::pop(void) {
   stack.pop_back();
 }
 
-void StackTrace::push(const std::string &_name, std::uint64_t _line) {
-  stack.push_back({_line, _name});
+void StackTrace::push(const std::string &_name, std::uint64_t _line, std::string *_source) {
+  stack.push_back({_line, _name, _source});
 }
 
 bool Value::is_lvalue() {
@@ -624,7 +624,11 @@ class NativeStacktrace : public NativeFunction {
           break;
         }
         std::string name = crumb->name.size() == 0 ? "<anonymous function>" : "function '" + crumb->name + "'";
-        std::cout << "  in " << name << " called on line " << crumb->line << std::endl;
+        std::cout << "  in " << name << " called on line " << crumb->line;
+        if (crumb->source != nullptr) {
+          std::cout << " in file " << *crumb->source;
+        }
+        std::cout << std::endl;
         printed++;
       }
       return {Utils::VOID};

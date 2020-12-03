@@ -42,15 +42,14 @@ class Token {
     } TokenType;
     TokenType type = NONE;
     std::string value = "";
-    std::uint32_t line = 0;
+    std::uint64_t line = 0;
+    std::string *source = nullptr;
     Token(void) : type(NONE) {};
-    Token(TokenType _type) : type(_type) {}
-    Token(TokenType _type, int _line) : type(_type), line(_line) {}
-    Token(TokenType _type, const std::string &val) : type(_type), value(val) {}
-    Token(TokenType _type, const std::string &val, int _line) : type(_type), value(val), line(_line) {}
+    Token(TokenType _type, const std::string &val, int _line, std::string *&_source) :
+      type(_type), value(val), line(_line), source(_source) {}
     std::string get_name(void) const;
     static std::string get_name(TokenType type);
-    friend std::ostream &operator<<(std::ostream& os, const Token &t);
+    friend std::ostream &operator<<(std::ostream &os, const Token &t);
 };
 
 #endif // __TOKEN_

@@ -31,9 +31,11 @@ typedef Statement::StmtType StmtType;
 typedef Utils::VarType VarType;
 
 void Evaluator::throw_error(const std::string &cause) {
-  if (VM.trace.stack.size() == 0)
-    return ErrorHandler::throw_runtime_error(cause, current_line);
+  if (current_source != nullptr) {
+    std::cout << "(" << *current_source << ") ";
+  }
   std::cout << "Runtime error: " << cause << " (line " << current_line << ")\n";
+  if (VM.trace.stack.size() == 0) std::exit(EXIT_FAILURE);;
   std::vector<Value> args;
   native_stacktrace->execute(args, current_line, VM);
   std::exit(EXIT_FAILURE);
@@ -58,6 +60,7 @@ void Evaluator::start() {
 
 int Evaluator::execute_statement(Node &statement) {
   current_line = statement.stmt.line;
+  current_source = statement.stmt.source;
   if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
   if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
@@ -928,7 +931,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       if (node_list.size() == 0) break;
       call_args.push_back(evaluate_expression(node_list, needs_ref));
     }
-    VM.trace.push(fn.value.reference_name, current_line);
+    VM.trace.push(fn.value.reference_name, current_line, current_source);
     Value return_val = global_it->second->execute(call_args, current_line, VM);
     VM.trace.pop();
     return {return_val};
@@ -1043,7 +1046,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     }
   }
   const std::string &fn_name = fn.value.is_lvalue() ? fn.value.reference_name : fn_value.func_name;
-  VM.trace.push(fn_name, current_line);
+  VM.trace.push(fn_name, current_line, current_source);
   func_evaluator.start();
   if (fn_value.func.ret_ref) {
     if (func_evaluator.return_value.heap_reference == -1) {
