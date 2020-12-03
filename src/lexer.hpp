@@ -26,7 +26,7 @@ class Lexer {
     void add_token(Token::TokenType type);
     void add_token(Token::TokenType type, const std::string &val);
     void log(std::string str) const;
-    void unescape(std::string &str);
+    void unescape(std::string &str) const;
     std::string::const_iterator ptr;
     std::string::const_iterator end;
     #ifdef __MINGW32__
@@ -38,6 +38,8 @@ class Lexer {
     std::int32_t current_line = 1;
     int deleted_spaces = 0;
     int prev_deleted_spaces = 0;
+    std::string file_dir = "";
+    std::string file_name = "";
     TokenList tokens;
 };
 

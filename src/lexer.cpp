@@ -41,7 +41,7 @@ void Lexer::log(std::string str) const {
   std::cout << str << std::endl;
 }
 
-void Lexer::unescape(std::string &str) {
+void Lexer::unescape(std::string &str) const {
   for (size_t i = 0; i < regex_size; i++) {
     str = std::regex_replace(str, regexes[i], regex_actual[i]);
   }
@@ -81,7 +81,7 @@ void Lexer::add_token(Token::TokenType type, const std::string &val) {
 void Lexer::add_unknown_token(std::string str) {
   log("token [UNKNOWN: " + str + "], ");
   add_token(Token::UNKNOWN, str);
-  ErrorHandler::throw_syntax_error("unknown token '" + str + "'", current_line);
+  ErrorHandler::throw_syntax_error("(" + file_name + ") unknown token '" + str + "'", current_line);
 }
 
 void Lexer::add_char_token(const char c) {
@@ -108,12 +108,27 @@ TokenList Lexer::tokenize(const std::string &code) {
     } else {
       c = *ptr;
       if (isalpha(c, loc) || c == '_') {
-        std::string token_str(1, c);
+        std::string token_str = "";
+        token_str += c;
         while (++ptr != end && (isalnum(*ptr, loc) || *ptr == '_')) {
           token_str += *ptr;
         }
         ptr--;
-        if (token_str == "function") {
+        if (token_str == "include") {
+          ptr++;
+          consume_whitespace();
+          c = *ptr;
+          if (!(c == '"' || c == '\'' || c == '`') || ptr == end || ptr + 1 == end) {
+            ErrorHandler::throw_syntax_error("(" + file_name + ") expected a string literal after include", current_line);
+          }
+          ptr++;
+          std::string path = file_dir + "/";
+          while (*ptr != c && ptr != end) {
+            path += *(ptr++);
+          }
+          TokenList toks = Lexer().process_file(path);
+          tokens.insert(tokens.end(), toks.begin(), toks.end());
+        } else if (token_str == "function") {
           log("token [FUNCTION], ");
           add_token(Token::FUNCTION);
         } else if (token_str == "class") {
@@ -306,7 +321,8 @@ TokenList Lexer::tokenize(const std::string &code) {
           add_unknown_token(op);
         }
       } else {
-        std::string junk(1, c);
+        std::string junk = "";
+        junk += c;
         add_unknown_token(junk);
       }
     }
@@ -317,10 +333,15 @@ TokenList Lexer::tokenize(const std::string &code) {
 }
 
 TokenList Lexer::process_file(const std::string &filename) {
-  TokenList result;
+  file_name = filename;
   std::ifstream file(filename);
   if (!file) {
     ErrorHandler::throw_file_error("Couldn't open " + filename);
+  }
+  std::int64_t pos = filename.find_last_of("/\\");
+  if (pos != -1) {
+    file_dir = filename.substr(0, pos);
+    file_name = filename.substr(pos + 1);
   }
   std::string buffer(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{});
   return tokenize(buffer);

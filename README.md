@@ -105,6 +105,29 @@ str result = "@1 is @2 years old. That's how old @1 is."(name, 78);
 println(result); // "Joe is 78 years old. That's how old Joe is."
 ```
 
+## Including files
+
+You can include other source files by using the `include` keyword followed by a string literal.
+
+```
+// fib.ck
+
+func fib = function(int n) int {
+  if (n <= 1) return n;
+  return fib(n - 1) + fib(n - 2);
+};
+```
+
+```
+// main.ck
+
+include "fib.ck"
+
+println("fib(10) = ", fib(10));
+```
+
+Importing files is done at parse time.
+
 ## Memory allocation
 
 Use ``alloc`` to allocate something on the heap, ``del`` to delete from the heap, ``ref`` to get the pointer of that value

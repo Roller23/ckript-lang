@@ -1,9 +1,6 @@
-func fib = function(int n) int {
-  if (n <= 1) return n;
-  return fib(n - 1) + fib(n - 2);
-};
+include "fib.ck"
 
-int nums = to_int(input());
+int nums = to_int(10);
 int i = 0;
 int start = timestamp();
 for (; i <= nums; i += 1) {
