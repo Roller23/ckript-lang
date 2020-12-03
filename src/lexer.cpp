@@ -85,9 +85,11 @@ void Lexer::add_unknown_token(std::string str) {
 }
 
 void Lexer::add_char_token(const char c) {
-  std::stringstream s;
-  s << "token [" << c << "], ";
-  log(s.str());
+  if (verbose) {
+    std::stringstream s;
+    s << "token [" << c << "], ";
+    log(s.str());
+  }
   std::cout << std::flush;
   add_token((Token::TokenType)c);
 }
