@@ -177,10 +177,10 @@ class NativePrint : public NativeFunction {
       if (args.size() == 0) {
         ErrorHandler::throw_runtime_error("print() expects at least one argument", line);
       }
-      int i = 0;
+      std::size_t i = 0;
+      const std::size_t end_index = args.size() - 1;
       for (auto &arg : args) {
-        std::cout << VM.stringify(arg);
-        if (i != args.size() - 1) std::cout << " ";
+        std::printf("%s%s", VM.stringify(arg).c_str(), i != end_index ? " " : "");
         i++;
       }
       return {Utils::VOID};
@@ -190,10 +190,13 @@ class NativePrint : public NativeFunction {
 class NativePrintln : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
-      if (args.size() != 0) {
-        VM.globals.at("print")->execute(args, line, VM);
+      std::size_t i = 0;
+      const std::size_t end_index = args.size() - 1;
+      for (auto &arg : args) {
+        std::printf("%s%s", VM.stringify(arg).c_str(), i != end_index ? " " : "");
+        i++;
       }
-      std::cout << std::endl;
+      std::printf("\n");
       return {Utils::VOID};
     }
 };
@@ -204,7 +207,7 @@ class NativeFlush : public NativeFunction {
       if (args.size() != 0) {
         ErrorHandler::throw_runtime_error("flush() takes no arguments", line);
       }
-      std::cout << std::flush;
+      std::fflush(stdout);
       return {Utils::VOID};
     }
 };
