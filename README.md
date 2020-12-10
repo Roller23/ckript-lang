@@ -294,15 +294,21 @@ a(); // This is a new greeting from Mark
 
 Ckript supports command line arguments.
 
-Each program has a default variable called `arguments` which is an array of strings representing passed arguments
-
-Invoking a program like so
+Each program has a default variable called `argv` which is an array of strings representing passed arguments
 
 ```
-./ckript your_code.ck one two three
+// argv.ck
+
+println(argv);
 ```
 
-Will produce a 4 element array of strings `array("your_code.ck", "one", "two", "three") str`
+Invoking this program like so
+
+```
+./ckript argv.ck one two three
+```
+
+Will produce a 4 element array of strings `array<str>("your_code.ck", "one", "two", "three")`
 These strings can be later accessed like any other array
 
 ## If statement

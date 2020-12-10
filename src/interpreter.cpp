@@ -29,7 +29,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
     var->val.array_values[i].type = Utils::STR;
     var->val.array_values[i].string_value = argv[i];
   }
-  evaluator.stack["arguments"] = var;
+  evaluator.stack["argv"] = var;
   evaluator.start();
 }
 
