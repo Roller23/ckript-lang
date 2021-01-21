@@ -8,7 +8,6 @@
 
 #include <string>
 #include <iostream>
-#include <cstdlib>
 
 void Interpreter::process_file(const std::string &filename, int argc, char *argv[]) {
   Lexer lexer;
