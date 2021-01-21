@@ -308,7 +308,7 @@ Invoking this program like so
 ./ckript argv.ck one two three
 ```
 
-Will produce a 4 element array of strings `array<str>("your_code.ck", "one", "two", "three")`
+Will produce a 4 element array of strings `array<str>("argv.ck", "one", "two", "three")`
 These strings can be later accessed like any other array
 
 ## If statement
