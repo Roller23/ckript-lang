@@ -1,5 +1,4 @@
 #include "src/interpreter.hpp"
-#include <string>
 
 int main(int argc, char *argv[]) {
   Interpreter interpreter;
