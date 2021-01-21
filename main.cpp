@@ -7,7 +7,6 @@ int main(int argc, char *argv[]) {
     interpreter.process_stream();
     return 0;
   }
-  std::string filename = argv[1];
-  interpreter.process_file(filename, argc - 1, argv + 1);
+  interpreter.process_file(argv[1], argc - 1, argv + 1);
   return 0;
 }
