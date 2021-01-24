@@ -44,4 +44,5 @@ push:
 	git commit -m "$(m)"
 	git push
 
-# objs := $(b)AST.o $(b)ckript-vm.o $(b)error-handler.o $(b)evaluator.o $(b)interpreter.o $(b)lexer.o $(b)parser.o $(b)token.o $(b)utils.o
+windows:
+	cl /EHsc /Ox main.cpp src/*.cpp /link /out:ckript.exe

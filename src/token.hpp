@@ -2,6 +2,7 @@
 #define __TOKEN_
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <cstdint>
 

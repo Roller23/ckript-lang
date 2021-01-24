@@ -6,3 +6,5 @@
 grammar.txt
 build/*
 bin/*
+*.obj
+*.exe

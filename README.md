@@ -1,8 +1,11 @@
 # Ckript language
 An interpreter for my own programming language (Ckript)
 
-If you have `g++` and `Make` installed simply running ``make`` should compile the whole project (you might need to change the Makefile a bit if you're using MinGW or clang, but it should work).
-Ckript doesn't depend on any external libraries, OS-specific features, or compiler extensions, it should compile on any OS with any C++ compiler.
+Ckript doesn't depend on any external libraries, OS-specific features, or compiler extensions, it should compile on any OS with any C++ compiler (tested with g++, clang++, mingw, emcc, cl)
+
+Linux/MacOS machines should be able to compile the whole project by simply running ``make``.
+
+There's a rule for Windows too - ``make windows`` (assuming you have make and MSVC tools installed)
 
 Usage:
 
