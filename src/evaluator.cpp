@@ -249,7 +249,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
           }
         } else if (utils.op_unary(token.op.type)) {
           if (res_stack.size() < 1) {
-            std::string msg = "Operator " + Token::get_name(token.op.type) + "expects one operand"; 
+            std::string msg = "Operator " + Token::get_name(token.op.type) + " expects one operand"; 
             throw_error(msg);
           }
           RpnElement x = res_stack.back();
@@ -307,38 +307,27 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
 std::string Evaluator::stringify(Value &val) {
   if (val.heap_reference != -1) {
     return "reference to " + stringify(get_heap_value(val.heap_reference));
-  }
-  if (val.type == VarType::STR) {
+  } else if (val.type == VarType::STR) {
     return val.string_value;
-  }
-  if (val.type == VarType::BOOL) {
+  } else if (val.type == VarType::BOOL) {
     return val.boolean_value ? "true" : "false";
-  }
-  if (val.type == VarType::FLOAT) {
+  } else if (val.type == VarType::FLOAT) {
     return std::to_string(val.float_value);
-  }
-  if (val.type == VarType::INT) {
+  } else if (val.type == VarType::INT) {
     return std::to_string(val.number_value);
-  }
-  if (val.type == VarType::FUNC) {
+  } else if (val.type == VarType::FUNC) {
     return "function";
-  }
-  if (val.type == VarType::CLASS) {
+  } else if (val.type == VarType::CLASS) {
     return "class";
-  }
-  if (val.type == VarType::OBJ) {
+  } else if (val.type == VarType::OBJ) {
     return "object";
-  }
-  if (val.type == VarType::ARR) {
+  } else if (val.type == VarType::ARR) {
     return "array";
-  }
-  if (val.type == VarType::VOID) {
+  } else if (val.type == VarType::VOID) {
     return "void";
-  }
-  if (val.type == VarType::UNKNOWN) {
+  } else if (val.type == VarType::UNKNOWN) {
     return "null";
-  }
-  if (val.type == VarType::ID) {
+  } else if (val.type == VarType::ID) {
     return val.reference_name;
   }
   return "";
@@ -347,8 +336,7 @@ std::string Evaluator::stringify(Value &val) {
 double Evaluator::to_double(Value &val) {
   if (val.type == VarType::FLOAT) {
     return val.float_value;
-  }
-  if (val.type == VarType::INT) {
+  } else if (val.type == VarType::INT) {
     return (double)val.number_value;
   }
   throw_error("Cannot convert " + stringify(val) + " to double");
