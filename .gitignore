@@ -8,3 +8,4 @@ build/*
 bin/*
 *.obj
 *.exe
+callgrind.*

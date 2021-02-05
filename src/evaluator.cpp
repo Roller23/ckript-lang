@@ -966,8 +966,10 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     throw_error(msg);
   }
 
-  Node fn_AST = fn_value.func.instructions[0];
-  Evaluator func_evaluator(fn_AST, VM, utils);
+  // NOTE: passing the AST without copying might break stuff!
+  // but it turns out it's a big performance boost
+  // Node fn_AST = fn_value.func.instructions[0];
+  Evaluator func_evaluator(fn_value.func.instructions[0], VM, utils);
   func_evaluator.stack.reserve(100);
   func_evaluator.inside_func = true;
   func_evaluator.returns_ref = fn_value.func.ret_ref;
@@ -975,7 +977,6 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   if (fn_value.func.params.size() != 0) {
     int i = 0;
     for (auto &node_list : call.op.func_call.arguments) {
-      std::string num = std::to_string(i + 1);
       Value arg_val = evaluate_expression(node_list, fn_value.func.params[i].is_ref);
       Value real_val = arg_val;
       VarType arg_type = arg_val.type;
@@ -984,10 +985,12 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
         arg_type = real_val.type;
       }
       if (fn_value.func.params[i].is_ref && arg_val.heap_reference == -1) {
+        std::string num = std::to_string(i + 1);
         std::string msg = "Argument " + num + " expected to be a reference, but value given";
         throw_error(msg);
       }
       if (arg_type != utils.var_lut.at(fn_value.func.params[i].type_name)) {
+        std::string num = std::to_string(i + 1);
         std::string msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
         throw_error(msg);
       }
