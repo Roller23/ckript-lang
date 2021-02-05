@@ -11,6 +11,7 @@
 #define FLAG_BREAK 1
 #define FLAG_CONTINUE 2
 #define FLAG_RETURN 3
+#define FLAG_ERROR 4
 
 #define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.push_back(FN(x, y));} else
 
@@ -61,8 +62,9 @@ void Evaluator::start() {
 int Evaluator::execute_statement(Node &statement) {
   current_line = statement.stmt.line;
   current_source = statement.stmt.source;
-  if (statement.stmt.type == StmtType::NONE) return FLAG_OK;
-  if (statement.stmt.type == StmtType::EXPR) {
+  if (statement.stmt.type == StmtType::NONE) {
+    return FLAG_OK;
+  } else if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions[0]);
     if (stream && result.type != VarType::VOID) {
@@ -71,44 +73,38 @@ int Evaluator::execute_statement(Node &statement) {
       native_println->execute(v, current_line, VM);
     }
     return FLAG_OK;
-  }
-  if (statement.stmt.type == StmtType::CLASS) {
+  } else if (statement.stmt.type == StmtType::CLASS) {
     register_class(statement.stmt.class_stmt);
     return FLAG_OK;
-  }
-  if (statement.stmt.type == StmtType::SET) {
+  } else if (statement.stmt.type == StmtType::SET) {
     if (statement.stmt.expressions.size() == 0) return FLAG_OK; // might break something
     set_member(statement.stmt.obj_members, statement.stmt.expressions[0]);
     return FLAG_OK;
-  }
-  if (statement.stmt.type == StmtType::SET_IDX) {
+  } else if (statement.stmt.type == StmtType::SET_IDX) {
     set_index(statement.stmt);
     return FLAG_OK;
-  }
-  if (statement.stmt.type == StmtType::DECL) {
+  } else if (statement.stmt.type == StmtType::DECL) {
     if (statement.stmt.declaration.size() != 1) return FLAG_OK;
     declare_variable(statement.stmt.declaration[0]);
-  }
-  if (statement.stmt.type == StmtType::COMPOUND) {
+    return FLAG_OK;
+  } else if (statement.stmt.type == StmtType::COMPOUND) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK;
     for (auto &stmt : statement.stmt.statements[0].children) {
       int flag = execute_statement(stmt);
       if (flag) return flag;
     }
-  }
-  if (statement.stmt.type == StmtType::BREAK) {
+    return FLAG_OK;
+  } else if (statement.stmt.type == StmtType::BREAK) {
     if (!nested_loops) {
       throw_error("break statement outside of loops is illegal");
     }
     return FLAG_BREAK;
-  }
-  if (statement.stmt.type == StmtType::CONTINUE) {
+  } else if (statement.stmt.type == StmtType::CONTINUE) {
     if (!nested_loops) {
       throw_error("continue statement outside of loops is illegal");
     }
     return FLAG_CONTINUE;
-  }
-  if (statement.stmt.type == StmtType::RETURN) {
+  } else if (statement.stmt.type == StmtType::RETURN) {
     if (!inside_func) {
       throw_error("return statement outside of functions is illegal");
     }
@@ -117,8 +113,7 @@ int Evaluator::execute_statement(Node &statement) {
       return_value = evaluate_expression(return_expr, returns_ref);
     }
     return FLAG_RETURN;
-  }
-  if (statement.stmt.type == StmtType::WHILE) {
+  } else if (statement.stmt.type == StmtType::WHILE) {
     assert(statement.stmt.expressions.size() != 0);
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
     if (statement.stmt.expressions[0].size() == 0) {
@@ -139,8 +134,8 @@ int Evaluator::execute_statement(Node &statement) {
       if (flag == FLAG_RETURN) return flag;
     }
     nested_loops--;
-  }
-  if (statement.stmt.type == StmtType::FOR) {
+    return FLAG_OK;
+  } else if (statement.stmt.type == StmtType::FOR) {
     if (statement.stmt.expressions.size() != 3) {
       std::string given = std::to_string(statement.stmt.expressions.size());
       throw_error("For expects 3 expressions, " + given + " given");
@@ -175,8 +170,8 @@ int Evaluator::execute_statement(Node &statement) {
       }
     }
     nested_loops--;
-  }
-  if (statement.stmt.type == StmtType::IF) {
+    return FLAG_OK;
+  } else if (statement.stmt.type == StmtType::IF) {
     if (statement.stmt.statements.size() == 0) return FLAG_OK; // might cause bugs
     assert(statement.stmt.expressions.size() != 0);
     if (statement.stmt.expressions[0].size() == 0) {
@@ -196,8 +191,10 @@ int Evaluator::execute_statement(Node &statement) {
         if (flag) return flag;
       }
     }
+    return FLAG_OK;
   }
-  return FLAG_OK;
+  throw_error("Unknown statement! (" + std::to_string(statement.stmt.type) + ")");
+  return FLAG_ERROR;
 }
 
 Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
