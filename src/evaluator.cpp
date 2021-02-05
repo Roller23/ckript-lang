@@ -108,8 +108,8 @@ int Evaluator::execute_statement(Node &statement) {
     if (!inside_func) {
       throw_error("return statement outside of functions is illegal");
     }
-    if (statement.stmt.expressions.size() != 0 && statement.stmt.expressions[0].size() != 0) {
-      NodeList return_expr = statement.stmt.expressions[0];
+    NodeList &return_expr = statement.stmt.expressions[0];
+    if (statement.stmt.expressions.size() != 0 && return_expr.size() != 0) {
       return_value = evaluate_expression(return_expr, returns_ref);
     }
     return FLAG_RETURN;
@@ -162,7 +162,7 @@ int Evaluator::execute_statement(Node &statement) {
       int flag = execute_statement(statement.stmt.statements[0]);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
-      NodeList increment_expr = statement.stmt.expressions[2];
+      NodeList &increment_expr = statement.stmt.expressions[2];
       if (increment_expr.size() != 0) {
         evaluate_expression(increment_expr);
       }
