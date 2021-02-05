@@ -333,7 +333,7 @@ std::string Evaluator::stringify(Value &val) {
   return "";
 }
 
-double Evaluator::to_double(Value &val) {
+inline double Evaluator::to_double(Value &val) {
   if (val.type == VarType::FLOAT) {
     return val.float_value;
   } else if (val.type == VarType::INT) {
@@ -420,10 +420,8 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     }
   }
   if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
-    std::string str1 = stringify(x_val);
-    std::string str2 = stringify(y_val);
     val.type = VarType::STR;
-    val.string_value = str1 + str2;
+    val.string_value = stringify(x_val) + stringify(y_val);
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
@@ -432,10 +430,8 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
-    double f1 = to_double(x_val);
-    double f2 = to_double(y_val);
     val.type = VarType::FLOAT;
-    val.float_value = f1 + f2;
+    val.float_value = to_double(x_val) + to_double(y_val);
     return {val};
   }
   std::string msg = "Cannot perform addition on " + stringify(x_val) + " and " + stringify(y_val);
@@ -463,10 +459,8 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
     return {x_val_cpy};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
-    double f1 = to_double(x_val);
-    double f2 = to_double(y_val);
     val.type = VarType::FLOAT;
-    val.float_value = f1 - f2;
+    val.float_value = to_double(x_val) - to_double(y_val);
     return {val};
   }
   std::string msg = "Cannot perform subtraction on " + stringify(x_val) + " and " + stringify(y_val);
@@ -484,10 +478,8 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
     return {val};
   }
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
-    double f1 = to_double(x_val);
-    double f2 = to_double(y_val);
     val.type = VarType::FLOAT;
-    val.float_value = f1 * f2;
+    val.float_value = to_double(x_val) * to_double(y_val);
     return {val};
   }
   std::string msg = "Cannot perform multiplication on " + stringify(x_val) + " and " + stringify(y_val);
@@ -733,10 +725,8 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
   Value &y_val = get_value(y);
   Value val;
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
-    double f1 = to_double(x_val);
-    double f2 = to_double(y_val);
     val.type = VarType::BOOL;
-    val.boolean_value = f1 == f2;
+    val.boolean_value = to_double(x_val) == to_double(y_val);
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
@@ -760,10 +750,9 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
 }
 
 RpnElement Evaluator::compare_neq(RpnElement &x, RpnElement &y) {
-  RpnElement eq = compare_eq(x, y);
   Value val;
   val.type = VarType::BOOL;
-  val.boolean_value = !eq.value.boolean_value;
+  val.boolean_value = !compare_eq(x, y).value.boolean_value;
   return {val};
 }
 
@@ -772,10 +761,8 @@ RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
   Value &y_val = get_value(y);
   Value val;
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
-    double f1 = to_double(x_val);
-    double f2 = to_double(y_val);
     val.type = VarType::BOOL;
-    val.boolean_value = f1 > f2;
+    val.boolean_value = to_double(x_val) > to_double(y_val);
     return {val};
   }
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
@@ -966,9 +953,6 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     throw_error(msg);
   }
 
-  // NOTE: passing the AST without copying might break stuff!
-  // but it turns out it's a big performance boost
-  // Node fn_AST = fn_value.func.instructions[0];
   Evaluator func_evaluator(fn_value.func.instructions[0], VM, utils);
   func_evaluator.stack.reserve(100);
   func_evaluator.inside_func = true;

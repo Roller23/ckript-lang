@@ -76,7 +76,7 @@ class Evaluator {
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(Value &val);
-    double to_double(Value &val);
+    inline double to_double(Value &val);
     Value &get_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
     void set_member(const std::vector<std::string> &members, NodeList &expression);
