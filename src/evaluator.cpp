@@ -36,7 +36,7 @@ void Evaluator::throw_error(const std::string &cause) {
     std::cout << "(" << *current_source << ") ";
   }
   std::cout << "Runtime error: " << cause << " (line " << current_line << ")\n";
-  if (VM.trace.stack.size() == 0) std::exit(EXIT_FAILURE);;
+  if (VM.trace.stack.size() == 0) std::exit(EXIT_FAILURE);
   std::vector<Value> args;
   native_stacktrace->execute(args, current_line, VM);
   std::exit(EXIT_FAILURE);
@@ -121,15 +121,13 @@ int Evaluator::execute_statement(Node &statement) {
     }
     nested_loops++;
     while (true) {
-      NodeList cond = statement.stmt.expressions[0]; // make a copy
-      Value result = evaluate_expression(cond);
+      Value result = evaluate_expression(statement.stmt.expressions[0]);
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         throw_error(msg);
       }
       if (!result.boolean_value) break;
-      Node stmt = statement.stmt.statements[0]; // make a copy
-      int flag = execute_statement(stmt);
+      int flag = execute_statement(statement.stmt.statements[0]);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
     }
@@ -145,14 +143,15 @@ int Evaluator::execute_statement(Node &statement) {
       evaluate_expression(statement.stmt.expressions[0]);
     }
     nested_loops++;
+    NodeList &cond = statement.stmt.expressions[1];
+    Value result;
+    result.type = Utils::BOOL;
+    bool auto_true = cond.size() == 0; // empty conditions evaluate to true
+    if (auto_true) {
+      result.boolean_value = true;
+    }
     while (true) {
-      NodeList cond = statement.stmt.expressions[1]; // make a copy
-      Value result;
-      if (cond.size() == 0) {
-        // empty conditions evaluate to true
-        result.type = Utils::BOOL;
-        result.boolean_value = true;
-      } else {
+      if (!auto_true) {
         result = evaluate_expression(cond);
       }
       if (result.type != VarType::BOOL) {
@@ -160,8 +159,7 @@ int Evaluator::execute_statement(Node &statement) {
         throw_error(msg);
       }
       if (!result.boolean_value) break;
-      Node stmt = statement.stmt.statements[0]; // make a copy
-      int flag = execute_statement(stmt);
+      int flag = execute_statement(statement.stmt.statements[0]);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
       NodeList increment_expr = statement.stmt.expressions[2];
