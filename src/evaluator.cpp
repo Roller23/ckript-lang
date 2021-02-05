@@ -197,7 +197,9 @@ int Evaluator::execute_statement(Node &statement) {
 
 Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
   RpnStack rpn_stack;
+  rpn_stack.reserve(50);
   flatten_tree(rpn_stack, expression_tree);
+  // TODO: cache the result somehow
   RpnStack res_stack;
   assert(rpn_stack.size() != 0);
   res_stack.reserve(rpn_stack.size() * 3);
