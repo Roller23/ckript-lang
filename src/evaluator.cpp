@@ -1075,33 +1075,27 @@ RpnElement Evaluator::node_to_element(Node &node) {
     val.type = VarType::BOOL;
     val.boolean_value = node.expr.bool_literal;
     return {val};
-  }
-  if (node.expr.type == Expression::STR_EXPR) {
+  } else if (node.expr.type == Expression::STR_EXPR) {
     val.type = VarType::STR;
     val.string_value = node.expr.string_literal;
     return {val};
-  }
-  if (node.expr.type == Expression::FLOAT_EXPR) {
+  } else if (node.expr.type == Expression::FLOAT_EXPR) {
     val.type = VarType::FLOAT;
     val.float_value = node.expr.float_literal;
     return {val};
-  }
-  if (node.expr.type == Expression::NUM_EXPR) {
+  } else if (node.expr.type == Expression::NUM_EXPR) {
     val.type = VarType::INT;
     val.number_value = node.expr.number_literal;
     return {val};
-  }
-  if (node.expr.type == Expression::IDENTIFIER_EXPR) {
+  } else if (node.expr.type == Expression::IDENTIFIER_EXPR) {
     val.type = VarType::ID;
     val.reference_name = node.expr.id_name;
     return {val};
-  }
-  if (node.expr.type == Expression::FUNC_EXPR) {
+  } else if (node.expr.type == Expression::FUNC_EXPR) {
     val.type = VarType::FUNC;
     val.func = node.expr.func_expr;
     return {val};
-  }
-  if (node.expr.type == Expression::ARRAY) {
+  } else if (node.expr.type == Expression::ARRAY) {
     Value initial_size(Utils::INT);
     std::size_t elemenets_count = 0;
     if (node.expr.array_expressions.size() != 0 && node.expr.array_expressions[0].size() != 0) {
