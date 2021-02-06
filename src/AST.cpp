@@ -3,11 +3,11 @@
 #include <string>
 #include <iostream>
 
-bool Expression::is_operation() {
+bool Expression::is_operation() const {
   return type == BINARY_OP || type == UNARY_OP || type == FUNC_CALL || type == INDEX;
 }
 
-bool Expression::is_paren() {
+bool Expression::is_paren() const {
   return type == LPAREN || type == RPAREN;
 }
 

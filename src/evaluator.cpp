@@ -200,7 +200,7 @@ int Evaluator::execute_statement(Node &statement) {
   return FLAG_ERROR;
 }
 
-Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
+Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_ref) {
   RpnStack rpn_stack;
   rpn_stack.reserve(50);
   flatten_tree(rpn_stack, expression_tree);
@@ -1051,7 +1051,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   return {};
 }
 
-RpnElement Evaluator::node_to_element(Node &node) {
+RpnElement Evaluator::node_to_element(const Node &node) {
   assert(node.expr.is_paren() == false);
   if (node.expr.is_operation()) {
     if (node.expr.type == Expression::FUNC_CALL) {
@@ -1260,7 +1260,7 @@ Value &Evaluator::get_heap_value(std::int64_t ref) {
   return *ptr;
 }
 
-void Evaluator::flatten_tree(RpnStack &res, NodeList &expression_tree) {
+void Evaluator::flatten_tree(RpnStack &res, const NodeList &expression_tree) {
   for (auto &node : expression_tree) {
     if (node.expr.rpn_stack.size() != 0) {
       flatten_tree(res, node.expr.rpn_stack);

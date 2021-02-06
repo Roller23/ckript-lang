@@ -68,11 +68,11 @@ class Evaluator {
     std::string *current_source = nullptr;
     void throw_error(const std::string &cause);
     int execute_statement(Node &statement);
-    Value evaluate_expression(NodeList &expression_tree, bool get_ref = false);
+    Value evaluate_expression(const NodeList &expression_tree, bool get_ref = false);
     void declare_variable(Node &declaration);
     void register_class(ClassStatement &_class);
-    void flatten_tree(RpnStack &res, NodeList &expression_tree);
-    RpnElement node_to_element(Node &node);
+    void flatten_tree(RpnStack &res, const NodeList &expression_tree);
+    RpnElement node_to_element(const Node &node);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(Value &val);

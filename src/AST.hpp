@@ -66,9 +66,9 @@ class Expression {
     Token::TokenType op;
     double float_literal = 0.0f;
     bool bool_literal = false;
-    bool is_operation();
+    bool is_operation() const;
     bool is_evaluable();
-    bool is_paren();
+    bool is_paren() const;
     Expression(void) : type(NONE) {};
     Expression(Token::TokenType _paren) : type(_paren == '(' ? LPAREN : RPAREN) {};
     Expression(Token::TokenType _op, ExprType _type) : type(_type), op(_op) {};
