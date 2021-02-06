@@ -413,8 +413,7 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     } else {
       throw_error("Cannot append " + stringify(y_val) + " an array of " + x_val.array_type + "s");
     }
-  }
-  if (y_val.type == VarType::ARR) {
+  } else if (y_val.type == VarType::ARR) {
     if (x_val.type == utils.var_lut.at(y_val.array_type)) {
       // prepend to array
       Value y_val_cpy = y_val;
@@ -423,18 +422,15 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
     } else {
       throw_error("Cannot prepend " + stringify(x_val) + " an array of " + y_val.array_type + "s");
     }
-  }
-  if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
+  } else if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
     val.type = VarType::STR;
     val.string_value = stringify(x_val) + stringify(y_val);
     return {val};
-  }
-  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+  } else if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value + y_val.number_value;
     return {val};
-  }
-  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+  } else if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     val.type = VarType::FLOAT;
     val.float_value = to_double(x_val) + to_double(y_val);
     return {val};
@@ -452,8 +448,7 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value - y_val.number_value;
     return {val};
-  }
-  if (x_val.type == VarType::ARR && y_val.type == VarType::INT) {
+  } else if (x_val.type == VarType::ARR && y_val.type == VarType::INT) {
     // remove from array
     Value x_val_cpy = x_val;
     if (y_val.number_value < 0 || y_val.number_value >= x_val_cpy.array_values.size()) {
@@ -462,8 +457,7 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
     }
     x_val_cpy.array_values.erase(x_val_cpy.array_values.begin() + y_val.number_value);
     return {x_val_cpy};
-  }
-  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+  } else if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     val.type = VarType::FLOAT;
     val.float_value = to_double(x_val) - to_double(y_val);
     return {val};
@@ -481,8 +475,7 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value * y_val.number_value;
     return {val};
-  }
-  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+  } else if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     val.type = VarType::FLOAT;
     val.float_value = to_double(x_val) * to_double(y_val);
     return {val};
@@ -503,8 +496,7 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value / y_val.number_value;
     return {val};
-  }
-  if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
+  } else if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     double f1 = to_double(x_val);
     double f2 = to_double(y_val);
     if (f2 == 0.0f) {
@@ -733,18 +725,15 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
     val.type = VarType::BOOL;
     val.boolean_value = to_double(x_val) == to_double(y_val);
     return {val};
-  }
-  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+  } else if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.number_value == y_val.number_value;
     return {val};
-  }
-  if (x_val.type == VarType::STR && y_val.type == VarType::STR) {
+  } else if (x_val.type == VarType::STR && y_val.type == VarType::STR) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.string_value == y_val.string_value;
     return {val};
-  }
-  if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
+  } else if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.boolean_value == y_val.boolean_value;
     return {val};
@@ -769,8 +758,7 @@ RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
     val.type = VarType::BOOL;
     val.boolean_value = to_double(x_val) > to_double(y_val);
     return {val};
-  }
-  if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
+  } else if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.number_value > y_val.number_value;
     return {val};
