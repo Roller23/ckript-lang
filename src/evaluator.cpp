@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <regex>
+#include <memory>
 
 #define FLAG_OK 0
 #define FLAG_BREAK 1
@@ -13,7 +14,14 @@
 #define FLAG_RETURN 3
 #define FLAG_ERROR 4
 
-#define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.push_back(FN(x, y));} else
+typedef Statement::StmtType StmtType;
+typedef Utils::VarType VarType;
+typedef std::shared_ptr<RpnElement> SharedRpnElement;
+typedef std::vector<SharedRpnElement> SharedRpnStack;
+
+#define SHARE_RPN(rpn) std::make_shared<RpnElement>(rpn)
+
+#define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.push_back(SHARE_RPN(FN(*x, *y)));} else
 
 #define BITWISE(OP, NAME)\
   Value val;\
@@ -27,9 +35,6 @@
   std::string msg = "Cannot perform bitwise " NAME " on " + stringify(x_val) + " and " + stringify(y_val);\
   throw_error(msg);\
   return {};
-
-typedef Statement::StmtType StmtType;
-typedef Utils::VarType VarType;
 
 void Evaluator::throw_error(const std::string &cause) {
   if (current_source != nullptr) {
@@ -200,7 +205,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
   rpn_stack.reserve(50);
   flatten_tree(rpn_stack, expression_tree);
   // TODO: cache the result somehow
-  RpnStack res_stack;
+  SharedRpnStack res_stack;
   assert(rpn_stack.size() != 0);
   res_stack.reserve(rpn_stack.size() * 3);
   for (auto &token : rpn_stack) {
@@ -211,9 +216,9 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
             std::string msg = "Operator " + Token::get_name(token.op.type) + " expects two operands"; 
             throw_error(msg);
           }
-          RpnElement y = res_stack.back();
+          SharedRpnElement y = res_stack.back();
           res_stack.pop_back();
-          RpnElement x = res_stack.back();
+          SharedRpnElement x = res_stack.back();
           res_stack.pop_back();
           REG(DOT, access_member)
           REG(OP_PLUS, perform_addition)
@@ -252,33 +257,33 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
             std::string msg = "Operator " + Token::get_name(token.op.type) + " expects one operand"; 
             throw_error(msg);
           }
-          RpnElement x = res_stack.back();
+          SharedRpnElement x = res_stack.back();
           res_stack.pop_back();
           if (token.op.type == Token::OP_NOT) {
-            res_stack.push_back(logical_not(x));
+            res_stack.push_back(SHARE_RPN(logical_not(*x)));
           } else if (token.op.type == Token::OP_NEG) {
-            res_stack.push_back(bitwise_not(x));
+            res_stack.push_back(SHARE_RPN(bitwise_not(*x)));
           } else if (token.op.type == Token::DEL) {
-            res_stack.push_back(delete_value(x));
+            res_stack.push_back(SHARE_RPN(delete_value(*x)));
           } else {
             std::string msg = "Unknown unary operator " + Token::get_name(token.op.type);
             throw_error(msg);
           }
         }
       } else if (token.op.op_type == Operator::FUNC) {
-        RpnElement fn = res_stack.back();
+        SharedRpnElement fn = res_stack.back();
         res_stack.pop_back();
-        res_stack.push_back(execute_function(token, fn));
+        res_stack.push_back(SHARE_RPN(execute_function(token, *fn)));
       } else if (token.op.op_type == Operator::INDEX) {
-        RpnElement arr = res_stack.back();
+        SharedRpnElement arr = res_stack.back();
         res_stack.pop_back();
-        res_stack.push_back(access_index(arr, token));
+        res_stack.push_back(SHARE_RPN(access_index(*arr, token)));
       }
     } else {
-      res_stack.push_back(token);
+      res_stack.push_back(SHARE_RPN(token));
     }
   }
-  Value &res_val = res_stack[0].value;
+  Value &res_val = res_stack[0]->value;
   if (get_ref) {
     if (res_val.is_lvalue()) {
       Variable *var = get_reference_by_name(res_val.reference_name);
@@ -299,7 +304,7 @@ Value Evaluator::evaluate_expression(NodeList &expression_tree, bool get_ref) {
   }
   if (res_val.is_lvalue() || res_val.heap_reference > -1) {
     RpnElement wrapper = res_val;
-    res_val = get_value(wrapper);
+    return get_value(wrapper);
   }
   return res_val;
 }
