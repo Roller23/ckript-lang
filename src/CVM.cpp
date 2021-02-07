@@ -39,8 +39,8 @@ void StackTrace::pop(void) {
   stack.pop_back();
 }
 
-void StackTrace::push(const std::string &_name, std::uint64_t _line, std::string *_source) {
-  stack.push_back({_line, _name, _source});
+void StackTrace::push(const std::string &_name, const std::uint64_t &_line, std::string *&_source) {
+  stack.emplace_back(_line, _name, _source);
 }
 
 bool Value::is_lvalue() const {

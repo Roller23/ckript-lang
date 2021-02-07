@@ -72,13 +72,13 @@ square(5, function(int result) void {
 });
 
 ```
-By default, functions do not capture outside variables. You can forward all outside variables by copy by using the `function>` syntax. Forwarding is done at invocation time, not declaration time.
+By default, functions do not capture outside variables. You can forward all outside variables by reference by using the `function>` syntax. Forwarding is done at invocation time, not declaration time.
 ```
-alloc int var = 3;
+int var = 3;
 
 func capture = function>(void) void {
   println(var); // prints 3
-  var += 3; // var is a copy of a pointer, so this line will actually change the value
+  var += 3;
 };
 
 capture();

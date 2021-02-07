@@ -8,6 +8,7 @@
 
 #include <string>
 #include <iostream>
+#include <memory>
 
 void Interpreter::process_file(const std::string &filename, int argc, char *argv[]) {
   Lexer lexer;
@@ -19,7 +20,8 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
   // pass the "arguments" array
-  Variable *var = new Variable;
+  evaluator.stack["argv"] = std::make_shared<Variable>();
+  auto &var = evaluator.stack["argv"];
   var->type = Utils::ARR;
   var->val.array_type = "str";
   var->val.type = Utils::ARR;
@@ -28,7 +30,6 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
     var->val.array_values[i].type = Utils::STR;
     var->val.array_values[i].string_value = argv[i];
   }
-  evaluator.stack["argv"] = var;
   evaluator.start();
 }
 

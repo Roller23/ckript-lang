@@ -33,8 +33,8 @@ class RpnElement {
     Operator op;
     Value value;
     RpnElement(void) : type(UNKNOWN) {};
-    RpnElement(Operator _op) : type(OPERATOR), op(_op) {};
-    RpnElement(Value &val) : type(VALUE), value(val) {};
+    RpnElement(const Operator &_op) : type(OPERATOR), op(_op) {};
+    RpnElement(const Value &val) : type(VALUE), value(val) {};
 };
 
 typedef std::vector<RpnElement> RpnStack;
@@ -73,7 +73,7 @@ class Evaluator {
     void register_class(ClassStatement &_class);
     void flatten_tree(RpnStack &res, const NodeList &expression_tree);
     void node_to_element(const Node &node, RpnStack &container);
-    Variable *get_reference_by_name(const std::string &name);
+    std::shared_ptr<Variable> get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(const Value &val);
     inline double to_double(const Value &val);

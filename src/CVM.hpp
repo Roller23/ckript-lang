@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <memory>
 
 #include "utils.hpp"
 #include "AST.hpp"
@@ -72,19 +73,25 @@ class Heap {
     void free(std::int64_t ref);
 };
 
-typedef std::unordered_map<std::string, Variable *> CallStack;
+typedef std::unordered_map<std::string, std::shared_ptr<Variable>> CallStack;
+
+class Call {
+  public:
+    std::uint64_t line;
+    std::string name;
+    std::string *source;
+    Call(const std::uint64_t &__l, const std::string &__n, std::string *&__s) {
+      this->line = __l;
+      this->name = __n;
+      this->source = __s;
+    }
+};
 
 class StackTrace {
-  private:
-    typedef struct {
-      std::uint64_t line;
-      std::string name;
-      std::string *source;
-    } Call;
   public:
     std::vector<Call> stack;
     void pop(void);
-    void push(const std::string &_name, std::uint64_t _line, std::string *_source);
+    void push(const std::string &_name, const std::uint64_t &_line, std::string *&_source);
     StackTrace(void) {
       stack.reserve(1000);
     }

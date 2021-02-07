@@ -54,11 +54,7 @@ void Evaluator::start() {
       break;
     }
   }
-  if (stream) return; // retain callstack
-  // deallocate variables on callstack
-  for (const auto &pair : stack) {
-    delete pair.second;
-  }
+  if (stream) return;
   if (return_value.type == VarType::UNKNOWN) {
     return_value.type = VarType::VOID;
   }
@@ -281,7 +277,7 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
   Value &res_val = res_stack[0]->value;
   if (get_ref) {
     if (res_val.is_lvalue()) {
-      Variable *var = get_reference_by_name(res_val.reference_name);
+      std::shared_ptr<Variable> var = get_reference_by_name(res_val.reference_name);
       if (var == nullptr) {
         const std::string &&msg = "'" + res_val.reference_name + "' is not defined";
         throw_error(msg);
@@ -369,7 +365,7 @@ RpnElement Evaluator::Evaluator::bitwise_not(const RpnElement &x) {
 
 RpnElement Evaluator::delete_value(const RpnElement &x) {
   const Value *val = &x.value;
-  Variable *v = nullptr;
+  std::shared_ptr<Variable> v = nullptr;
   if (val->is_lvalue()) {
     v = get_reference_by_name(val->reference_name);
     if (v == nullptr) {
@@ -597,7 +593,7 @@ RpnElement Evaluator::assign(RpnElement &x, const RpnElement &y) {
     const std::string &&msg = "Cannot assign to an rvalue";
     throw_error(msg);
   }
-  Variable *var = get_reference_by_name(x.value.reference_name);
+  std::shared_ptr<Variable> var = get_reference_by_name(x.value.reference_name);
   if (var == nullptr) {
     const std::string &&msg = x.value.reference_name + " is not defined";
     throw_error(msg);
@@ -780,16 +776,15 @@ RpnElement Evaluator::compare_lt_eq(const RpnElement &x, const RpnElement &y) {
 }
 
 void Evaluator::register_class(ClassStatement &_class) {
-  const Variable *v = get_reference_by_name(_class.class_name);
+  const std::shared_ptr<Variable> v = get_reference_by_name(_class.class_name);
   if (v != nullptr) {
-    delete v;
+    stack.erase(_class.class_name);
   }
-  Variable *var = new Variable;
+  auto &var = (stack[_class.class_name] = std::make_shared<Variable>());
   var->type = "class";
   var->val.type = VarType::CLASS;
   var->val.members = _class.members;
   var->val.class_name = _class.class_name;
-  stack[_class.class_name] = var;
 }
 
 void Evaluator::declare_variable(Node &declaration) {
@@ -804,20 +799,19 @@ void Evaluator::declare_variable(Node &declaration) {
     const std::string &&msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
     throw_error(msg);
   }
-  const Variable *v = get_reference_by_name(decl.id);
+  const std::shared_ptr<Variable> v = get_reference_by_name(decl.id);
   if (v != nullptr) {
     // to avoid memory leaks while redeclaring
-    delete v;
+    stack.erase(decl.id);
   }
   if (decl.allocated) {
     assert(decl.reference == false);
     const Chunk &chunk = VM.heap.allocate();
-    Variable *var = new Variable;
+    auto &var = (stack[decl.id] = std::make_shared<Variable>());
     var->val.heap_reference = chunk.heap_reference;
     var->type = decl.var_type;
     var->constant = decl.constant;
     *chunk.data = var_val;
-    stack[decl.id] = var;
     if (var_val.type == Utils::OBJ) {
       // bind the reference to the object to 'this' in its methods
       std::vector<Value> args(1, var->val);
@@ -825,11 +819,10 @@ void Evaluator::declare_variable(Node &declaration) {
     }
     return;
   }
-  Variable *var = new Variable;
+  auto &var = (stack[decl.id] = std::make_shared<Variable>());
   var->type = decl.var_type;
   var->val = var_val;
   var->constant = decl.constant;
-  stack[decl.id] = var;
 }
 
 RpnElement Evaluator::construct_object(const RpnElement &call, const RpnElement &_class) {
@@ -840,8 +833,7 @@ RpnElement Evaluator::construct_object(const RpnElement &call, const RpnElement 
     if (arg.size() != 0) {
       args_counter++;
     } else {
-      const std::string &&msg = "Illegal object invocation, missing members";
-      throw_error(msg);
+      throw_error("Illegal object invocation, missing members");
     }
   }
   std::size_t members_count = class_val.members.size();
@@ -966,29 +958,24 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
         const std::string &&msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
         throw_error(msg);
       }
-      Variable *var = new Variable;
+      auto &var = (func_evaluator.stack[fn_value.func.params[i].param_name] = std::make_shared<Variable>());
       var->type = fn_value.func.params[i].type_name;
       var->val = arg_val;
-      func_evaluator.stack[fn_value.func.params[i].param_name] = var;
       i++;
     }
   }
   if (fn.value.is_lvalue()) {
-    // push itself onto the callstack
-    Variable *var = new Variable;
-    var->type = VarType::FUNC;
-    var->val = fn_value;
-    func_evaluator.stack[fn.value.reference_name] = var;
+    // push itself onto the new callstack
+    func_evaluator.stack[fn.value.reference_name] = stack[fn.value.reference_name];
   }
   if (fn_value.this_ref != -1) {
     // push "this" onto the stack
-    Variable *var = new Variable;
+    auto &var = (func_evaluator.stack["this"] = std::make_shared<Variable>());
     var->type = VarType::OBJ;
     var->val.heap_reference = fn_value.this_ref;
-    func_evaluator.stack["this"] = var;
   }
   if (fn_value.func.captures) {
-    // copy current callstack on the new callstack
+    // copy the current callstack to the new callstack
     for (const auto &pair : stack) {
       if (pair.first == "this") continue;
       if (fn.value.is_lvalue() && pair.first == fn.value.reference_name) continue;
@@ -1000,9 +987,7 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
         }
       }
       if (contains) continue;
-      Variable *copy = new Variable;
-      *copy = *pair.second;
-      func_evaluator.stack[pair.first] = copy;
+      func_evaluator.stack[pair.first] = stack[pair.first];
     }
   }
   const std::string &fn_name = fn.value.is_lvalue() ? fn.value.reference_name : fn_value.func_name;
@@ -1128,7 +1113,7 @@ void Evaluator::node_to_element(const Node &node, RpnStack &container) {
   }
 }
 
-Variable *Evaluator::get_reference_by_name(const std::string &name) {
+std::shared_ptr<Variable> Evaluator::get_reference_by_name(const std::string &name) {
   if (VM.globals.find(name) != VM.globals.end()) {
     throw_error("Trying to access a native function");
   }
@@ -1140,7 +1125,7 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
 void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
   assert(members.size() > 1);
   const std::string &base = members[0];
-  Variable *var = get_reference_by_name(base);
+  std::shared_ptr<Variable> var = get_reference_by_name(base);
   if (var == nullptr) {
     const std::string &&msg = "'" + base + "' is not defined";
     throw_error(msg);
@@ -1177,7 +1162,7 @@ void Evaluator::set_index(Statement &stmt) {
   assert(stmt.indexes.size() > 0);
   assert(stmt.obj_members.size() == 1);
   assert(stmt.expressions.size() == 1);
-  Variable *arr = get_reference_by_name(stmt.obj_members[0]);
+  std::shared_ptr<Variable> arr = get_reference_by_name(stmt.obj_members[0]);
   if (arr == nullptr) {
     const std::string &&msg = "'" + stmt.obj_members[0] + "' is not defined";
     throw_error(msg);
@@ -1215,7 +1200,7 @@ const Value &Evaluator::get_value(const RpnElement &el) {
     if (el.value.member_name.size() != 0) {
       return el.value;
     }
-    Variable *var = get_reference_by_name(el.value.reference_name);
+    std::shared_ptr<Variable> var = get_reference_by_name(el.value.reference_name);
     if (var == nullptr) {
       const std::string &&msg = "'" + el.value.reference_name + "' is not defined";
       throw_error(msg);
@@ -1236,7 +1221,7 @@ Value &Evaluator::get_mut_value(RpnElement &el) {
     if (el.value.member_name.size() != 0) {
       return el.value;
     }
-    Variable *var = get_reference_by_name(el.value.reference_name);
+    std::shared_ptr<Variable> var = get_reference_by_name(el.value.reference_name);
     if (var == nullptr) {
       const std::string &&msg = "'" + el.value.reference_name + "' is not defined";
       throw_error(msg);
