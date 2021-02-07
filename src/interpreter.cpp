@@ -60,7 +60,7 @@ void Interpreter::process_stream() {
       }
       TokenList tokens = Lexer().tokenize(line);
       Node AST = Parser(tokens, Token::TokenType::NONE, "", utils).parse(NULL);
-      evaluator.AST = AST;
+      // evaluator.AST = AST;
       evaluator.start();
     }
   }

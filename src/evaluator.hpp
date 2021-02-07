@@ -46,11 +46,11 @@ class Evaluator {
     NativeFunction *native_stacktrace = nullptr;
   public:
     CVM &VM;
-    Node &AST;
+    const Node &AST;
     Utils &utils;
     bool stream = false;
     CallStack stack;
-    Evaluator(Node &_AST, CVM &_VM, Utils &_utils, bool is_stream = false) : 
+    Evaluator(const Node &_AST, CVM &_VM, Utils &_utils, bool is_stream = false) : 
       VM(_VM),
       AST(_AST), 
       utils(_utils),
@@ -67,10 +67,10 @@ class Evaluator {
     std::uint64_t current_line = 0;
     std::string *current_source = nullptr;
     void throw_error(const std::string &cause);
-    int execute_statement(Node &statement);
+    int execute_statement(const Node &statement);
     Value evaluate_expression(const NodeList &expression_tree, bool get_ref = false);
-    void declare_variable(Node &declaration);
-    void register_class(ClassStatement &_class);
+    void declare_variable(const Node &declaration);
+    void register_class(const ClassStatement &_class);
     void flatten_tree(RpnStack &res, const NodeList &expression_tree);
     void node_to_element(const Node &node, RpnStack &container);
     std::shared_ptr<Variable> get_reference_by_name(const std::string &name);
@@ -80,8 +80,8 @@ class Evaluator {
     const Value &get_value(const RpnElement &el);
     Value &get_mut_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
-    void set_member(const std::vector<std::string> &members, NodeList &expression);
-    void set_index(Statement &stmt);
+    void set_member(const std::vector<std::string> &members, const NodeList &expression);
+    void set_index(const Statement &stmt);
 
     // Unary
     RpnElement logical_not(const RpnElement &x);

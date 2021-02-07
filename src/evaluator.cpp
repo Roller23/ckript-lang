@@ -60,7 +60,7 @@ void Evaluator::start() {
   }
 }
 
-int Evaluator::execute_statement(Node &statement) {
+int Evaluator::execute_statement(const Node &statement) {
   current_line = statement.stmt.line;
   current_source = statement.stmt.source;
   if (statement.stmt.type == StmtType::NONE) {
@@ -775,7 +775,7 @@ RpnElement Evaluator::compare_lt_eq(const RpnElement &x, const RpnElement &y) {
   return compare_gt_eq(y, x);
 }
 
-void Evaluator::register_class(ClassStatement &_class) {
+void Evaluator::register_class(const ClassStatement &_class) {
   const std::shared_ptr<Variable> v = get_reference_by_name(_class.class_name);
   if (v != nullptr) {
     stack.erase(_class.class_name);
@@ -787,7 +787,7 @@ void Evaluator::register_class(ClassStatement &_class) {
   var->val.class_name = _class.class_name;
 }
 
-void Evaluator::declare_variable(Node &declaration) {
+void Evaluator::declare_variable(const Node &declaration) {
   const Declaration &decl = declaration.decl;
   const Value &&var_val = evaluate_expression(decl.var_expr, decl.reference);
   const Utils::VarType &var_type = utils.var_lut.at(decl.var_type);
@@ -1031,32 +1031,35 @@ void Evaluator::node_to_element(const Node &node, RpnStack &container) {
     }
     return;
   }
-  Value val;
   if (node.expr.type == Expression::BOOL_EXPR) {
+    Value val;
     val.type = VarType::BOOL;
     val.boolean_value = node.expr.bool_literal;
     container.emplace_back(val);
   } else if (node.expr.type == Expression::STR_EXPR) {
+    Value val;
     val.type = VarType::STR;
     val.string_value = node.expr.string_literal;
     container.emplace_back(val);
   } else if (node.expr.type == Expression::FLOAT_EXPR) {
+    Value val;
     val.type = VarType::FLOAT;
     val.float_value = node.expr.float_literal;
     container.emplace_back(val);
   } else if (node.expr.type == Expression::NUM_EXPR) {
+    Value val;
     val.type = VarType::INT;
     val.number_value = node.expr.number_literal;
     container.emplace_back(val);
   } else if (node.expr.type == Expression::IDENTIFIER_EXPR) {
+    Value val;
     val.type = VarType::ID;
     val.reference_name = node.expr.id_name;
     container.emplace_back(val);
   } else if (node.expr.type == Expression::FUNC_EXPR) {
-    val.type = VarType::FUNC;
-    val.func = node.expr.func_expr;
-    container.emplace_back(val);
+    container.emplace_back(Value(node.expr.func_expr));
   } else if (node.expr.type == Expression::ARRAY) {
+    Value val;
     Value initial_size(Utils::INT);
     std::size_t elemenets_count = 0;
     if (node.expr.array_expressions.size() != 0 && node.expr.array_expressions[0].size() != 0) {
@@ -1122,7 +1125,7 @@ std::shared_ptr<Variable> Evaluator::get_reference_by_name(const std::string &na
   return el->second;
 }
 
-void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
+void Evaluator::set_member(const std::vector<std::string> &members, const NodeList &expression) {
   assert(members.size() > 1);
   const std::string &base = members[0];
   std::shared_ptr<Variable> var = get_reference_by_name(base);
@@ -1158,7 +1161,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   *fin = rvalue;
 }
 
-void Evaluator::set_index(Statement &stmt) {
+void Evaluator::set_index(const Statement &stmt) {
   assert(stmt.indexes.size() > 0);
   assert(stmt.obj_members.size() == 1);
   assert(stmt.expressions.size() == 1);

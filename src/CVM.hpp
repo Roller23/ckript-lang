@@ -34,6 +34,7 @@ class Value {
     bool is_lvalue() const;
     Value(void) : type(Utils::UNKNOWN) {};
     Value(Utils::VarType _type) : type(_type) {};
+    Value(const FuncExpression &fn) : type(Utils::FUNC), func(fn) {}
 };
 
 class Variable {
