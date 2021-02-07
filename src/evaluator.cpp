@@ -903,7 +903,7 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
   if (fn_value.type == VarType::STR) {
     // string interpolation
     int args = 0;
-    for (auto &arg : call.op.func_call.arguments) {
+    for (const auto &arg : call.op.func_call.arguments) {
       if (arg.size() != 0) {
         args++;
       } else if (args != 0) {
@@ -950,18 +950,18 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
     int i = 0;
     for (const auto &node_list : call.op.func_call.arguments) {
       Value &&arg_val = evaluate_expression(node_list, fn_value.func.params[i].is_ref);
-      Value real_val = arg_val;
       VarType arg_type = arg_val.type;
-      if (arg_val.heap_reference != -1) {
-        real_val = get_heap_value(arg_val.heap_reference);
-        arg_type = real_val.type;
-      }
       if (fn_value.func.params[i].is_ref && arg_val.heap_reference == -1) {
         std::string num = std::to_string(i + 1);
         const std::string &&msg = "Argument " + num + " expected to be a reference, but value given";
         throw_error(msg);
       }
       if (arg_type != utils.var_lut.at(fn_value.func.params[i].type_name)) {
+        Value real_val = arg_val;
+        if (arg_val.heap_reference != -1) {
+          real_val = get_heap_value(arg_val.heap_reference);
+          arg_type = real_val.type;
+        }
         std::string num = std::to_string(i + 1);
         const std::string &&msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
         throw_error(msg);
