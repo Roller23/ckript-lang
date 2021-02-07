@@ -1044,8 +1044,7 @@ RpnElement Evaluator::node_to_element(const Node &node) {
   if (node.expr.is_operation()) {
     if (node.expr.type == Expression::FUNC_CALL) {
       return {Operator(node.expr.func_call)};
-    }
-    if (node.expr.type == Expression::INDEX) {
+    } else if (node.expr.type == Expression::INDEX) {
       return {Operator(node.expr.index)};
     }
     return {Operator(node.expr.op)};
