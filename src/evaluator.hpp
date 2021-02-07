@@ -75,59 +75,60 @@ class Evaluator {
     RpnElement node_to_element(const Node &node);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
-    std::string stringify(Value &val);
-    inline double to_double(Value &val);
-    Value &get_value(RpnElement &el);
+    std::string stringify(const Value &val);
+    inline double to_double(const Value &val);
+    const Value &get_value(const RpnElement &el);
+    Value &get_mut_value(RpnElement &el);
     Value &get_heap_value(std::int64_t ref);
     void set_member(const std::vector<std::string> &members, NodeList &expression);
     void set_index(Statement &stmt);
 
     // Unary
-    RpnElement logical_not(RpnElement &x);
-    RpnElement bitwise_not(RpnElement &x);
-    RpnElement delete_value(RpnElement &x);
+    RpnElement logical_not(const RpnElement &x);
+    RpnElement bitwise_not(const RpnElement &x);
+    RpnElement delete_value(const RpnElement &x);
 
     // Binary
     // math operations
-    RpnElement perform_addition(RpnElement &x, RpnElement &y);
-    RpnElement perform_subtraction(RpnElement &x, RpnElement &y);
-    RpnElement perform_multiplication(RpnElement &x, RpnElement &y);
-    RpnElement perform_division(RpnElement &x, RpnElement &y);
-    RpnElement perform_modulo(RpnElement &x, RpnElement &y);
+    RpnElement perform_addition(const RpnElement &x, const RpnElement &y);
+    RpnElement perform_subtraction(const RpnElement &x, const RpnElement &y);
+    RpnElement perform_multiplication(const RpnElement &x, const RpnElement &y);
+    RpnElement perform_division(const RpnElement &x, const RpnElement &y);
+    RpnElement perform_modulo(const RpnElement &x, const RpnElement &y);
     // bitwise operations
-    RpnElement bitwise_and(RpnElement &x, RpnElement &y);
-    RpnElement bitwise_or(RpnElement &x, RpnElement &y);
-    RpnElement bitwise_xor(RpnElement &x, RpnElement &y);
-    RpnElement shift_left(RpnElement &x, RpnElement &y);
-    RpnElement shift_right(RpnElement &x, RpnElement &y);
+    RpnElement bitwise_and(const RpnElement &x, const RpnElement &y);
+    RpnElement bitwise_or(const RpnElement &x, const RpnElement &y);
+    RpnElement bitwise_xor(const RpnElement &x, const RpnElement &y);
+    RpnElement shift_left(const RpnElement &x, const RpnElement &y);
+    RpnElement shift_right(const RpnElement &x, const RpnElement &y);
     // logical operations
-    RpnElement logical_and(RpnElement &x, RpnElement &y);
-    RpnElement logical_or(RpnElement &x, RpnElement &y);
+    RpnElement logical_and(const RpnElement &x, const RpnElement &y);
+    RpnElement logical_or(const RpnElement &x, const RpnElement &y);
     // assignments
-    RpnElement assign(RpnElement &x, RpnElement &y);
-    RpnElement plus_assign(RpnElement &x, RpnElement &y);
-    RpnElement minus_assign(RpnElement &x, RpnElement &y);
-    RpnElement mul_assign(RpnElement &x, RpnElement &y);
-    RpnElement div_assign(RpnElement &x, RpnElement &y);
-    RpnElement lshift_assign(RpnElement &x, RpnElement &y);
-    RpnElement rshift_assign(RpnElement &x, RpnElement &y);
-    RpnElement and_assign(RpnElement &x, RpnElement &y);
-    RpnElement or_assign(RpnElement &x, RpnElement &y);
-    RpnElement xor_assign(RpnElement &x, RpnElement &y);
-    RpnElement mod_assign(RpnElement &x, RpnElement &y);
+    RpnElement assign(RpnElement &x, const RpnElement &y);
+    RpnElement plus_assign(RpnElement &x, const RpnElement &y);
+    RpnElement minus_assign(RpnElement &x, const RpnElement &y);
+    RpnElement mul_assign(RpnElement &x, const RpnElement &y);
+    RpnElement div_assign(RpnElement &x, const RpnElement &y);
+    RpnElement lshift_assign(RpnElement &x, const RpnElement &y);
+    RpnElement rshift_assign(RpnElement &x, const RpnElement &y);
+    RpnElement and_assign(RpnElement &x, const RpnElement &y);
+    RpnElement or_assign(RpnElement &x, const RpnElement &y);
+    RpnElement xor_assign(RpnElement &x, const RpnElement &y);
+    RpnElement mod_assign(RpnElement &x, const RpnElement &y);
     // comparators
-    RpnElement compare_eq(RpnElement &x, RpnElement &y);
-    RpnElement compare_neq(RpnElement &x, RpnElement &y);
-    RpnElement compare_gt(RpnElement &x, RpnElement &y);
-    RpnElement compare_lt(RpnElement &x, RpnElement &y);
-    RpnElement compare_gt_eq(RpnElement &x, RpnElement &y);
-    RpnElement compare_lt_eq(RpnElement &x, RpnElement &y);
+    RpnElement compare_eq(const RpnElement &x, const RpnElement &y);
+    RpnElement compare_neq(const RpnElement &x, const RpnElement &y);
+    RpnElement compare_gt(const RpnElement &x, const RpnElement &y);
+    RpnElement compare_lt(const RpnElement &x, const RpnElement &y);
+    RpnElement compare_gt_eq(const RpnElement &x, const RpnElement &y);
+    RpnElement compare_lt_eq(const RpnElement &x, const RpnElement &y);
     // functions
-    RpnElement execute_function(RpnElement &call, RpnElement &fn);
+    RpnElement execute_function(RpnElement &fn, const RpnElement &call);
     // misc
-    RpnElement access_member(RpnElement &x, RpnElement &y);
-    RpnElement access_index(RpnElement &arr, RpnElement &idx);
-    RpnElement construct_object(RpnElement &call, RpnElement &_class);
+    RpnElement access_member(RpnElement &x, const RpnElement &y);
+    RpnElement access_index(RpnElement &arr, const RpnElement &idx);
+    RpnElement construct_object(const RpnElement &call, const RpnElement &_class);
 
     Value return_value;
 };

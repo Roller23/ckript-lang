@@ -25,8 +25,8 @@ typedef std::vector<SharedRpnElement> SharedRpnStack;
 
 #define BITWISE(OP, NAME)\
   Value val;\
-  Value &x_val = get_value(x);\
-  Value &y_val = get_value(y);\
+  const Value &x_val = get_value(x);\
+  const Value &y_val = get_value(y);\
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {\
     val.type = VarType::INT;\
     val.number_value = x_val.number_value OP y_val.number_value;\
@@ -56,7 +56,7 @@ void Evaluator::start() {
   }
   if (stream) return; // retain callstack
   // deallocate variables on callstack
-  for (auto &pair : stack) {
+  for (const auto &pair : stack) {
     delete pair.second;
   }
   if (return_value.type == VarType::UNKNOWN) {
@@ -113,7 +113,7 @@ int Evaluator::execute_statement(Node &statement) {
     if (!inside_func) {
       throw_error("return statement outside of functions is illegal");
     }
-    NodeList &return_expr = statement.stmt.expressions[0];
+    const NodeList &return_expr = statement.stmt.expressions[0];
     if (statement.stmt.expressions.size() != 0 && return_expr.size() != 0) {
       return_value = evaluate_expression(return_expr, returns_ref);
     }
@@ -126,7 +126,7 @@ int Evaluator::execute_statement(Node &statement) {
     }
     nested_loops++;
     while (true) {
-      Value result = evaluate_expression(statement.stmt.expressions[0]);
+      const Value &&result = evaluate_expression(statement.stmt.expressions[0]);
       if (result.type != VarType::BOOL) {
         std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
         throw_error(msg);
@@ -148,26 +148,21 @@ int Evaluator::execute_statement(Node &statement) {
       evaluate_expression(statement.stmt.expressions[0]);
     }
     nested_loops++;
-    NodeList &cond = statement.stmt.expressions[1];
-    Value result;
-    result.type = Utils::BOOL;
+    const NodeList &cond = statement.stmt.expressions[1];
     bool auto_true = cond.size() == 0; // empty conditions evaluate to true
-    if (auto_true) {
-      result.boolean_value = true;
-    }
     while (true) {
       if (!auto_true) {
-        result = evaluate_expression(cond);
+        const Value &&result = evaluate_expression(cond);
+        if (result.type != VarType::BOOL) {
+          std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
+          throw_error(msg);
+        }
+        if (!result.boolean_value) break;
       }
-      if (result.type != VarType::BOOL) {
-        std::string msg = "Expected a boolean value in while statement, found " + stringify(result);
-        throw_error(msg);
-      }
-      if (!result.boolean_value) break;
       int flag = execute_statement(statement.stmt.statements[0]);
       if (flag == FLAG_BREAK) break;
       if (flag == FLAG_RETURN) return flag;
-      NodeList &increment_expr = statement.stmt.expressions[2];
+      const NodeList &increment_expr = statement.stmt.expressions[2];
       if (increment_expr.size() != 0) {
         evaluate_expression(increment_expr);
       }
@@ -180,7 +175,7 @@ int Evaluator::execute_statement(Node &statement) {
     if (statement.stmt.expressions[0].size() == 0) {
       throw_error("if expects an expression");
     }
-    Value result = evaluate_expression(statement.stmt.expressions[0]);
+    const Value &&result = evaluate_expression(statement.stmt.expressions[0]);
     if (result.type != VarType::BOOL) {
       std::string msg = "Expected a boolean value in if statement, found " + stringify(result);
       throw_error(msg);
@@ -208,7 +203,7 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
   SharedRpnStack res_stack;
   assert(rpn_stack.size() != 0);
   res_stack.reserve(rpn_stack.size() * 3);
-  for (auto &token : rpn_stack) {
+  for (const auto &token : rpn_stack) {
     if (token.type == RpnElement::OPERATOR) {
       if (token.op.op_type == Operator::BASIC) {
         if (utils.op_binary(token.op.type)) {
@@ -216,9 +211,9 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
             std::string msg = "Operator " + Token::get_name(token.op.type) + " expects two operands"; 
             throw_error(msg);
           }
-          SharedRpnElement y = res_stack.back();
+          const SharedRpnElement y = res_stack.back();
           res_stack.pop_back();
-          SharedRpnElement x = res_stack.back();
+          const SharedRpnElement x = res_stack.back();
           res_stack.pop_back();
           REG(DOT, access_member)
           REG(OP_PLUS, perform_addition)
@@ -257,7 +252,7 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
             std::string msg = "Operator " + Token::get_name(token.op.type) + " expects one operand"; 
             throw_error(msg);
           }
-          SharedRpnElement x = res_stack.back();
+          const SharedRpnElement x = res_stack.back();
           res_stack.pop_back();
           if (token.op.type == Token::OP_NOT) {
             res_stack.push_back(SHARE_RPN(logical_not(*x)));
@@ -271,11 +266,11 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
           }
         }
       } else if (token.op.op_type == Operator::FUNC) {
-        SharedRpnElement fn = res_stack.back();
+        const SharedRpnElement fn = res_stack.back();
         res_stack.pop_back();
-        res_stack.push_back(SHARE_RPN(execute_function(token, *fn)));
+        res_stack.push_back(SHARE_RPN(execute_function(*fn, token)));
       } else if (token.op.op_type == Operator::INDEX) {
-        SharedRpnElement arr = res_stack.back();
+        const SharedRpnElement arr = res_stack.back();
         res_stack.pop_back();
         res_stack.push_back(SHARE_RPN(access_index(*arr, token)));
       }
@@ -309,7 +304,7 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
   return res_val;
 }
 
-std::string Evaluator::stringify(Value &val) {
+std::string Evaluator::stringify(const Value &val) {
   if (val.heap_reference != -1) {
     return "reference to " + stringify(get_heap_value(val.heap_reference));
   } else if (val.type == VarType::STR) {
@@ -338,7 +333,7 @@ std::string Evaluator::stringify(Value &val) {
   return "";
 }
 
-inline double Evaluator::to_double(Value &val) {
+inline double Evaluator::to_double(const Value &val) {
   if (val.type == VarType::FLOAT) {
     return val.float_value;
   } else if (val.type == VarType::INT) {
@@ -348,8 +343,8 @@ inline double Evaluator::to_double(Value &val) {
   return 0;
 }
 
-RpnElement Evaluator::logical_not(RpnElement &x) {
-  Value &x_val = get_value(x);
+RpnElement Evaluator::logical_not(const RpnElement &x) {
+  const Value &x_val = get_value(x);
   Value val;
   if (x_val.type == VarType::BOOL) {
     val.type = VarType::BOOL;
@@ -360,8 +355,8 @@ RpnElement Evaluator::logical_not(RpnElement &x) {
   return {};
 }
 
-RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
-  Value &x_val = get_value(x);
+RpnElement Evaluator::Evaluator::bitwise_not(const RpnElement &x) {
+  const Value &x_val = get_value(x);
   Value val;
   if (x_val.type == VarType::INT) {
     val.type = VarType::INT;
@@ -372,26 +367,26 @@ RpnElement Evaluator::Evaluator::bitwise_not(RpnElement &x) {
   return {};
 }
 
-RpnElement Evaluator::delete_value(RpnElement &x) {
-  Value val = x.value;
+RpnElement Evaluator::delete_value(const RpnElement &x) {
+  const Value *val = &x.value;
   Variable *v = nullptr;
-  if (val.is_lvalue()) {
-    v = get_reference_by_name(val.reference_name);
+  if (val->is_lvalue()) {
+    v = get_reference_by_name(val->reference_name);
     if (v == nullptr) {
-      throw_error(val.reference_name + " is not defined");
+      throw_error(val->reference_name + " is not defined");
     }
-    val = v->val;
+    val = &v->val;
   }
-  if (val.heap_reference == -1) {
+  if (val->heap_reference == -1) {
     throw_error(x.value.reference_name + " is not allocated on heap");
   }
-  if (val.heap_reference >= VM.heap.chunks.size()) {
+  if (val->heap_reference >= VM.heap.chunks.size()) {
     throw_error("deleting a value that is not on the heap");
   }
-  if (VM.heap.chunks[val.heap_reference].used == false) {
+  if (VM.heap.chunks[val->heap_reference].used == false) {
     throw_error("double delete");
   }
-  VM.heap.free(val.heap_reference);
+  VM.heap.free(val->heap_reference);
   if (v != nullptr) {
     v->val.heap_reference = -1;
   }
@@ -400,10 +395,10 @@ RpnElement Evaluator::delete_value(RpnElement &x) {
   return {res};
 }
 
-RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::perform_addition(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::ARR) {
     if (y_val.type == utils.var_lut.at(x_val.array_type)) {
       // append to array
@@ -440,10 +435,10 @@ RpnElement Evaluator::perform_addition(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::perform_subtraction(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value - y_val.number_value;
@@ -467,10 +462,10 @@ RpnElement Evaluator::perform_subtraction(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::perform_multiplication(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     val.type = VarType::INT;
     val.number_value = x_val.number_value * y_val.number_value;
@@ -485,10 +480,10 @@ RpnElement Evaluator::perform_multiplication(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::perform_division(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     if (y_val.number_value == 0) {
       throw_error("Cannot divide by zero");
@@ -511,10 +506,10 @@ RpnElement Evaluator::perform_division(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::perform_modulo(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::INT && y_val.type == VarType::INT) {
     if (y_val.number_value == 0) {
       throw_error("Cannot divide by 0");
@@ -528,17 +523,25 @@ RpnElement Evaluator::perform_modulo(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::bitwise_and(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::bitwise_and(const RpnElement &x, const RpnElement &y) {
   BITWISE(&, "and")
 }
 
-RpnElement Evaluator::bitwise_or(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::bitwise_or(const RpnElement &x, const RpnElement &y) {
   BITWISE(|, "or")
 }
 
-RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+RpnElement Evaluator::shift_left(const RpnElement &x, const RpnElement &y) {
+  BITWISE(<<, "left shift")
+}
+
+RpnElement Evaluator::shift_right(const RpnElement &x, const RpnElement &y) {
+  BITWISE(>>, "right shift")
+}
+
+RpnElement Evaluator::bitwise_xor(const RpnElement &x, const RpnElement &y) {
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::ARR && y_val.type == VarType::ARR) {
     // concat arrays
     if (x_val.array_type == y_val.array_type) {
@@ -561,18 +564,10 @@ RpnElement Evaluator::bitwise_xor(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::shift_left(RpnElement &x, RpnElement &y) {
-  BITWISE(<<, "left shift")
-}
-
-RpnElement Evaluator::shift_right(RpnElement &x, RpnElement &y) {
-  BITWISE(>>, "right shift")
-}
-
-RpnElement Evaluator::logical_and(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::logical_and(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.boolean_value && y_val.boolean_value;
@@ -583,10 +578,10 @@ RpnElement Evaluator::logical_and(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::logical_or(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::logical_or(const RpnElement &x, const RpnElement &y) {
   Value val;
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   if (x_val.type == VarType::BOOL && y_val.type == VarType::BOOL) {
     val.type = VarType::BOOL;
     val.boolean_value = x_val.boolean_value || y_val.boolean_value;
@@ -597,7 +592,7 @@ RpnElement Evaluator::logical_or(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::assign(RpnElement &x, const RpnElement &y) {
   if (!x.value.is_lvalue()) {
     std::string msg = "Cannot assign to an rvalue";
     throw_error(msg);
@@ -611,8 +606,8 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
     std::string msg = "Cannot reassign a constant variable (" + x.value.reference_name + ")";
     throw_error(msg);
   }
-  Value &x_value = get_value(x);
-  Value y_value = get_value(y);
+  Value &x_value = get_mut_value(x);
+  const Value y_value = get_value(y);
   if (x_value.type == VarType::UNKNOWN) {
     std::string msg = x_value.reference_name + " doesn't point to anything on the heap";
     throw_error(msg);
@@ -621,71 +616,70 @@ RpnElement Evaluator::assign(RpnElement &x, RpnElement &y) {
     std::string msg = "Cannot assign " + stringify(y_value) + " to " + x.value.reference_name;
     throw_error(msg);
   }
-  std::string ref_name = x.value.reference_name;
   x_value = y_value;
   return {x_value};
 }
 
-RpnElement Evaluator::plus_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = perform_addition(x, y);
+RpnElement Evaluator::plus_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = perform_addition(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::minus_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = perform_subtraction(x, y);
+RpnElement Evaluator::minus_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = perform_subtraction(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::mul_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = perform_multiplication(x, y);
+RpnElement Evaluator::mul_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = perform_multiplication(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::div_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = perform_division(x, y);
+RpnElement Evaluator::div_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = perform_division(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::mod_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = perform_modulo(x, y);
+RpnElement Evaluator::mod_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = perform_modulo(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::lshift_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = shift_left(x, y);
+RpnElement Evaluator::lshift_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = shift_left(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::rshift_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = shift_right(x, y);
+RpnElement Evaluator::rshift_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = shift_right(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::and_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = bitwise_and(x, y);
+RpnElement Evaluator::and_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = bitwise_and(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::or_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = bitwise_or(x, y);
+RpnElement Evaluator::or_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = bitwise_or(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::xor_assign(RpnElement &x, RpnElement &y) {
-  RpnElement rvalue = bitwise_xor(x, y);
+RpnElement Evaluator::xor_assign(RpnElement &x, const RpnElement &y) {
+  const RpnElement &&rvalue = bitwise_xor(x, y);
   return assign(x, rvalue);
 }
 
-RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::access_member(RpnElement &x, const RpnElement &y) {
   if (!y.value.is_lvalue()) {
     throw_error("Object members can only be accessed with lvalues");
   }
-  Value &obj = get_value(x);
+  Value &obj = get_mut_value(x);
   if (obj.type != VarType::OBJ) {
     std::string msg = stringify(obj) + " is not an object";
     throw_error(msg);
   }
-  auto member_it = obj.member_values.find(y.value.reference_name);
+  const auto member_it = obj.member_values.find(y.value.reference_name);
   if (member_it == obj.member_values.end()) {
     std::string object_name = x.value.is_lvalue() ? " " + x.value.reference_name + " " : " ";
     std::string msg = "Object" + object_name + "has no member named " + y.value.reference_name;
@@ -698,13 +692,13 @@ RpnElement Evaluator::access_member(RpnElement &x, RpnElement &y) {
   return {val};
 }
 
-RpnElement Evaluator::access_index(RpnElement &arr, RpnElement &idx) {
-  Value &array = get_value(arr);
+RpnElement Evaluator::access_index(RpnElement &arr, const RpnElement &idx) {
+  Value &array = get_mut_value(arr);
   if (array.type != VarType::ARR) {
     std::string msg = stringify(array) + " is not an array";
     throw_error(msg);
   }
-  Value index = evaluate_expression(idx.op.index_rpn);
+  const Value &&index = evaluate_expression(idx.op.index_rpn);
   if (index.type != VarType::INT) {
     std::string msg = "index expected to be an int, but " + stringify(index) + " found";
     throw_error(msg);
@@ -717,9 +711,9 @@ RpnElement Evaluator::access_index(RpnElement &arr, RpnElement &idx) {
   return {res};
 }
 
-RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+RpnElement Evaluator::compare_eq(const RpnElement &x, const RpnElement &y) {
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   Value val;
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     val.type = VarType::BOOL;
@@ -743,16 +737,16 @@ RpnElement Evaluator::compare_eq(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::compare_neq(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::compare_neq(const RpnElement &x, const RpnElement &y) {
   Value val;
   val.type = VarType::BOOL;
   val.boolean_value = !compare_eq(x, y).value.boolean_value;
   return {val};
 }
 
-RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
-  Value &x_val = get_value(x);
-  Value &y_val = get_value(y);
+RpnElement Evaluator::compare_gt(const RpnElement &x, const RpnElement &y) {
+  const Value &x_val = get_value(x);
+  const Value &y_val = get_value(y);
   Value val;
   if (x_val.type == VarType::FLOAT || y_val.type == VarType::FLOAT) {
     val.type = VarType::BOOL;
@@ -768,25 +762,25 @@ RpnElement Evaluator::compare_gt(RpnElement &x, RpnElement &y) {
   return {};
 }
 
-RpnElement Evaluator::compare_lt(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::compare_lt(const RpnElement &x, const RpnElement &y) {
   return compare_gt(y, x);
 }
 
-RpnElement Evaluator::compare_gt_eq(RpnElement &x, RpnElement &y) {
-  RpnElement gt = compare_gt(x, y);
-  RpnElement eq = compare_eq(x, y);
+RpnElement Evaluator::compare_gt_eq(const RpnElement &x, const RpnElement &y) {
+  const RpnElement &&gt = compare_gt(x, y);
+  const RpnElement &&eq = compare_eq(x, y);
   Value val;
   val.type = VarType::BOOL;
   val.boolean_value = gt.value.boolean_value || eq.value.boolean_value;
   return {val};
 }
 
-RpnElement Evaluator::compare_lt_eq(RpnElement &x, RpnElement &y) {
+RpnElement Evaluator::compare_lt_eq(const RpnElement &x, const RpnElement &y) {
   return compare_gt_eq(y, x);
 }
 
 void Evaluator::register_class(ClassStatement &_class) {
-  Variable *v = get_reference_by_name(_class.class_name);
+  const Variable *v = get_reference_by_name(_class.class_name);
   if (v != nullptr) {
     delete v;
   }
@@ -799,9 +793,9 @@ void Evaluator::register_class(ClassStatement &_class) {
 }
 
 void Evaluator::declare_variable(Node &declaration) {
-  Declaration &decl = declaration.decl;
-  Value var_val = evaluate_expression(decl.var_expr, decl.reference);
-  Utils::VarType var_type = utils.var_lut.at(decl.var_type);
+  const Declaration &decl = declaration.decl;
+  const Value &&var_val = evaluate_expression(decl.var_expr, decl.reference);
+  const Utils::VarType &var_type = utils.var_lut.at(decl.var_type);
   Utils::VarType expr_type = var_val.type;
   if (decl.reference) {
     expr_type = get_heap_value(var_val.heap_reference).type;
@@ -810,14 +804,14 @@ void Evaluator::declare_variable(Node &declaration) {
     std::string msg = "Cannot assign " + stringify(var_val) + " to a variable of type " + decl.var_type;
     throw_error(msg);
   }
-  Variable *v = get_reference_by_name(decl.id);
+  const Variable *v = get_reference_by_name(decl.id);
   if (v != nullptr) {
     // to avoid memory leaks while redeclaring
     delete v;
   }
   if (decl.allocated) {
     assert(decl.reference == false);
-    Chunk &chunk = VM.heap.allocate();
+    const Chunk &chunk = VM.heap.allocate();
     Variable *var = new Variable;
     var->val.heap_reference = chunk.heap_reference;
     var->type = decl.var_type;
@@ -838,11 +832,11 @@ void Evaluator::declare_variable(Node &declaration) {
   stack[decl.id] = var;
 }
 
-RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
+RpnElement Evaluator::construct_object(const RpnElement &call, const RpnElement &_class) {
   Value val;
-  Value &class_val = get_value(_class);
+  const Value &class_val = get_value(_class);
   int args_counter = 0;
-  for (auto &arg : call.op.func_call.arguments) {
+  for (const auto &arg : call.op.func_call.arguments) {
     if (arg.size() != 0) {
       args_counter++;
     } else {
@@ -860,10 +854,9 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
   val.type = VarType::OBJ;
   val.members.reserve(members_count);
   int i = 0;
-  for (auto &node_list : call.op.func_call.arguments) {
-    std::string num = std::to_string(i + 1);
-    FuncParam &member = class_val.members[i];
-    Value arg_val = evaluate_expression(node_list, member.is_ref);
+  for (const auto &node_list : call.op.func_call.arguments) {
+    const FuncParam &member = class_val.members[i];
+    Value &&arg_val = evaluate_expression(node_list, member.is_ref);
     Value real_val = arg_val;
     VarType arg_type = arg_val.type;
     if (arg_val.heap_reference != -1) {
@@ -871,10 +864,12 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
       arg_type = real_val.type;
     }
     if (member.is_ref && arg_val.heap_reference == -1) {
+      std::string num = std::to_string(i + 1);
       std::string msg = "Object argument " + num + " expected to be a reference, but value given";
       throw_error(msg);
     }
     if (arg_type != utils.var_lut.at(member.type_name)) {
+      std::string num = std::to_string(i + 1);
       std::string msg = "Argument " + num + " expected to be " + member.type_name + ", but " + stringify(real_val) + " given";
       throw_error(msg);
     }
@@ -885,7 +880,7 @@ RpnElement Evaluator::construct_object(RpnElement &call, RpnElement &_class) {
   return {val};
 }
 
-RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
+RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
   assert(call.op.op_type == Operator::FUNC);
   auto global_it = VM.globals.find(fn.value.reference_name);
   if (fn.value.is_lvalue() && global_it != VM.globals.end()) {
@@ -901,7 +896,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     VM.trace.pop();
     return {return_val};
   }
-  Value &fn_value = get_value(fn);
+  Value &fn_value = get_mut_value(fn);
   if (fn_value.type == VarType::CLASS) {
     return construct_object(call, fn);
   }
@@ -918,7 +913,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
     Value str = fn_value;
     if (args == 0) return {str};
     int argn = 1;
-    for (auto &arg : call.op.func_call.arguments) {
+    for (const auto &arg : call.op.func_call.arguments) {
       Value arg_val = evaluate_expression(arg);
       std::string find = "@" + std::to_string(argn);
       str.string_value = std::regex_replace(str.string_value, std::regex(find), VM.stringify(arg_val));
@@ -932,7 +927,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   }
   if (fn_value.func.instructions.size() == 0) return {};
   int args_counter = 0;
-  for (auto &arg : call.op.func_call.arguments) {
+  for (const auto &arg : call.op.func_call.arguments) {
     if (arg.size() != 0) {
       args_counter++;
     } else if (args_counter != 0) {
@@ -953,8 +948,8 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
 
   if (fn_value.func.params.size() != 0) {
     int i = 0;
-    for (auto &node_list : call.op.func_call.arguments) {
-      Value arg_val = evaluate_expression(node_list, fn_value.func.params[i].is_ref);
+    for (const auto &node_list : call.op.func_call.arguments) {
+      Value &&arg_val = evaluate_expression(node_list, fn_value.func.params[i].is_ref);
       Value real_val = arg_val;
       VarType arg_type = arg_val.type;
       if (arg_val.heap_reference != -1) {
@@ -994,11 +989,11 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
   }
   if (fn_value.func.captures) {
     // copy current callstack on the new callstack
-    for (auto &pair : stack) {
+    for (const auto &pair : stack) {
       if (pair.first == "this") continue;
       if (fn.value.is_lvalue() && pair.first == fn.value.reference_name) continue;
       bool contains = false;
-      for (auto &p : fn_value.func.params) {
+      for (const auto &p : fn_value.func.params) {
         if (p.param_name == pair.first) {
           contains = true;
           break;
@@ -1019,7 +1014,7 @@ RpnElement Evaluator::execute_function(RpnElement &call, RpnElement &fn) {
       throw_error(msg);
       return {};
     }
-    Value heap_val = get_heap_value(func_evaluator.return_value.heap_reference);
+    const Value &heap_val = get_heap_value(func_evaluator.return_value.heap_reference);
     if (heap_val.type != utils.var_lut.at(fn_value.func.ret_type)) {
       std::string msg = "function return type is ref " + fn_value.func.ret_type + ", but " + stringify(func_evaluator.return_value) + " was returned";
       throw_error(msg);
@@ -1101,7 +1096,7 @@ RpnElement Evaluator::node_to_element(const Node &node) {
     Utils::VarType arr_type = utils.var_lut.at(node.expr.array_type);
     for (auto &v : val.array_values) v.type = arr_type;
     int i = 0;
-    for (auto &node_list : node.expr.array_expressions) {
+    for (const auto &node_list : node.expr.array_expressions) {
       if (node_list.size() == 0) {
         if (i == 0) {
           break;
@@ -1135,7 +1130,7 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
   if (VM.globals.find(name) != VM.globals.end()) {
     throw_error("Trying to access a native function");
   }
-  auto el = stack.find(name);
+  const auto el = stack.find(name);
   if (el == stack.end()) return nullptr;
   return el->second;
 }
@@ -1154,7 +1149,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
   references.push_back(val);
   int i = 0;
   std::string prev = members[0];
-  for (auto &member : members) {
+  for (const auto &member : members) {
     if (i++ == 0) continue;
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
@@ -1166,7 +1161,7 @@ void Evaluator::set_member(const std::vector<std::string> &members, NodeList &ex
     references.push_back(&member_it->second);
     prev = member;
   }
-  Value rvalue = evaluate_expression(expression);
+  const Value rvalue = evaluate_expression(expression);
   Value *fin = references.back();
   fin = fin->heap_reference != -1 ? &get_heap_value(fin->heap_reference) : fin;
   if (fin->type != rvalue.type) {
@@ -1189,10 +1184,10 @@ void Evaluator::set_index(Statement &stmt) {
   std::vector<Value *> references;
   references.reserve(stmt.indexes.size() + 1);
   references.push_back(val);
-  for (auto &index : stmt.indexes) {
+  for (const auto &index : stmt.indexes) {
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
-    Value index_val = evaluate_expression(index.expr.index);
+    const Value index_val = evaluate_expression(index.expr.index);
     if (index_val.type != VarType::INT) {
       std::string msg = "Cannot access array with " + stringify(index_val);
       throw_error(msg);
@@ -1203,7 +1198,7 @@ void Evaluator::set_index(Statement &stmt) {
     }
     references.push_back(&temp->array_values[index_val.number_value]);
   }
-  Value rvalue = evaluate_expression(stmt.expressions[0]);
+  const Value &&rvalue = evaluate_expression(stmt.expressions[0]);
   Value *fin = references.back();
   fin = fin->heap_reference != -1 ? &get_heap_value(fin->heap_reference) : fin;
   if (fin->type != rvalue.type) {
@@ -1213,7 +1208,28 @@ void Evaluator::set_index(Statement &stmt) {
   *fin = rvalue;
 }
 
-Value &Evaluator::get_value(RpnElement &el) {
+const Value &Evaluator::get_value(const RpnElement &el) {
+  if (el.value.is_lvalue()) {
+    if (el.value.member_name.size() != 0) {
+      return el.value;
+    }
+    Variable *var = get_reference_by_name(el.value.reference_name);
+    if (var == nullptr) {
+      std::string msg = "'" + el.value.reference_name + "' is not defined";
+      throw_error(msg);
+    }
+    if (var->val.heap_reference > -1) {
+      return get_heap_value(var->val.heap_reference);
+    }
+    return var->val;
+  } else if (el.value.heap_reference != -1) {
+    return get_heap_value(el.value.heap_reference);
+  } else {
+    return el.value;
+  }
+}
+
+Value &Evaluator::get_mut_value(RpnElement &el) {
   if (el.value.is_lvalue()) {
     if (el.value.member_name.size() != 0) {
       return el.value;
@@ -1236,19 +1252,17 @@ Value &Evaluator::get_value(RpnElement &el) {
 
 Value &Evaluator::get_heap_value(std::int64_t ref) {
   if (ref < 0 || ref >= VM.heap.chunks.size()) {
-    std::string msg = "dereferencing a value that is not on the heap";
-    throw_error(msg);
+    throw_error("dereferencing a value that is not on the heap");
   }
   Value *ptr = VM.heap.chunks[ref].data;
   if (ptr == nullptr) {
-    std::string msg = "dereferencing a null pointer";
-    throw_error(msg);
+    throw_error("dereferencing a null pointer");
   }
   return *ptr;
 }
 
 void Evaluator::flatten_tree(RpnStack &res, const NodeList &expression_tree) {
-  for (auto &node : expression_tree) {
+  for (const auto &node : expression_tree) {
     if (node.expr.rpn_stack.size() != 0) {
       flatten_tree(res, node.expr.rpn_stack);
     }

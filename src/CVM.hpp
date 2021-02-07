@@ -30,7 +30,7 @@ class Value {
     std::string array_type = "int";
     std::string class_name = "";
     std::string member_name = "";
-    bool is_lvalue();
+    bool is_lvalue() const;
     Value(void) : type(Utils::UNKNOWN) {};
     Value(Utils::VarType _type) : type(_type) {};
 };

@@ -43,7 +43,7 @@ void StackTrace::push(const std::string &_name, std::uint64_t _line, std::string
   stack.push_back({_line, _name, _source});
 }
 
-bool Value::is_lvalue() {
+bool Value::is_lvalue() const {
   return reference_name.size() != 0;
 }
 
