@@ -138,13 +138,3 @@ println(table.has("Key"));
 println("Values =", table.values());
 
 table.destroy();
-
-int slave = 0;
-
-func capture = function>(void) void {
-  slave += 2;
-};
-
-capture();
-
-println('slave =', slave);
