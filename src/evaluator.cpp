@@ -887,12 +887,12 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
     std::vector<Value> call_args;
     call_args.reserve(call.op.func_call.arguments.size());
     bool needs_ref = fn.value.reference_name == "bind";
-    for (auto &node_list : call.op.func_call.arguments) {
+    for (const auto &node_list : call.op.func_call.arguments) {
       if (node_list.size() == 0) break;
       call_args.push_back(evaluate_expression(node_list, needs_ref));
     }
     VM.trace.push(fn.value.reference_name, current_line, current_source);
-    Value return_val = global_it->second->execute(call_args, current_line, VM);
+    Value &&return_val = global_it->second->execute(call_args, current_line, VM);
     VM.trace.pop();
     return {return_val};
   }
@@ -1137,7 +1137,7 @@ Variable *Evaluator::get_reference_by_name(const std::string &name) {
 
 void Evaluator::set_member(const std::vector<std::string> &members, NodeList &expression) {
   assert(members.size() > 1);
-  std::string base = members[0];
+  const std::string &base = members[0];
   Variable *var = get_reference_by_name(base);
   if (var == nullptr) {
     std::string msg = "'" + base + "' is not defined";
