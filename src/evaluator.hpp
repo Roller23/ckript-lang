@@ -47,13 +47,11 @@ class Evaluator {
     CVM &VM;
     const Node &AST;
     Utils &utils;
-    bool stream = false;
     CallStack stack;
     Evaluator(const Node &_AST, CVM &_VM, Utils &_utils) : 
       VM(_VM),
       AST(_AST), 
-      utils(_utils),
-      stream() {
+      utils(_utils) {
         native_bind = VM.globals.at("bind");
         native_stacktrace = VM.globals.at("stack_trace");
       };
