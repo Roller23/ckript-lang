@@ -15,13 +15,12 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   Utils utils;
   TokenList tokens = lexer.process_file(filename);
   Parser parser(tokens, Token::TokenType::NONE, "", utils);
-  Node AST = parser.parse(NULL);
+  const Node &&AST = parser.parse(NULL);
   CVM VM;
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
   // pass the "arguments" array
-  evaluator.stack["argv"] = std::make_shared<Variable>();
-  auto &var = evaluator.stack["argv"];
+  auto &var = (evaluator.stack["argv"] = std::make_shared<Variable>());
   var->type = Utils::ARR;
   var->val.array_type = "str";
   var->val.type = Utils::ARR;
