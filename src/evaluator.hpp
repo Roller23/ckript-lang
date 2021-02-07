@@ -42,7 +42,6 @@ typedef std::vector<RpnElement> RpnStack;
 class Evaluator {
   private:
     NativeFunction *native_bind = nullptr;
-    NativeFunction *native_stacktrace = nullptr;
   public:
     CVM &VM;
     const Node &AST;
@@ -51,10 +50,7 @@ class Evaluator {
     Evaluator(const Node &_AST, CVM &_VM, Utils &_utils) : 
       VM(_VM),
       AST(_AST), 
-      utils(_utils) {
-        native_bind = VM.globals.at("bind");
-        native_stacktrace = VM.globals.at("stack_trace");
-      };
+      utils(_utils) {};
     void start();
   private:
     bool inside_func = false;

@@ -43,7 +43,7 @@ void Evaluator::throw_error(const std::string &cause) {
   std::cout << "Runtime error: " << cause << " (line " << current_line << ")\n";
   if (VM.trace.stack.size() == 0) std::exit(EXIT_FAILURE);
   std::vector<Value> args;
-  native_stacktrace->execute(args, current_line, VM);
+  VM.globals.at("stack_trace")->execute(args, current_line, VM);
   std::exit(EXIT_FAILURE);
 }
 
@@ -809,6 +809,9 @@ void Evaluator::declare_variable(const Node &declaration) {
     if (var_val.type == Utils::OBJ) {
       // bind the reference to the object to 'this' in its methods
       std::vector<Value> args(1, var->val);
+      if (native_bind == nullptr) {
+        native_bind = VM.globals.at("bind");
+      }
       native_bind->execute(args, current_line, VM);
     }
     return;
