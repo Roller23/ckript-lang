@@ -256,6 +256,7 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
           res_stack.pop_back();
           if (token.op.type == Token::OP_NOT) {
             res_stack.push_back(SHARE_RPN(logical_not(*x)));
+            // res_stack.emplace_back();
           } else if (token.op.type == Token::OP_NEG) {
             res_stack.push_back(SHARE_RPN(bitwise_not(*x)));
           } else if (token.op.type == Token::DEL) {
@@ -1034,41 +1035,43 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
   return {};
 }
 
-RpnElement Evaluator::node_to_element(const Node &node) {
+void Evaluator::node_to_element(const Node &node, RpnStack &container) {
   assert(node.expr.is_paren() == false);
   if (node.expr.is_operation()) {
     if (node.expr.type == Expression::FUNC_CALL) {
-      return {Operator(node.expr.func_call)};
+      container.emplace_back(Operator(node.expr.func_call));
     } else if (node.expr.type == Expression::INDEX) {
-      return {Operator(node.expr.index)};
+      container.emplace_back(Operator(node.expr.index));
+    } else {
+      container.emplace_back(Operator(node.expr.op));
     }
-    return {Operator(node.expr.op)};
+    return;
   }
   Value val;
   if (node.expr.type == Expression::BOOL_EXPR) {
     val.type = VarType::BOOL;
     val.boolean_value = node.expr.bool_literal;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::STR_EXPR) {
     val.type = VarType::STR;
     val.string_value = node.expr.string_literal;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::FLOAT_EXPR) {
     val.type = VarType::FLOAT;
     val.float_value = node.expr.float_literal;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::NUM_EXPR) {
     val.type = VarType::INT;
     val.number_value = node.expr.number_literal;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::IDENTIFIER_EXPR) {
     val.type = VarType::ID;
     val.reference_name = node.expr.id_name;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::FUNC_EXPR) {
     val.type = VarType::FUNC;
     val.func = node.expr.func_expr;
-    return {val};
+    container.emplace_back(val);
   } else if (node.expr.type == Expression::ARRAY) {
     Value initial_size(Utils::INT);
     std::size_t elemenets_count = 0;
@@ -1093,7 +1096,7 @@ RpnElement Evaluator::node_to_element(const Node &node) {
     if (initial_size.number_value != 0) {
       val.array_values.resize(initial_size.number_value);
     }
-    Utils::VarType arr_type = utils.var_lut.at(node.expr.array_type);
+    const Utils::VarType &arr_type = utils.var_lut.at(node.expr.array_type);
     for (auto &v : val.array_values) v.type = arr_type;
     int i = 0;
     for (const auto &node_list : node.expr.array_expressions) {
@@ -1120,10 +1123,10 @@ RpnElement Evaluator::node_to_element(const Node &node) {
       }
       i++;
     }
-    return {val};
+    container.emplace_back(val);
+  } else {
+    throw_error("Unidentified expression type!\n");
   }
-  throw_error("Unidentified expression type!\n");
-  return {};
 }
 
 Variable *Evaluator::get_reference_by_name(const std::string &name) {
@@ -1267,7 +1270,8 @@ void Evaluator::flatten_tree(RpnStack &res, const NodeList &expression_tree) {
       flatten_tree(res, node.expr.rpn_stack);
     }
     if (node.expr.type != Expression::RPN) {
-      res.push_back(node_to_element(node));
+      // res.push_back(node_to_element(node));
+      node_to_element(node, res);
     }
   }
 }

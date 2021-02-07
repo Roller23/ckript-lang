@@ -72,7 +72,7 @@ class Evaluator {
     void declare_variable(Node &declaration);
     void register_class(ClassStatement &_class);
     void flatten_tree(RpnStack &res, const NodeList &expression_tree);
-    RpnElement node_to_element(const Node &node);
+    void node_to_element(const Node &node, RpnStack &container);
     Variable *get_reference_by_name(const std::string &name);
     Value reduce_rpn(RpnStack &stack);
     std::string stringify(const Value &val);
