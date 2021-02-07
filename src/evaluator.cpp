@@ -54,7 +54,6 @@ void Evaluator::start() {
       break;
     }
   }
-  if (stream) return;
   if (return_value.type == VarType::UNKNOWN) {
     return_value.type = VarType::VOID;
   }
@@ -68,11 +67,6 @@ int Evaluator::execute_statement(const Node &statement) {
   } else if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
     Value result = evaluate_expression(statement.stmt.expressions[0]);
-    if (stream && result.type != VarType::VOID) {
-      std::cout << "< ";
-      std::vector<Value> v(1, result);
-      native_println->execute(v, current_line, VM);
-    }
     return FLAG_OK;
   } else if (statement.stmt.type == StmtType::CLASS) {
     register_class(statement.stmt.class_stmt);

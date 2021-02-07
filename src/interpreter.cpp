@@ -31,36 +31,3 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   }
   evaluator.start();
 }
-
-void Interpreter::process_stream() {
-  Utils utils;
-  CVM VM;
-  std::string line = "";
-  bool running = true;
-  std::cout << "Ckript shell\n";
-  std::cout << "Made by https://github.com/Roller23\n";
-  std::cout << "Type 'exit' to exit\n";
-  while (running) {
-    std::cout << "> ";
-    std::getline(std::cin, line);
-    if (line.size() == 0) continue;
-    if (line == "exit") break;
-    TokenList tokens = Lexer().tokenize(line);
-    Node AST = Parser(tokens, Token::TokenType::NONE, "", utils).parse(NULL);
-    Evaluator evaluator = Evaluator(AST, VM, utils, true);
-    evaluator.start();
-    while (true) {
-      std::cout << "> ";
-      std::getline(std::cin, line);
-      if (line.size() == 0) continue;
-      if (line == "exit") {
-        running = false;
-        break;
-      }
-      TokenList tokens = Lexer().tokenize(line);
-      Node AST = Parser(tokens, Token::TokenType::NONE, "", utils).parse(NULL);
-      // evaluator.AST = AST;
-      evaluator.start();
-    }
-  }
-}

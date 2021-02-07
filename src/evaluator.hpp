@@ -42,7 +42,6 @@ typedef std::vector<RpnElement> RpnStack;
 class Evaluator {
   private:
     NativeFunction *native_bind = nullptr;
-    NativeFunction *native_println = nullptr;
     NativeFunction *native_stacktrace = nullptr;
   public:
     CVM &VM;
@@ -50,13 +49,12 @@ class Evaluator {
     Utils &utils;
     bool stream = false;
     CallStack stack;
-    Evaluator(const Node &_AST, CVM &_VM, Utils &_utils, bool is_stream = false) : 
+    Evaluator(const Node &_AST, CVM &_VM, Utils &_utils) : 
       VM(_VM),
       AST(_AST), 
       utils(_utils),
-      stream(is_stream) {
+      stream() {
         native_bind = VM.globals.at("bind");
-        native_println = VM.globals.at("println");
         native_stacktrace = VM.globals.at("stack_trace");
       };
     void start();
