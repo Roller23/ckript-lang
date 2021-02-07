@@ -60,7 +60,7 @@ class Evaluator {
     std::string *current_source = nullptr;
     void throw_error(const std::string &cause);
     int execute_statement(const Node &statement);
-    Value evaluate_expression(const NodeList &expression_tree, bool get_ref = false);
+    Value evaluate_expression(const NodeList &expression_tree, const bool get_ref = false);
     void declare_variable(const Node &declaration);
     void register_class(const ClassStatement &_class);
     void flatten_tree(RpnStack &res, const NodeList &expression_tree);

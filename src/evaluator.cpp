@@ -48,7 +48,7 @@ void Evaluator::throw_error(const std::string &cause) {
 }
 
 void Evaluator::start() {
-  for (auto &statement : AST.children) {
+  for (const auto &statement : AST.children) {
     int flag = execute_statement(statement);
     if (flag == FLAG_RETURN) {
       break;
@@ -185,7 +185,7 @@ int Evaluator::execute_statement(const Node &statement) {
   return FLAG_ERROR;
 }
 
-Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_ref) {
+Value Evaluator::evaluate_expression(const NodeList &expression_tree, const bool get_ref) {
   RpnStack rpn_stack;
   rpn_stack.reserve(100);
   flatten_tree(rpn_stack, expression_tree);
