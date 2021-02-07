@@ -21,7 +21,7 @@ typedef std::vector<SharedRpnElement> SharedRpnStack;
 
 #define SHARE_RPN(rpn) std::make_shared<RpnElement>(rpn)
 
-#define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.push_back(SHARE_RPN(FN(*x, *y)));} else
+#define REG(OP, FN) if (token.op.type == Token::OP) {res_stack.emplace_back(SHARE_RPN(FN(*x, *y)));} else
 
 #define BITWISE(OP, NAME)\
   Value val;\
@@ -197,7 +197,7 @@ int Evaluator::execute_statement(Node &statement) {
 
 Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_ref) {
   RpnStack rpn_stack;
-  rpn_stack.reserve(50);
+  rpn_stack.reserve(100);
   flatten_tree(rpn_stack, expression_tree);
   // TODO: cache the result somehow
   SharedRpnStack res_stack;
@@ -255,12 +255,11 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
           const SharedRpnElement x = res_stack.back();
           res_stack.pop_back();
           if (token.op.type == Token::OP_NOT) {
-            res_stack.push_back(SHARE_RPN(logical_not(*x)));
-            // res_stack.emplace_back();
+            res_stack.emplace_back(SHARE_RPN(logical_not(*x)));
           } else if (token.op.type == Token::OP_NEG) {
-            res_stack.push_back(SHARE_RPN(bitwise_not(*x)));
+            res_stack.emplace_back(SHARE_RPN(bitwise_not(*x)));
           } else if (token.op.type == Token::DEL) {
-            res_stack.push_back(SHARE_RPN(delete_value(*x)));
+            res_stack.emplace_back(SHARE_RPN(delete_value(*x)));
           } else {
             std::string msg = "Unknown unary operator " + Token::get_name(token.op.type);
             throw_error(msg);
@@ -269,14 +268,14 @@ Value Evaluator::evaluate_expression(const NodeList &expression_tree, bool get_r
       } else if (token.op.op_type == Operator::FUNC) {
         const SharedRpnElement fn = res_stack.back();
         res_stack.pop_back();
-        res_stack.push_back(SHARE_RPN(execute_function(*fn, token)));
+        res_stack.emplace_back(SHARE_RPN(execute_function(*fn, token)));
       } else if (token.op.op_type == Operator::INDEX) {
         const SharedRpnElement arr = res_stack.back();
         res_stack.pop_back();
-        res_stack.push_back(SHARE_RPN(access_index(*arr, token)));
+        res_stack.emplace_back(SHARE_RPN(access_index(*arr, token)));
       }
     } else {
-      res_stack.push_back(SHARE_RPN(token));
+      res_stack.emplace_back(SHARE_RPN(token));
     }
   }
   Value &res_val = res_stack[0]->value;
@@ -1270,7 +1269,6 @@ void Evaluator::flatten_tree(RpnStack &res, const NodeList &expression_tree) {
       flatten_tree(res, node.expr.rpn_stack);
     }
     if (node.expr.type != Expression::RPN) {
-      // res.push_back(node_to_element(node));
       node_to_element(node, res);
     }
   }
