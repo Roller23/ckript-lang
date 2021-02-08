@@ -75,7 +75,7 @@ void Lexer::add_token(Token::TokenType type) {
 }
 
 void Lexer::add_token(Token::TokenType type, const std::string &val) {
-  tokens.push_back(Token(type, val, current_line, file_name));
+  tokens.emplace_back(type, val, current_line, file_name);
 }
 
 void Lexer::add_unknown_token(std::string str) {
