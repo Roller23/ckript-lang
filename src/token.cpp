@@ -42,6 +42,7 @@ std::string Token::get_name(TokenType type) {
   REG(OR_ASSIGN, "|=");
   REG(AND_ASSIGN, "&=");
   REG(XOR_ASSIGN, "^=");
+  REG(MOD_ASSIGN, "%=");
   REG(IDENTIFIER, "identifier");
   REG(FALSE, "false");
   REG(TRUE, "true");

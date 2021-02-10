@@ -43,7 +43,6 @@ class Variable {
     Value val;
     bool constant = false;
     bool is_allocated() const;
-    bool is_reference() const;
 };
 
 class Chunk {

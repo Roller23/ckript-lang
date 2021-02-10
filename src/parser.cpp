@@ -135,7 +135,7 @@ ParamList Parser::parse_func_params(bool is_class) {
       throw_error(msg, curr_token.line);
     }
     if (!param_names.insert(curr_token.value).second) {
-      std::string n = is_class ? "function" : "class";
+      std::string n = is_class ? "class" : "function";
       std::string msg = "Invalid " + n + " declaration, duplicate parameter name '" + curr_token.value + "'";
       throw_error(msg, curr_token.line);
     }
@@ -211,7 +211,7 @@ Node Parser::parse_class_stmt() {
   Node class_expr = Node(Statement(ClassStatement()));
   class_expr.stmt.line = curr_token.line;
   class_expr.stmt.source = curr_token.source;
-  advance(); // skip the object
+  advance(); // skip the class
   if (curr_token.type != Token::IDENTIFIER) {
     std::string msg = "invalid class declaration, expected an identifier, but " + curr_token.get_name() + " found";
     throw_error(msg, curr_token.line);

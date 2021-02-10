@@ -66,7 +66,7 @@ int Evaluator::execute_statement(const Node &statement) {
     return FLAG_OK;
   } else if (statement.stmt.type == StmtType::EXPR) {
     if (statement.stmt.expressions.size() != 1) return FLAG_OK;
-    Value result = evaluate_expression(statement.stmt.expressions[0]);
+    evaluate_expression(statement.stmt.expressions[0]);
     return FLAG_OK;
   } else if (statement.stmt.type == StmtType::CLASS) {
     register_class(statement.stmt.class_stmt);
@@ -1027,8 +1027,7 @@ void Evaluator::node_to_element(const Node &node, RpnStack &container) {
       container.emplace_back(Operator(node.expr.op));
     }
     return;
-  }
-  if (node.expr.type == Expression::BOOL_EXPR) {
+  } else if (node.expr.type == Expression::BOOL_EXPR) {
     Value val;
     val.type = VarType::BOOL;
     val.boolean_value = node.expr.bool_literal;
