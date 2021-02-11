@@ -1,5 +1,5 @@
 m :=Automated Makefile push message
-CC := clang++
+CC := g++
 bin := bin/
 out := $(bin)ckript
 flags := -O3 -lm -std=c++17
