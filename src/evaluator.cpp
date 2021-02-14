@@ -1138,6 +1138,9 @@ void Evaluator::set_member(const std::vector<std::string> &members, const NodeLi
     if (i++ == 0) continue;
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
+    if (temp->type != VarType::OBJ) {
+      throw_error(stringify(*temp) + "is not an object");
+    }
     auto member_it = temp->member_values.find(member);
     if (member_it == temp->member_values.end()) {
       const std::string &&msg = prev + " has no member '" + member + "'";
@@ -1172,6 +1175,9 @@ void Evaluator::set_index(const Statement &stmt) {
   for (const auto &index : stmt.indexes) {
     Value *temp = references.back();
     temp = temp->heap_reference != -1 ? &get_heap_value(temp->heap_reference) : temp;
+    if (temp->type != VarType::ARR) {
+      throw_error(stringify(*temp) + "is not an array");
+    }
     const Value index_val = evaluate_expression(index.expr.index);
     if (index_val.type != VarType::INT) {
       const std::string &&msg = "Cannot access array with " + stringify(index_val);
