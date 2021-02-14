@@ -341,7 +341,7 @@ RpnElement Evaluator::logical_not(const RpnElement &x) {
     val.boolean_value = !x_val.boolean_value;
     return {val};
   }
-  throw_error("Cannot perform logical not on " + stringify(val) + "\n");
+  throw_error("Cannot perform logical not on " + stringify(x_val) + "\n");
   return {};
 }
 
@@ -353,7 +353,7 @@ RpnElement Evaluator::Evaluator::bitwise_not(const RpnElement &x) {
     val.number_value = ~x_val.number_value;
     return {val};
   }
-  throw_error("Cannot perform bitwise not on " + stringify(val) + "\n");
+  throw_error("Cannot perform bitwise not on " + stringify(x_val) + "\n");
   return {};
 }
 
@@ -396,7 +396,7 @@ RpnElement Evaluator::perform_addition(const RpnElement &x, const RpnElement &y)
       x_val_cpy.array_values.push_back(y_val);
       return {x_val_cpy};
     } else {
-      throw_error("Cannot append " + stringify(y_val) + " an array of " + x_val.array_type + "s");
+      throw_error("Cannot append " + stringify(y_val) + " to an array of " + x_val.array_type + "s");
     }
   } else if (y_val.type == VarType::ARR) {
     if (x_val.type == utils.var_lut.at(y_val.array_type)) {
@@ -405,7 +405,7 @@ RpnElement Evaluator::perform_addition(const RpnElement &x, const RpnElement &y)
       y_val_cpy.array_values.insert(y_val.array_values.begin(), x_val);
       return {y_val_cpy};
     } else {
-      throw_error("Cannot prepend " + stringify(x_val) + " an array of " + y_val.array_type + "s");
+      throw_error("Cannot prepend " + stringify(x_val) + " to an array of " + y_val.array_type + "s");
     }
   } else if (x_val.type == VarType::STR || y_val.type == VarType::STR) {
     val.type = VarType::STR;
@@ -584,8 +584,7 @@ RpnElement Evaluator::logical_or(const RpnElement &x, const RpnElement &y) {
 
 RpnElement Evaluator::assign(RpnElement &x, const RpnElement &y) {
   if (!x.value.is_lvalue()) {
-    const std::string &&msg = "Cannot assign to an rvalue";
-    throw_error(msg);
+    throw_error("Cannot assign to an rvalue");
   }
   std::shared_ptr<Variable> var = get_reference_by_name(x.value.reference_name);
   if (var == nullptr) {
@@ -830,7 +829,7 @@ RpnElement Evaluator::construct_object(const RpnElement &call, const RpnElement 
     if (arg.size() != 0) {
       args_counter++;
     } else {
-      throw_error("Illegal object invocation, missing members");
+      throw_error("Illegal class invocation, missing members");
     }
   }
   std::size_t members_count = class_val.members.size();
@@ -911,7 +910,7 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
     return {str};
   }
   if (fn_value.type != VarType::FUNC) {
-    const std::string &&msg = stringify(fn_value) + " is not a function";
+    const std::string &&msg = stringify(fn_value) + " is not a function or a string";
     throw_error(msg);
   }
   if (fn_value.func.instructions.size() == 0) return {};
@@ -968,7 +967,7 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
   if (fn_value.this_ref != -1) {
     // push "this" onto the stack
     auto &var = (func_evaluator.stack["this"] = std::make_shared<Variable>());
-    var->type = VarType::OBJ;
+    var->type = "obj"; // TODO: check if this is correct??
     var->val.heap_reference = fn_value.this_ref;
   }
   if (fn_value.func.captures) {
