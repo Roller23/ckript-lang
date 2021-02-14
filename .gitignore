@@ -9,3 +9,4 @@ bin/*
 *.obj
 *.exe
 callgrind.*
+.DS_Store
