@@ -542,10 +542,10 @@ class NativeFrombytes : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args[0].type != Utils::ARR) {
-        ErrorHandler::throw_runtime_error("to_bytes() expects one argument (arr)", line);
+        ErrorHandler::throw_runtime_error("from_bytes() expects one argument (arr)", line);
       }
       if (args[0].array_type != "int") {
-        ErrorHandler::throw_runtime_error("to_bytes() expects an int array", line);
+        ErrorHandler::throw_runtime_error("from_bytes() expects an int array", line);
       }
       Value res(Utils::STR);
       res.string_value = "";
@@ -560,7 +560,7 @@ class NativeBind : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
       if (args.size() != 1 || args[0].heap_reference == -1) {
-        ErrorHandler::throw_runtime_error("to_bytes() expects one argument (ref obj)", line);
+        ErrorHandler::throw_runtime_error("bind() expects one argument (ref obj)", line);
       }
       std::int64_t ref = args[0].heap_reference;
       if (ref < 0 || ref >= VM.heap.chunks.size()) {
