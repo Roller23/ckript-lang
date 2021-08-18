@@ -64,7 +64,7 @@ bool Lexer::valid_float(const std::string &str) const {
 }
 
 void Lexer::consume_whitespace(void) {
-  while (ptr != end && isspace(*ptr, loc)) {
+  while (ptr != end && isspace(*ptr)) {
     deleted_spaces++;
     if (*ptr++ == '\n') current_line++;
   }
@@ -109,10 +109,10 @@ TokenList Lexer::tokenize(const std::string &code) {
       add_char_token(c);
     } else {
       c = *ptr;
-      if (isalpha(c, loc) || c == '_') {
+      if (isalpha(c) || c == '_') {
         std::string token_str = "";
         token_str += c;
-        while (++ptr != end && (isalnum(*ptr, loc) || *ptr == '_')) {
+        while (++ptr != end && (isalnum(*ptr) || *ptr == '_')) {
           token_str += *ptr;
         }
         ptr--;
@@ -213,10 +213,10 @@ TokenList Lexer::tokenize(const std::string &code) {
           unescape(str);
         }
         add_token(Token::STRING_LITERAL, str);
-      } else if (isdigit(c, loc)) {
+      } else if (isdigit(c)) {
         // might be some kind of number
         std::string number_str = "";
-        while (isdigit(*ptr, loc) || *ptr == '.' || *ptr == 'x' || *ptr == 'b') {
+        while (isdigit(*ptr) || *ptr == '.' || *ptr == 'x' || *ptr == 'b') {
           number_str += *ptr++;
         }
         ptr--;
