@@ -43,6 +43,3 @@ push:
 	git add .
 	git commit -m "$(m)"
 	git push
-
-windows:
-	cl /EHsc /Ox main.cpp src/*.cpp /link /out:ckript.exe
