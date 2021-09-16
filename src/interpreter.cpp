@@ -15,7 +15,7 @@ void Interpreter::process_file(const std::string &filename, int argc, char *argv
   Utils utils;
   TokenList tokens = lexer.process_file(filename);
   Parser parser(tokens, Token::TokenType::NONE, "", utils);
-  const Node &&AST = parser.parse(NULL);
+  const Node &AST = parser.parse(NULL);
   CVM VM;
   Evaluator evaluator(AST, VM, utils);
   evaluator.stack.reserve(100);
