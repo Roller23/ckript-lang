@@ -6,7 +6,7 @@ flags := -O3 -lm -std=c++17
 src := src/
 build := build/
 objs := $(shell find $(src) -name '*.cpp' | sed -e 's/.cpp/.o/g' | sed -e 's/src\//build\//g')
-intput := examples/hash_table.ck
+input := examples/hash_table.ck
 
 all: $(out)
 
@@ -19,7 +19,7 @@ $(out): $(objs) main.cpp
 	$(CC) $(flags) -o $@ $^
 
 run:
-	./$(out) $(intput)
+	./$(out) $(input)
 
 shell:
 	./$(out)
@@ -28,7 +28,7 @@ debug:
 	gdb ./$(out)
 
 mem:
-	valgrind --track-origins=yes ./$(out) $(intput)
+	valgrind --track-origins=yes ./$(out) $(input)
 
 clean:
 	rm $(build)*.o
