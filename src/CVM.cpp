@@ -107,7 +107,24 @@ std::string CVM::stringify(Value &val) {
     return std::to_string(val.float_value);
   }
   if (val.type == Utils::FUNC) {
-    return "function";
+    std::string str = "function(";
+    int i = 0;
+    for (const auto &param : val.func.params) {
+      str += param.type_name;
+      if (i != val.func.params.size() - 1) {
+        str += ", ";
+      }
+      i++;
+    }
+    if (val.func.params.empty()) {
+      str += "void";
+    }
+    str += ") ";
+    if (val.func.ret_ref) {
+      str += "ref ";
+    }
+    str += val.func.ret_type;
+    return str;
   }
   if (val.type == Utils::BOOL) {
     return val.boolean_value ? "true" : "false";
