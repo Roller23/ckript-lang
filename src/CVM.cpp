@@ -669,6 +669,24 @@ class NativeSleep : public NativeFunction {
     }
 };
 
+class NativeSameref : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 2) {
+        ErrorHandler::throw_runtime_error("same_ref() expects two arguments (ref, ref)", line);
+      }
+      if (args[0].heap_reference == -1) {
+        ErrorHandler::throw_runtime_error("same_ref(): first argument is not a reference", line);
+      }
+      if (args[1].heap_reference == -1) {
+        ErrorHandler::throw_runtime_error("same_ref(): second argument is not a reference", line);
+      }
+      Value res(Utils::BOOL);
+      res.boolean_value = args[0].heap_reference == args[1].heap_reference;
+      return res;
+    }
+};
+
 // used only for math functions
 
 REG_FN(NativeSin, sin)
@@ -686,7 +704,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  globals.reserve(41);
+  globals.reserve(42);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)
@@ -728,4 +746,5 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeArraytype, array_type);
   ADD_FN(NativeStacktrace, stack_trace);
   ADD_FN(NativeSleep, sleep);
+  ADD_FN(NativeSameref, same_ref);
 }
