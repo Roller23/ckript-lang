@@ -243,7 +243,8 @@ Node Parser::parse_array_expr() {
   advance(); // skip the (
   array.expr.array_expressions = get_many_expressions(Token::COMMA, Token::RIGHT_PAREN);
   advance(); // skip the )
-  if (curr_token.type == Token::LEFT_BRACKET) {
+  const bool has_size = curr_token.type == Token::LEFT_BRACKET;
+  if (has_size) {
     advance(); // skip the [
     array.expr.array_size = get_expression(Token::RIGHT_BRACKET);
     advance(); // skip the ]
@@ -259,6 +260,12 @@ Node Parser::parse_array_expr() {
   if (curr_token.value == "void") {
     std::string msg = "invalid array expression, cannot hold void values";
     throw_error(msg, curr_token.line);
+  }
+  if (curr_token.value == "obj" || curr_token.value == "arr" || curr_token.value == "func") {
+    if (has_size) {
+      std::string msg = "invalid array expression, cannot define initial size for an array of " + curr_token.value;
+      throw_error(msg, curr_token.line);
+    }
   }
   array.expr.array_type = curr_token.value;
   advance(); // skip the type
