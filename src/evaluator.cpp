@@ -1061,7 +1061,11 @@ void Evaluator::node_to_element(const Node &node, RpnStack &container) {
       elemenets_count = node.expr.array_expressions.size();
     }
     initial_size.number_value = elemenets_count;
+    const Utils::VarType &arr_type = utils.var_lut.at(node.expr.array_type);
     if (node.expr.array_size.size() > 0) {
+      if (arr_type == VarType::OBJ || arr_type == VarType::ARR || arr_type == VarType::FUNC) {
+        throw_error("Array of type " + node.expr.array_type + " cannot have initial size");
+      }
       initial_size = evaluate_expression(node.expr.array_size);
       if (initial_size.type != Utils::INT) {
         throw_error("Number expected, but " + stringify(initial_size) + " found");
@@ -1078,7 +1082,6 @@ void Evaluator::node_to_element(const Node &node, RpnStack &container) {
     if (initial_size.number_value != 0) {
       val.array_values.resize(initial_size.number_value);
     }
-    const Utils::VarType &arr_type = utils.var_lut.at(node.expr.array_type);
     for (auto &v : val.array_values) v.type = arr_type;
     int i = 0;
     for (const auto &node_list : node.expr.array_expressions) {
