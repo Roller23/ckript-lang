@@ -913,6 +913,7 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
     const std::string &msg = stringify(fn_value) + " is not a function or a string";
     throw_error(msg);
   }
+  std::cout << "executing " << fn_value.func_name << std::endl;
   if (fn_value.func.instructions.size() == 0) return {};
   int args_counter = 0;
   for (const auto &arg : call.op.func_call.arguments) {
@@ -944,15 +945,18 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
         throw_error(msg);
       }
       VarType arg_type = arg_val.type;
-      if (arg_type != utils.var_lut.at(fn_value.func.params[i].type_name)) {
+      const auto &expected_type = utils.var_lut.at(fn_value.func.params[i].type_name);
+      if (arg_type != expected_type) {
         Value real_val = arg_val;
         if (arg_val.heap_reference != -1) {
           real_val = get_heap_value(arg_val.heap_reference);
           arg_type = real_val.type;
         }
-        std::string num = std::to_string(i + 1);
-        const std::string &msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
-        throw_error(msg);
+        if (arg_type != expected_type) {
+          std::string num = std::to_string(i + 1);
+          const std::string &msg = "Argument " + num + " expected to be " + fn_value.func.params[i].type_name + ", but " + stringify(real_val) + " given";
+          throw_error(msg);
+        }
       }
       auto &var = (func_evaluator.stack[fn_value.func.params[i].param_name] = std::make_shared<Variable>());
       var->type = fn_value.func.params[i].type_name;
