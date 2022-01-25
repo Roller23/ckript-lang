@@ -13,7 +13,11 @@ func newHashTable = function(void) ref obj {
     func destroy
   );
   int _size = 1137;
-  alloc arr _table = array() [_size] arr;
+  alloc arr _table = array() arr;
+  int _i = 0;
+  for (; _i < _size; _i += 1) {
+    _table += array() int;
+  }
   alloc arr _indexes = array() int;
   alloc obj _hashTable = HashTable(
     _size,
