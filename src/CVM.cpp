@@ -536,6 +536,23 @@ class NativeSplit : public NativeFunction {
     }
 };
 
+class NativeReplace : public NativeFunction {
+  public:
+    Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
+      if (args.size() != 3 || args[0].type != Utils::STR || args[1].type != Utils::STR || args[2].type != Utils::STR) {
+        ErrorHandler::throw_runtime_error("replace() expects three arguments (str, str, str)", line);
+      }
+      const std::size_t index = args[0].string_value.find(args[1].string_value);
+      if (index == std::string::npos) {
+        return args[0];
+      }
+      Value res(Utils::STR);
+      const std::size_t str_len = args[1].string_value.length();
+      res.string_value = args[0].string_value.replace(index, str_len, args[2].string_value);
+      return res;
+    }
+};
+
 class NativeReplaceall : public NativeFunction {
   public:
     Value execute(std::vector<Value> &args, std::int64_t line, CVM &VM) {
@@ -721,7 +738,7 @@ REG_FN(NativeCeil, ceil)
 REG_FN(NativeRound, round)
 
 void CVM::load_stdlib(void) {
-  globals.reserve(43);
+  globals.reserve(44);
   ADD_FN(NativeTimestamp, timestamp)
   ADD_FN(NativeInput, input)
   ADD_FN(NativePrint, print)
@@ -756,6 +773,7 @@ void CVM::load_stdlib(void) {
   ADD_FN(NativeContains, contains)
   ADD_FN(NativeSubstr, substr)
   ADD_FN(NativeSplit, split)
+  ADD_FN(NativeReplace, replace);
   ADD_FN(NativeReplaceall, replace_all);
   ADD_FN(NativeTobytes, to_bytes)
   ADD_FN(NativeFrombytes, from_bytes)
