@@ -913,7 +913,6 @@ RpnElement Evaluator::execute_function(RpnElement &fn, const RpnElement &call) {
     const std::string &msg = stringify(fn_value) + " is not a function or a string";
     throw_error(msg);
   }
-  std::cout << "executing " << fn_value.func_name << std::endl;
   if (fn_value.func.instructions.size() == 0) return {};
   int args_counter = 0;
   for (const auto &arg : call.op.func_call.arguments) {
